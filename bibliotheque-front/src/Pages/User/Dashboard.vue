@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import http from '@/services/axios'
+import http from '@/services/http'
 
 const authStore = useAuthStore()
 const router = useRouter()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import http from '@/services/axios'
+import http from '@/services/http'
 import type { Reference } from '@/types'
 
 const router = useRouter()
@@ -37,12 +37,7 @@ onMounted(fetchReferences)
 </script>
 
 <template>
-  <div class="home">
-    <div class="hero">
-      <h1>Bibliothèque Numérique</h1>
-      <p>Explorez notre collection de références académiques et professionnelles</p>
-    </div>
-
+  <div class="catalogue">
     <div class="filters">
       <input v-model="search" type="text" class="search-input" placeholder="Rechercher un titre, un auteur..." />
     </div>
@@ -80,26 +75,8 @@ onMounted(fetchReferences)
 </template>
 
 <style scoped>
-.home {
+.catalogue {
   max-width: 1200px;
-  margin: 0 auto;
-}
-
-.hero {
-  text-align: center;
-  padding: 2.5rem 1rem;
-}
-
-.hero h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-}
-
-.hero p {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  max-width: 500px;
   margin: 0 auto;
 }
 

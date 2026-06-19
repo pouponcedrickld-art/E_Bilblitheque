@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import http, { fetchCsrfCookie } from '@/services/axios'
+import http, { fetchCsrfCookie } from '@/services/http'
 import type { User } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {

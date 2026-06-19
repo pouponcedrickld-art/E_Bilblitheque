@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import http from '@/services/axios'
+import http from '@/services/http'
 import type { Reference } from '@/types'
 
 const route = useRoute()

@@ -1,13 +1,28 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Toast from 'primevue/toast'
+import GuestLayout from '@/layouts/GuestLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
+
+const route = useRoute()
+
+const layout = computed(() => {
+  if (route.meta.requiresAuth) {
+    return AppLayout
+  }
+  if (route.meta.guestOnly || !route.meta.requiresAuth) {
+    return GuestLayout
+  }
+  return GuestLayout
+})
 </script>
 
 <template>
   <Toast position="top-right" />
-  <AppLayout>
+  <component :is="layout">
     <router-view />
-  </AppLayout>
+  </component>
 </template>
 
 <style>
