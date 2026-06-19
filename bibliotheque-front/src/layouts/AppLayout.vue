@@ -7,299 +7,228 @@ const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-const sidebarOpen = ref(false)
-const isPublicRoute = computed(() => {
-  return !route.meta.requiresAuth
-})
-
+const mobileMenuOpen = ref(false)
 const userMenu = ref(false)
 
 const menuItems = computed(() => {
   if (!authStore.user) return []
 
   const role = authStore.user.role
-  type MenuItem = { label?: string; icon?: string; to?: string; action?: () => void; divider?: boolean }
+  type MenuItem = { label: string; icon?: string; to: string }
   const items: MenuItem[] = []
 
   items.push({ label: 'Tableau de bord', icon: 'pi pi-home', to: authStore.getDashboardPath() })
 
   if (role === 'admin' || role === 'responsable_rh') {
     items.push({ label: 'Références', icon: 'pi pi-book', to: '/catalogue' })
-    items.push({ label: 'Catégories', icon: 'pi pi-tags', to: '/catalogue' })
-    items.push({ label: 'Auteurs', icon: 'pi pi-users', to: '/catalogue' })
-    items.push({ label: 'Éditeurs', icon: 'pi pi-building', to: '/catalogue' })
   }
 
-  if (role === 'responsable_demande' || role === 'user') {
+  if (role === 'responsable_demande') {
+    items.push({ label: 'Demandes', icon: 'pi pi-upload', to: '/demandes/dashboard' })
+  }
+
+  if (role === 'user') {
     items.push({ label: 'Mes dépôts', icon: 'pi pi-upload', to: '/user/dashboard' })
   }
 
-  if (role === 'admin') {
-    items.push({ divider: true })
-    items.push({ label: 'Utilisateurs', icon: 'pi pi-cog', to: '/admin/dashboard' })
-    items.push({ label: 'Logs', icon: 'pi pi-chart-bar', to: '/admin/dashboard' })
-  }
-
-  items.push({ divider: true })
-  items.push({ label: 'Déconnexion', icon: 'pi pi-sign-out', action: handleLogout })
-
   return items
 })
-
-function toggleSidebar() {
-  sidebarOpen.value = !sidebarOpen.value
-}
-
-function closeSidebar() {
-  sidebarOpen.value = false
-}
-
-async function handleLogout() {
-  userMenu.value = false
-  await authStore.logout()
-  closeSidebar()
-  router.push('/')
-}
 
 function getInitials(): string {
   const u = authStore.user
   if (!u) return '?'
   return (u.first_name.charAt(0) + u.last_name.charAt(0)).toUpperCase()
 }
+
+function isActive(to: string): boolean {
+  return route.path === to
+}
+
+function closeMobileMenu() {
+  mobileMenuOpen.value = false
+}
+
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+async function handleLogout() {
+  userMenu.value = false
+  mobileMenuOpen.value = false
+  await authStore.logout()
+  router.push('/')
+}
 </script>
 
 <template>
   <div class="layout">
-    <!-- Sidebar overlay (mobile) -->
-    <div v-if="sidebarOpen" class="sidebar-overlay" @click="closeSidebar" />
+    <header class="navbar">
+      <router-link to="/" class="logo">
+        <span class="logo-icon">📚</span>
+        <span class="logo-text">BiblioNum</span>
+      </router-link>
 
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{ open: sidebarOpen }">
-      <div class="sidebar-header">
-        <span class="sidebar-logo">📚 BiblioNum</span>
-      </div>
+      <nav v-if="authStore.isAuthenticated" class="nav-links">
+        <router-link
+          v-for="item in menuItems"
+          :key="item.label"
+          :to="item.to"
+          class="nav-link"
+          :class="{ active: isActive(item.to) }"
+        >
+          <i :class="item.icon" />
+          <span>{{ item.label }}</span>
+        </router-link>
+      </nav>
 
-      <nav class="sidebar-nav">
+      <nav v-else class="nav-links">
+        <router-link to="/" class="nav-link" :class="{ active: isActive('/') }">Accueil</router-link>
+        <router-link to="/catalogue" class="nav-link" :class="{ active: isActive('/catalogue') }">Catalogue</router-link>
+      </nav>
+
+      <div class="navbar-right">
         <template v-if="authStore.isAuthenticated">
-          <div
-            v-for="item in menuItems"
-            :key="item.label"
-            class="nav-item"
-            :class="{ active: item.to && route.path === item.to }"
-          >
-            <hr v-if="item.divider" class="nav-divider" />
-            <template v-else>
-              <router-link v-if="item.to" :to="item.to" class="nav-link" @click="closeSidebar">
-                <i :class="item.icon" />
-                <span>{{ item.label }}</span>
-              </router-link>
-              <button v-else class="nav-link nav-btn" @click="item.action">
-                <i :class="item.icon" />
-                <span>{{ item.label }}</span>
+          <div class="user-menu-wrapper">
+            <button class="user-btn" @click="userMenu = !userMenu">
+              <div class="user-avatar">{{ getInitials() }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ authStore.user?.first_name }} {{ authStore.user?.last_name }}</span>
+                <span class="user-role">{{ authStore.roleLabel[authStore.user?.role ?? ''] }}</span>
+              </div>
+              <i class="pi pi-chevron-down" />
+            </button>
+            <div v-if="userMenu" class="user-dropdown" @click="userMenu = false">
+              <div class="dropdown-header">
+                <strong>{{ authStore.user?.email }}</strong>
+              </div>
+              <button class="dropdown-item" @click="handleLogout">
+                <i class="pi pi-sign-out" /> Déconnexion
               </button>
-            </template>
+            </div>
           </div>
         </template>
 
         <template v-else>
-          <router-link to="/" class="nav-link" @click="closeSidebar">
-            <i class="pi pi-home" />
-            <span>Accueil</span>
-          </router-link>
-          <router-link to="/catalogue" class="nav-link" @click="closeSidebar">
-            <i class="pi pi-book" />
-            <span>Catalogue</span>
-          </router-link>
-          <hr class="nav-divider" />
-          <router-link to="/login" class="nav-link" @click="closeSidebar">
-            <i class="pi pi-sign-in" />
-            <span>Connexion</span>
-          </router-link>
-          <router-link to="/register" class="nav-link" @click="closeSidebar">
-            <i class="pi pi-user-plus" />
-            <span>Inscription</span>
-          </router-link>
+          <router-link to="/login" class="btn-outline">Connexion</router-link>
+          <router-link to="/register" class="btn-primary">Inscription</router-link>
         </template>
-      </nav>
-    </aside>
 
-    <!-- Main content area -->
-    <div class="main-area">
-      <!-- Top navbar -->
-      <header class="topbar">
-        <button class="hamburger" @click="toggleSidebar" aria-label="Menu">
+        <button class="hamburger" @click="toggleMobileMenu" aria-label="Menu">
           <i class="pi pi-bars" />
         </button>
+      </div>
+    </header>
 
-        <div class="topbar-title">
-          Bibliothèque Numérique
-        </div>
+    <div v-if="mobileMenuOpen" class="mobile-overlay" @click="closeMobileMenu" />
 
-        <div class="topbar-right">
-          <template v-if="authStore.isAuthenticated">
-            <div class="user-menu-wrapper">
-              <button class="user-btn" @click="userMenu = !userMenu">
-                <div class="user-avatar">{{ getInitials() }}</div>
-                <div class="user-info">
-                  <span class="user-name">{{ authStore.user?.first_name }} {{ authStore.user?.last_name }}</span>
-                  <span class="user-role">{{ authStore.roleLabel[authStore.user?.role ?? ''] }}</span>
-                </div>
-                <i class="pi pi-chevron-down" />
-              </button>
-              <div v-if="userMenu" class="user-dropdown" @click="userMenu = false">
-                <div class="dropdown-header">
-                  <strong>{{ authStore.user?.email }}</strong>
-                </div>
-                <button class="dropdown-item" @click="handleLogout">
-                  <i class="pi pi-sign-out" /> Déconnexion
-                </button>
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <router-link to="/login" class="topbar-btn">Connexion</router-link>
-            <router-link to="/register" class="topbar-btn topbar-btn-primary">Inscription</router-link>
-          </template>
-        </div>
-      </header>
+    <div class="mobile-menu" :class="{ open: mobileMenuOpen }">
+      <div class="mobile-menu-header">
+        <span class="logo-icon">📚 BiblioNum</span>
+        <button class="close-btn" @click="closeMobileMenu">&times;</button>
+      </div>
 
-      <!-- Page content -->
-      <main class="content">
-        <slot />
-      </main>
+      <nav class="mobile-nav">
+        <template v-if="authStore.isAuthenticated">
+          <router-link
+            v-for="item in menuItems"
+            :key="item.label"
+            :to="item.to"
+            class="mobile-link"
+            :class="{ active: isActive(item.to) }"
+            @click="closeMobileMenu"
+          >
+            <i :class="item.icon" />
+            <span>{{ item.label }}</span>
+          </router-link>
+          <hr class="divider" />
+          <button class="mobile-link mobile-logout" @click="handleLogout">
+            <i class="pi pi-sign-out" /> Déconnexion
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/" class="mobile-link" @click="closeMobileMenu">Accueil</router-link>
+          <router-link to="/catalogue" class="mobile-link" @click="closeMobileMenu">Catalogue</router-link>
+          <hr class="divider" />
+          <router-link to="/login" class="mobile-link" @click="closeMobileMenu">Connexion</router-link>
+          <router-link to="/register" class="mobile-link" @click="closeMobileMenu">Inscription</router-link>
+        </template>
+      </nav>
     </div>
+
+    <main class="content">
+      <slot />
+    </main>
   </div>
 </template>
 
 <style scoped>
 .layout {
-  display: flex;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Sidebar overlay */
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 99;
-}
-
-/* Sidebar */
-.sidebar {
-  position: fixed;
+.navbar {
+  position: sticky;
   top: 0;
-  left: 0;
-  width: var(--sidebar-width);
-  height: 100vh;
-  background: var(--sidebar-bg);
-  color: var(--sidebar-text);
-  display: flex;
-  flex-direction: column;
   z-index: 100;
-  transition: transform 0.25s ease;
-}
-
-.sidebar-header {
-  height: var(--navbar-height);
-  display: flex;
-  align-items: center;
-  padding: 0 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sidebar-logo {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.02em;
-}
-
-.sidebar-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem 0;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1.25rem;
-  color: var(--sidebar-text);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-}
-
-.nav-link i {
-  width: 1.25rem;
-  text-align: center;
-  font-size: 1rem;
-}
-
-.nav-link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
-
-.nav-item.active .nav-link {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--sidebar-active);
-  border-right: 3px solid var(--sidebar-active);
-}
-
-.nav-divider {
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  margin: 0.5rem 1.25rem;
-}
-
-/* Main area */
-.main-area {
-  flex: 1;
-  margin-left: var(--sidebar-width);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* Top navbar */
-.topbar {
   height: var(--navbar-height);
   background: #fff;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   padding: 0 1.5rem;
-  gap: 1rem;
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  gap: 1.5rem;
 }
 
-.hamburger {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0.25rem;
-}
-
-.topbar-title {
-  font-size: 1rem;
-  font-weight: 600;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
-.topbar-right {
+.logo-icon {
+  font-size: 1.3rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 0.375rem;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.nav-link i {
+  font-size: 0.9rem;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+  background: #f1f5f9;
+}
+
+.nav-link.active {
+  color: var(--primary);
+  background: #eff6ff;
+}
+
+.navbar-right {
   margin-left: auto;
   display: flex;
   align-items: center;
@@ -399,50 +328,154 @@ function getInitials(): string {
   background: var(--bg);
 }
 
-.topbar-btn {
+.btn-outline {
   padding: 0.4rem 1rem;
   border-radius: 0.375rem;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-secondary);
+  border: 1px solid var(--border);
   transition: all 0.15s;
 }
 
-.topbar-btn-primary {
-  background: var(--primary);
-  color: #fff;
+.btn-outline:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-.topbar-btn-primary:hover {
+.btn-primary {
+  padding: 0.4rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--primary);
+  color: #fff;
+  transition: all 0.15s;
+}
+
+.btn-primary:hover {
   background: var(--primary-dark);
 }
 
-/* Content area */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 199;
+}
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.mobile-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: background 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-link i {
+  width: 1.25rem;
+  text-align: center;
+}
+
+.mobile-link:hover {
+  background: var(--bg);
+}
+
+.mobile-link.active {
+  background: #eff6ff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.mobile-logout {
+  color: #dc2626;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.5rem 1.25rem;
+}
+
 .content {
   flex: 1;
   padding: 1.5rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+
   .hamburger {
     display: block;
   }
 
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .sidebar-overlay {
+  .mobile-overlay {
     display: block;
   }
 
-  .main-area {
-    margin-left: 0;
+  .mobile-menu {
+    display: flex;
   }
 
   .user-info {

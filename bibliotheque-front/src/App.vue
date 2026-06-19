@@ -27,14 +27,10 @@ const layout = computed(() => {
 
 <style>
 :root {
-  --sidebar-width: 260px;
   --navbar-height: 60px;
   --primary: #3b82f6;
   --primary-dark: #2563eb;
   --bg: #f8fafc;
-  --sidebar-bg: #1e293b;
-  --sidebar-text: #cbd5e1;
-  --sidebar-active: #3b82f6;
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --border: #e2e8f0;
