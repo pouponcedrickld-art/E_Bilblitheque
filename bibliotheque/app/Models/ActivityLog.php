@@ -16,6 +16,7 @@ class ActivityLog extends Model
         'target_id',
         'ip_address',
         'user_agent',
+        'created_at',
     ];
 
     public $timestamps = false;
