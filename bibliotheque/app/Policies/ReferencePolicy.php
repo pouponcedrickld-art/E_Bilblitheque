@@ -4,63 +4,41 @@ namespace App\Policies;
 
 use App\Models\Reference;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ReferencePolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true; // Visiteurs aussi via API sans auth
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Reference $reference): bool
     {
-        return false;
+        // Publiée = tout le monde voit, brouillon/archivé = seul admin/uploader
+        if ($reference->status === 'published') {
+            return true;
+        }
+
+        return $user->role === 'admin' || $user->id === $reference->uploaded_by;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return false;
+        return in_array($user->role, ['admin', 'responsable_rh', 'responsable_demande', 'user']);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Reference $reference): bool
     {
-        return false;
+        return $user->role === 'admin' || $user->id === $reference->uploaded_by;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Reference $reference): bool
     {
-        return false;
+        return $user->role === 'admin';
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Reference $reference): bool
+    public function download(User $user, Reference $reference): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Reference $reference): bool
-    {
-        return false;
+        return $reference->status === 'published' && $reference->file_path !== null;
     }
 }

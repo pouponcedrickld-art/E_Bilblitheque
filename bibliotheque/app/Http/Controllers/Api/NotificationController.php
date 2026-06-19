@@ -3,47 +3,40 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $notifications = Notification::where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return response()->json([
+            'unread_count' => Notification::where('user_id', $request->user()->id)->where('is_read', false)->count(),
+            'data' => $notifications,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function markAsRead(Request $request, $id)
     {
-        //
+        $notification = Notification::where('user_id', $request->user()->id)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $notification->update(['is_read' => true]);
+
+        return response()->json($notification);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function markAllAsRead(Request $request)
     {
-        //
-    }
+        Notification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json(['message' => 'Toutes les notifications marquées comme lues.']);
     }
 }

@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'responsable.rh' => \App\Http\Middleware\EnsureUserIsResponsableRH::class,
+            'responsable.demande' => \App\Http\Middleware\EnsureUserIsResponsableDemande::class,
+            'log.activity' => \App\Http\Middleware\LogActivity::class,
+        ]);
+
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

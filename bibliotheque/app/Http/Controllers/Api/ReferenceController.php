@@ -3,47 +3,180 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Reference;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReferenceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Reference::with(['category', 'publisher', 'authors', 'keywords', 'uploader']);
+
+        // Non-authentifiés : seulement les références publiées
+        if (!$request->user()) {
+            $query->where('status', 'published');
+        }
+
+        // Filtres
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        if ($request->has('document_type')) {
+            $query->where('document_type', $request->document_type);
+        }
+        if ($request->has('language')) {
+            $query->where('language', $request->language);
+        }
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('subtitle', 'like', "%{$search}%")
+                    ->orWhere('abstract', 'like', "%{$search}%")
+                    ->orWhere('isbn', 'like', "%{$search}%");
+            });
+        }
+
+        // Recherche par mots-clés
+        if ($request->has('keyword')) {
+            $query->whereHas('keywords', function ($q) use ($request) {
+                $q->where('keyword', 'like', "%{$request->keyword}%");
+            });
+        }
+
+        // Recherche par auteur
+        if ($request->has('author')) {
+            $query->whereHas('authors', function ($q) use ($request) {
+                $q->where('first_name', 'like', "%{$request->author}%")
+                    ->orWhere('last_name', 'like', "%{$request->author}%");
+            });
+        }
+
+        return response()->json($query->paginate(15));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'subtitle' => 'nullable|string|max:255',
+            'abstract' => 'nullable|string',
+            'isbn' => 'nullable|string|unique:references',
+            'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
+            'language' => 'in:fr,en,autre',
+            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
+            'category_id' => 'required|exists:categories,id',
+            'publisher_id' => 'nullable|exists:publishers,id',
+            'cover_image' => 'nullable|image|max:2048',
+            'file_path' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'pages' => 'nullable|integer|min:1',
+            'author_ids' => 'nullable|array',
+            'author_ids.*' => 'exists:authors,id',
+            'keywords' => 'nullable|array',
+            'keywords.*' => 'string|max:50',
+        ]);
+
+        $data = $request->except(['cover_image', 'file_path', 'author_ids', 'keywords']);
+
+        // Upload cover
+        if ($request->hasFile('cover_image')) {
+            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+        }
+
+        // Upload file
+        if ($request->hasFile('file_path')) {
+            $data['file_path'] = $request->file('file_path')->store('documents', 'public');
+        }
+
+        $data['uploaded_by'] = $request->user()->id;
+        $data['status'] = 'draft';
+
+        $reference = Reference::create($data);
+
+        // Attacher auteurs
+        if ($request->has('author_ids')) {
+            $reference->authors()->attach($request->author_ids);
+        }
+
+        // Ajouter mots-clés
+        if ($request->has('keywords')) {
+            foreach ($request->keywords as $keyword) {
+                $reference->keywords()->create(['keyword' => $keyword]);
+            }
+        }
+
+        return response()->json($reference->load(['category', 'publisher', 'authors', 'keywords']), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Request $request, Reference $reference)
     {
-        //
+        // Incrémenter les vues
+        $reference->increment('view_count');
+
+        $load = ['category', 'publisher', 'authors', 'keywords', 'uploader'];
+
+        // Charger les stats détaillées seulement si authentifié
+        if ($request->user()) {
+            $load = array_merge($load, ['downloads', 'views']);
+        }
+
+        return response()->json($reference->load($load));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Reference $reference)
     {
-        //
+        $request->validate([
+            'title' => 'string|max:255',
+            'subtitle' => 'nullable|string|max:255',
+            'abstract' => 'nullable|string',
+            'isbn' => 'nullable|string|unique:references,isbn,' . $reference->id,
+            'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
+            'language' => 'in:fr,en,autre',
+            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
+            'category_id' => 'exists:categories,id',
+            'publisher_id' => 'nullable|exists:publishers,id',
+            'status' => 'in:draft,published,archived',
+            'pages' => 'nullable|integer|min:1',
+        ]);
+
+        $reference->update($request->all());
+
+        return response()->json($reference->load(['category', 'publisher', 'authors', 'keywords']));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Reference $reference)
     {
-        //
+        // Supprimer les fichiers
+        if ($reference->cover_image) {
+            Storage::disk('public')->delete($reference->cover_image);
+        }
+        if ($reference->file_path) {
+            Storage::disk('public')->delete($reference->file_path);
+        }
+
+        $reference->delete();
+
+        return response()->json(null, 204);
+    }
+
+    public function download(Request $request, Reference $reference)
+    {
+        if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
+            return response()->json(['message' => 'Fichier non disponible.'], 404);
+        }
+
+        // Log du téléchargement
+        $reference->downloads()->create([
+            'user_id' => $request->user()?->id,
+            'downloaded_at' => now(),
+        ]);
+
+        $reference->increment('download_count');
+
+        return Storage::disk('public')->download($reference->file_path);
     }
 }

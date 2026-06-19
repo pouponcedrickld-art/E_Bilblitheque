@@ -3,47 +3,76 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // Seul admin peut voir tous les logs
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        $query = ActivityLog::with('user')->orderBy('created_at', 'desc');
+
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+        if ($request->has('action')) {
+            $query->where('action', $request->action);
+        }
+        if ($request->has('target_table')) {
+            $query->where('target_table', $request->target_table);
+        }
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        return response()->json($query->paginate(50));
+    }
+
+    public function show(Request $request, ActivityLog $activityLog)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        return response()->json($activityLog->load('user'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Statistiques des activités
      */
-    public function store(Request $request)
+    public function stats(Request $request)
     {
-        //
-    }
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $stats = [
+            'total_logs' => ActivityLog::count(),
+            'today_logs' => ActivityLog::whereDate('created_at', today())->count(),
+            'actions_breakdown' => ActivityLog::selectRaw('action, count(*) as count')
+                ->groupBy('action')
+                ->orderByDesc('count')
+                ->get(),
+            'tables_breakdown' => ActivityLog::selectRaw('target_table, count(*) as count')
+                ->groupBy('target_table')
+                ->orderByDesc('count')
+                ->get(),
+            'most_active_users' => ActivityLog::selectRaw('user_id, count(*) as count')
+                ->with('user:id,first_name,last_name,email')
+                ->groupBy('user_id')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->get(),
+        ];
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json($stats);
     }
 }

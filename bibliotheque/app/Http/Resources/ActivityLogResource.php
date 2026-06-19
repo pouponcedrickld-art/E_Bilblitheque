@@ -7,13 +7,17 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ActivityLogResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'user' => new UserResource($this->whenLoaded('user')),
+            'action' => $this->action,
+            'target_table' => $this->target_table,
+            'target_id' => $this->target_id,
+            'ip_address' => $this->ip_address,
+            'user_agent' => $this->user_agent,
+            'created_at' => $this->created_at,
+        ];
     }
 }

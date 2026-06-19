@@ -4,63 +4,64 @@ namespace App\Policies;
 
 use App\Models\DepositRequest;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class DepositRequestPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, DepositRequest $depositRequest): bool
     {
-        return false;
+        // Admin voit tout
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        // Responsable demande voit celles qui lui sont assignées + celles où il a donné un avis
+        if ($user->role === 'responsable_demande') {
+            return $depositRequest->assigned_manager_id === $user->id
+                || $depositRequest->reviews()->where('reviewer_id', $user->id)->exists();
+        }
+
+        // User voit seulement ses propres demandes
+        return $user->id === $depositRequest->applicant_id;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return false;
+        return in_array($user->role, ['user', 'admin']);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, DepositRequest $depositRequest): bool
     {
-        return false;
+        // Seul le demandeur peut modifier tant que pending
+        return $user->id === $depositRequest->applicant_id
+            && $depositRequest->status === 'pending';
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, DepositRequest $depositRequest): bool
     {
-        return false;
+        return $user->role === 'admin'
+            || ($user->id === $depositRequest->applicant_id && $depositRequest->status === 'pending');
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Responsable : approuver/refuser une demande
      */
-    public function restore(User $user, DepositRequest $depositRequest): bool
+    public function review(User $user, DepositRequest $depositRequest): bool
     {
-        return false;
+        return $user->role === 'responsable_demande'
+            && $depositRequest->assigned_manager_id === $user->id
+            && $depositRequest->status === 'pending';
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Admin : actions de publication/rejet/override/second avis
      */
-    public function forceDelete(User $user, DepositRequest $depositRequest): bool
+    public function adminAction(User $user, DepositRequest $depositRequest): bool
     {
-        return false;
+        return $user->role === 'admin';
     }
 }
