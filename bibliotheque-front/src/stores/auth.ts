@@ -5,6 +5,7 @@ import type { User } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const authChecked = ref(false)
 
   const isAuthenticated = computed(() => user.value !== null)
   const isAdmin = computed(() => user.value?.role === 'admin')
@@ -32,6 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data?.data ?? response.data
     } catch {
       user.value = null
+    } finally {
+      authChecked.value = true
     }
   }
 
@@ -69,6 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
+    authChecked,
     isAuthenticated,
     isAdmin,
     isResponsableRH,

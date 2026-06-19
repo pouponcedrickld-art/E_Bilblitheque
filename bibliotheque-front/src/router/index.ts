@@ -89,7 +89,7 @@ router.beforeEach(async (to: RouteLocationNormalized) => {
     document.title = to.meta.title as string
   }
 
-  if (!authStore.isAuthenticated && authStore.user === null) {
+  if (!authStore.authChecked) {
     await authStore.fetchUser()
   }
 
