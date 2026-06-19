@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -11,6 +12,9 @@ import Select from 'primevue/select'
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const authStore = useAuthStore()
+
+const usersPath = authStore.isAdmin ? '/admin/users' : '/rh/users'
 
 const form = ref({
   first_name: '',
@@ -40,7 +44,7 @@ async function fetchUser() {
     }
   } catch {
     toast.add({ severity: 'error', summary: 'Erreur', detail: "Impossible de charger l'utilisateur", life: 3000 })
-    router.push('/rh/users')
+    router.push(usersPath)
   } finally {
     loading.value = false
   }
@@ -52,7 +56,7 @@ async function submit() {
   try {
     await http.put(`/users/${route.params.id}`, form.value)
     toast.add({ severity: 'success', summary: 'Succès', detail: 'Utilisateur modifié avec succès', life: 3000 })
-    router.push('/rh/users')
+    router.push(usersPath)
   } catch (err: any) {
     if (err.response?.status === 422 && err.response.data?.errors) {
       errors.value = err.response.data.errors
@@ -71,7 +75,7 @@ onMounted(fetchUser)
   <div class="form-page">
     <div class="page-header">
       <h1>Modifier l'utilisateur</h1>
-      <Button label="Retour" icon="pi pi-arrow-left" severity="secondary" @click="router.push('/rh/users')" />
+      <Button label="Retour" icon="pi pi-arrow-left" severity="secondary" @click="router.push(usersPath)" />
     </div>
 
     <Card>
@@ -113,7 +117,7 @@ onMounted(fetchUser)
           </div>
 
           <div class="form-actions">
-            <Button label="Annuler" severity="secondary" @click="router.push('/rh/users')" />
+            <Button label="Annuler" severity="secondary" @click="router.push(usersPath)" />
             <Button label="Enregistrer" icon="pi pi-check" type="submit" :loading="submitting" />
           </div>
         </form>

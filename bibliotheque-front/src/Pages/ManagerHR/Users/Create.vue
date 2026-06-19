@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -11,6 +12,9 @@ import Select from 'primevue/select'
 
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+
+const usersPath = authStore.isAdmin ? '/admin/users' : '/rh/users'
 
 const form = ref({
   first_name: '',
@@ -32,7 +36,7 @@ async function submit() {
   try {
     await http.post('/users', form.value)
     toast.add({ severity: 'success', summary: 'Succès', detail: 'Utilisateur créé avec succès', life: 3000 })
-    router.push('/rh/users')
+    router.push(usersPath)
   } catch (err: any) {
     if (err.response?.status === 422 && err.response.data?.errors) {
       errors.value = err.response.data.errors
@@ -49,7 +53,7 @@ async function submit() {
   <div class="form-page">
     <div class="page-header">
       <h1>Nouvel utilisateur</h1>
-      <Button label="Retour" icon="pi pi-arrow-left" severity="secondary" @click="router.push('/rh/users')" />
+      <Button label="Retour" icon="pi pi-arrow-left" severity="secondary" @click="router.push(usersPath)" />
     </div>
 
     <Card>
@@ -99,7 +103,7 @@ async function submit() {
           </div>
 
           <div class="form-actions">
-            <Button label="Annuler" severity="secondary" @click="router.push('/rh/users')" />
+            <Button label="Annuler" severity="secondary" @click="router.push(usersPath)" />
             <Button label="Créer l'utilisateur" icon="pi pi-check" type="submit" :loading="submitting" />
           </div>
         </form>

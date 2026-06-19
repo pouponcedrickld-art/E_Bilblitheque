@@ -112,6 +112,12 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'admin', title: 'Gestion des utilisateurs' },
     },
     {
+      path: '/admin/users/create',
+      name: 'admin-users-create',
+      component: () => import('@/Pages/ManagerHR/Users/Create.vue'),
+      meta: { requiresAuth: true, role: 'admin', title: 'Nouvel utilisateur' },
+    },
+    {
       path: '/admin/users/:id/edit',
       name: 'admin-users-edit',
       component: () => import('@/Pages/ManagerHR/Users/Edit.vue'),

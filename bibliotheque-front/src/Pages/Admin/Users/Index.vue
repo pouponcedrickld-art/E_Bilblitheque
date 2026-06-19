@@ -103,7 +103,10 @@ onMounted(fetchUsers)
   <div class="page">
     <div class="page-header">
       <h1>Gestion des utilisateurs</h1>
-      <Button icon="pi pi-refresh" label="Actualiser" severity="secondary" @click="fetchUsers" />
+      <div class="header-actions">
+        <Button icon="pi pi-user-plus" label="Nouvel utilisateur" @click="router.push('/admin/users/create')" />
+        <Button icon="pi pi-refresh" label="Actualiser" severity="secondary" @click="fetchUsers" />
+      </div>
     </div>
 
     <div class="toolbar">
