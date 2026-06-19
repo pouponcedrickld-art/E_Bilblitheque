@@ -99,10 +99,10 @@ onMounted(fetchStats)
     <div class="quick-links">
       <h2>Actions rapides</h2>
       <div class="links-grid">
-        <button class="link-card" @click="router.push('/catalogue')">
+        <button class="link-card" @click="router.push('/admin/references/create')">
           <i class="pi pi-plus" /> Nouvelle référence
         </button>
-        <button class="link-card">
+        <button class="link-card" @click="router.push('/admin/users')">
           <i class="pi pi-users" /> Gérer les utilisateurs
         </button>
         <button class="link-card" @click="router.push('/catalogue')">

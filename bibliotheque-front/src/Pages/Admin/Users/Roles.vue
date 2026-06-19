@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
 import DataTable from 'primevue/datatable'
@@ -7,6 +7,9 @@ import Column from 'primevue/column'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 
 interface User {
   id: number
@@ -21,6 +24,17 @@ const toastStore = useToastStore()
 
 const users = ref<User[]>([])
 const loading = ref(false)
+const globalFilter = ref('')
+
+const filteredUsers = computed(() => {
+  if (!globalFilter.value) return users.value
+  const q = globalFilter.value.toLowerCase()
+  return users.value.filter(u =>
+    u.full_name.toLowerCase().includes(q) ||
+    u.email.toLowerCase().includes(q) ||
+    u.role.toLowerCase().includes(q)
+  )
+})
 const saving = ref<Record<number, boolean>>({})
 
 const roleOptions = [
@@ -70,8 +84,15 @@ onMounted(fetchUsers)
       <Button icon="pi pi-refresh" label="Actualiser" severity="secondary" @click="fetchUsers" />
     </div>
 
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+      </IconField>
+    </div>
+
     <DataTable
-      :value="users"
+      :value="filteredUsers"
       :loading="loading"
       striped-rows
       paginator
@@ -112,4 +133,6 @@ onMounted(fetchUsers)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .role-editor { max-width: 14rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 </style>

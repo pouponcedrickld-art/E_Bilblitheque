@@ -3,6 +3,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useToast } from 'primevue/usetoast'
+import Button from 'primevue/button'
+import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Select from 'primevue/select'
 
 const router = useRouter()
 const toast = useToast()

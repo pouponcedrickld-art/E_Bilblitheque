@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToast } from 'primevue/usetoast'
+import Button from 'primevue/button'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Tag from 'primevue/tag'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 
 const toast = useToast()
 
@@ -16,6 +23,17 @@ interface ActivityLog {
 
 const logs = ref<ActivityLog[]>([])
 const loading = ref(true)
+const globalFilter = ref('')
+
+const filteredLogs = computed(() => {
+  if (!globalFilter.value) return logs.value
+  const q = globalFilter.value.toLowerCase()
+  return logs.value.filter(l =>
+    (l.user?.full_name || '').toLowerCase().includes(q) ||
+    l.action.toLowerCase().includes(q) ||
+    l.target_table.toLowerCase().includes(q)
+  )
+})
 
 async function fetchLogs() {
   loading.value = true
@@ -57,7 +75,14 @@ onMounted(fetchLogs)
       <Button label="Actualiser" icon="pi pi-refresh" severity="secondary" @click="fetchLogs" :loading="loading" />
     </div>
 
-    <DataTable :value="logs" :loading="loading" stripedRows paginator :rows="25" :rowsPerPageOptions="[10, 25, 50, 100]" sortField="created_at" :sortOrder="-1">
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+      </IconField>
+    </div>
+
+    <DataTable :value="filteredLogs" :loading="loading" stripedRows paginator :rows="25" :rowsPerPageOptions="[10, 25, 50, 100]" sortField="created_at" :sortOrder="-1">
       <Column field="user" header="Utilisateur" sortable>
         <template #body="{ data }">
           <span v-if="data.user">{{ data.user.full_name }}</span>
@@ -85,4 +110,6 @@ onMounted(fetchLogs)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
 .unknown-user { color: var(--text-secondary); }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 </style>

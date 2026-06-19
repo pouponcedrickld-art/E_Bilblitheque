@@ -20,14 +20,14 @@ export const useNotificationsStore = defineStore('notifications', {
     async markAsRead(id: number) {
       await http.patch(`/notifications/${id}/read`)
       const n = this.items.find(i => i.id === id)
-      if (n) n.read_at = new Date().toISOString()
+      if (n) n.is_read = true
     },
     async markAllAsRead() {
       await http.patch('/notifications/read-all')
-      this.items.forEach(n => { n.read_at = new Date().toISOString() })
+      this.items.forEach(n => { n.is_read = true })
     },
     get unread() {
-      return this.items.filter(n => !n.read_at)
+      return this.items.filter(n => !n.is_read)
     },
   },
 })

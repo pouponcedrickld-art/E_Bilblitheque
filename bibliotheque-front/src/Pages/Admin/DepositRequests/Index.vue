@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
 interface DepositRequest {
@@ -12,13 +15,24 @@ interface DepositRequest {
   title: string
   status: string
   applicant: { full_name?: string; name?: string } | null
-  manager: { full_name?: string; name?: string } | null
+  assigned_manager: { full_name?: string; name?: string } | null
   created_at: string
 }
 
 const router = useRouter()
 const items = ref<DepositRequest[]>([])
 const loading = ref(false)
+const globalFilter = ref('')
+
+const filteredItems = computed(() => {
+  if (!globalFilter.value) return items.value
+  const q = globalFilter.value.toLowerCase()
+  return items.value.filter(r =>
+    r.title.toLowerCase().includes(q) ||
+    (r.status || '').toLowerCase().includes(q) ||
+    (r.applicant?.full_name || r.applicant?.name || '').toLowerCase().includes(q)
+  )
+})
 
 async function fetch() {
   loading.value = true
@@ -40,8 +54,15 @@ onMounted(fetch)
       <Button icon="pi pi-refresh" label="Actualiser" severity="secondary" @click="fetch" />
     </div>
 
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+      </IconField>
+    </div>
+
     <DataTable
-      :value="items"
+      :value="filteredItems"
       :loading="loading"
       striped-rows
       paginator
@@ -63,7 +84,7 @@ onMounted(fetch)
       </Column>
       <Column header="Gestionnaire" sortable>
         <template #body="{ data }">
-          {{ data.manager?.full_name ?? data.manager?.name ?? '-' }}
+          {{ data.assigned_manager?.full_name ?? data.assigned_manager?.name ?? '-' }}
         </template>
       </Column>
       <Column field="created_at" header="Date" sortable>
@@ -98,4 +119,6 @@ onMounted(fetch)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .actions { display: flex; gap: 0.5rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 </style>

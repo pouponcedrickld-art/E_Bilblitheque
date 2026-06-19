@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import type { User } from '@/types'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
+import Button from 'primevue/button'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Tag from 'primevue/tag'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 
 const router = useRouter()
 const toast = useToast()
@@ -13,6 +20,18 @@ const confirm = useConfirm()
 
 const users = ref<User[]>([])
 const loading = ref(true)
+const globalFilter = ref('')
+
+const filteredUsers = computed(() => {
+  if (!globalFilter.value) return users.value
+  const q = globalFilter.value.toLowerCase()
+  return users.value.filter(u =>
+    u.full_name.toLowerCase().includes(q) ||
+    u.email.toLowerCase().includes(q) ||
+    u.role.toLowerCase().includes(q) ||
+    u.status.toLowerCase().includes(q)
+  )
+})
 
 async function fetchUsers() {
   loading.value = true
@@ -81,7 +100,14 @@ onMounted(fetchUsers)
       <Button label="Nouvel utilisateur" icon="pi pi-user-plus" @click="router.push('/rh/users/create')" />
     </div>
 
-    <DataTable :value="users" :loading="loading" stripedRows paginator :rows="15" :rowsPerPageOptions="[10, 15, 25, 50]" sortField="created_at" :sortOrder="-1">
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+      </IconField>
+    </div>
+
+    <DataTable :value="filteredUsers" :loading="loading" stripedRows paginator :rows="15" :rowsPerPageOptions="[10, 15, 25, 50]" sortField="created_at" :sortOrder="-1">
       <Column field="full_name" header="Nom" sortable>
         <template #body="{ data }">
           <span class="user-name">{{ data.full_name }}</span>
@@ -123,4 +149,6 @@ onMounted(fetchUsers)
 .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
 .user-name { font-weight: 500; }
 .actions { display: flex; gap: 0.25rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 </style>

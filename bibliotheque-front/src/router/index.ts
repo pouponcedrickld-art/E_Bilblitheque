@@ -70,6 +70,12 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'admin', title: 'Gestion des références' },
     },
     {
+      path: '/admin/references/create',
+      name: 'admin-references-create',
+      component: () => import('@/Pages/Admin/References/Create.vue'),
+      meta: { requiresAuth: true, role: 'admin', title: 'Nouvelle référence' },
+    },
+    {
       path: '/admin/references/:id/edit',
       name: 'admin-references-edit',
       component: () => import('@/Pages/Admin/References/Edit.vue'),
@@ -104,6 +110,12 @@ const router = createRouter({
       name: 'admin-users',
       component: () => import('@/Pages/Admin/Users/Index.vue'),
       meta: { requiresAuth: true, role: 'admin', title: 'Gestion des utilisateurs' },
+    },
+    {
+      path: '/admin/users/:id/edit',
+      name: 'admin-users-edit',
+      component: () => import('@/Pages/ManagerHR/Users/Edit.vue'),
+      meta: { requiresAuth: true, role: 'admin', title: "Modifier l'utilisateur" },
     },
     {
       path: '/admin/users/roles',
@@ -233,6 +245,24 @@ const router = createRouter({
     },
 
     // ---- Pages communes ----
+    {
+      path: '/help',
+      name: 'help',
+      component: () => import('@/Pages/Visitor/Help.vue'),
+      meta: { title: 'Aide et support' },
+    },
+    {
+      path: '/user/references/:id/read',
+      name: 'user-references-read',
+      component: () => import('@/Pages/User/References/Read.vue'),
+      meta: { requiresAuth: true, title: 'Lecture' },
+    },
+    {
+      path: '/user/references/:id/download',
+      name: 'user-references-download',
+      component: () => import('@/Pages/User/References/Download.vue'),
+      meta: { requiresAuth: true, title: 'Téléchargement' },
+    },
     {
       path: '/forbidden',
       name: 'forbidden',

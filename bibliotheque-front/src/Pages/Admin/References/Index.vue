@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -7,6 +7,10 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
@@ -26,6 +30,30 @@ const confirm = useConfirm()
 
 const references = ref<Reference[]>([])
 const loading = ref(false)
+const globalFilter = ref('')
+const statusFilter = ref('')
+
+const statuses = [
+  { label: 'Tous', value: '' },
+  { label: 'Publié', value: 'published' },
+  { label: 'Brouillon', value: 'draft' },
+  { label: 'Archivé', value: 'archived' },
+]
+
+const filteredRefs = computed(() => {
+  let items = references.value
+  if (statusFilter.value) items = items.filter(r => r.status === statusFilter.value)
+  if (globalFilter.value) {
+    const q = globalFilter.value.toLowerCase()
+    items = items.filter(r =>
+      r.title.toLowerCase().includes(q) ||
+      (r.subtitle || '').toLowerCase().includes(q) ||
+      r.document_type.toLowerCase().includes(q) ||
+      r.status.toLowerCase().includes(q)
+    )
+  }
+  return items
+})
 
 async function fetchReferences() {
   loading.value = true
@@ -66,11 +94,20 @@ onMounted(fetchReferences)
   <div class="page">
     <div class="page-header">
       <h1>Gestion des références</h1>
+      <Button icon="pi pi-plus" label="Nouvelle référence" @click="router.push('/admin/references/create')" />
       <Button icon="pi pi-refresh" label="Actualiser" severity="secondary" @click="fetchReferences" />
     </div>
 
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+      </IconField>
+      <Select v-model="statusFilter" :options="statuses" optionLabel="label" optionValue="value" placeholder="Filtrer par statut" clearable @change="statusFilter.value = $event.value" class="filter-select" />
+    </div>
+
     <DataTable
-      :value="references"
+      :value="filteredRefs"
       :loading="loading"
       striped-rows
       paginator
@@ -131,4 +168,7 @@ onMounted(fetchReferences)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .actions { display: flex; gap: 0.25rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+.search-input { min-width: 260px; }
+.filter-select { min-width: 170px; }
 </style>

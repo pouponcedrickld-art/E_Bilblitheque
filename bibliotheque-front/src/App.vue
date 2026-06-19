@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import GuestLayout from '@/layouts/GuestLayout.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const layout = computed(() => {
   if (route.meta.requiresAuth) {
     return AppLayout
   }
-  if (route.meta.guestOnly || !route.meta.requiresAuth) {
-    return GuestLayout
+  if (route.meta.guestOnly || authStore.isAuthenticated) {
+    return AppLayout
   }
   return GuestLayout
 })

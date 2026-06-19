@@ -15,6 +15,7 @@ const navItems: MenuItem[] = [
   { label: 'Accueil', icon: 'pi pi-home', command: () => go('/') },
   { label: 'Catalogue', icon: 'pi pi-book', command: () => go('/catalogue') },
   { label: 'Recherche', icon: 'pi pi-search', command: () => go('/search') },
+  { label: 'Aide', icon: 'pi pi-question-circle', command: () => go('/help') },
 ]
 </script>
 

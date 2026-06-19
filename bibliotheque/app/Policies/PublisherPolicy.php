@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\Notification;
 use App\Models\User;
 
-class NotificationPolicy
+class PublisherPolicy
 {
     public function viewAny(User $user): bool
     {

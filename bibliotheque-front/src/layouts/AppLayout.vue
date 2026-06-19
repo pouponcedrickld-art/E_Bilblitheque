@@ -88,6 +88,7 @@ const navItems = computed<MenuItem[]>(() => {
         icon: 'pi pi-history',
         command: () => go('/admin/logs'),
       },
+      { label: 'Aide', icon: 'pi pi-question-circle', command: () => go('/help') },
     ]
   }
 
@@ -97,6 +98,7 @@ const navItems = computed<MenuItem[]>(() => {
       { label: 'Catalogue', icon: 'pi pi-book', command: () => go('/catalogue') },
       { label: 'Utilisateurs', icon: 'pi pi-users', command: () => go('/rh/users') },
       { label: 'Activités', icon: 'pi pi-history', command: () => go('/rh/activity-logs') },
+      { label: 'Aide', icon: 'pi pi-question-circle', command: () => go('/help') },
     ]
   }
 
@@ -105,6 +107,7 @@ const navItems = computed<MenuItem[]>(() => {
       dashboard,
       { label: 'Demandes', icon: 'pi pi-inbox', command: () => go('/manager/requests') },
       { label: 'Catalogue', icon: 'pi pi-book', command: () => go('/catalogue') },
+      { label: 'Aide', icon: 'pi pi-question-circle', command: () => go('/help') },
     ]
   }
 
@@ -114,6 +117,7 @@ const navItems = computed<MenuItem[]>(() => {
       { label: 'Catalogue', icon: 'pi pi-book', command: () => go('/catalogue') },
       { label: 'Mes dépôts', icon: 'pi pi-upload', command: () => go('/user/deposits') },
       { label: 'Nouveau dépôt', icon: 'pi pi-plus', command: () => go('/user/deposits/create') },
+      { label: 'Aide', icon: 'pi pi-question-circle', command: () => go('/help') },
     ]
   }
 

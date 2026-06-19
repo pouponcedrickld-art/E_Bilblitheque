@@ -109,7 +109,7 @@ async function requestSecondReview() {
   try {
     const id = route.params.id as string
     await http.post(`/deposit-requests/${id}/second-review`, {
-      manager_id: secondReviewManagerId.value,
+      new_manager_id: secondReviewManagerId.value,
     })
     toastStore.success('Second avis demandé.')
     showSecondReviewForm.value = false
@@ -151,7 +151,7 @@ onMounted(load)
             </div>
             <div class="info-item">
               <span class="info-label">Gestionnaire</span>
-              <span>{{ request.manager?.full_name ?? request.manager?.name ?? '-' }}</span>
+              <span>{{ request.assigned_manager?.full_name ?? request.assigned_manager?.name ?? '-' }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Date</span>

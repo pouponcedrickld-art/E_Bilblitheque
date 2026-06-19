@@ -115,13 +115,13 @@ onMounted(fetchStats)
     <div class="quick-links">
       <h2>Actions rapides</h2>
       <div class="links-grid">
-        <button v-if="authStore.isAdmin || authStore.isResponsableRH" class="link-card" @click="router.push('/catalogue')">
+        <button v-if="authStore.isAdmin || authStore.isResponsableRH" class="link-card" @click="router.push('/admin/references/create')">
           <i class="pi pi-plus" /> Nouvelle référence
         </button>
-        <button v-if="authStore.isAdmin" class="link-card" @click="router.push('/admin/dashboard')">
+        <button v-if="authStore.isAdmin" class="link-card" @click="router.push('/admin/users')">
           <i class="pi pi-users" /> Gérer les utilisateurs
         </button>
-        <button v-if="authStore.isResponsableDemande || authStore.isUser" class="link-card">
+        <button v-if="authStore.isResponsableDemande || authStore.isUser" class="link-card" @click="router.push('/user/deposits/create')">
           <i class="pi pi-upload" /> Faire une demande de dépôt
         </button>
         <button class="link-card" @click="router.push('/catalogue')">

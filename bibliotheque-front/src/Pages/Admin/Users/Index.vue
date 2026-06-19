@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -7,6 +7,9 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
@@ -28,6 +31,18 @@ const confirm = useConfirm()
 
 const users = ref<User[]>([])
 const loading = ref(false)
+const globalFilter = ref('')
+
+const filteredUsers = computed(() => {
+  if (!globalFilter.value) return users.value
+  const q = globalFilter.value.toLowerCase()
+  return users.value.filter(u =>
+    u.full_name.toLowerCase().includes(q) ||
+    u.email.toLowerCase().includes(q) ||
+    u.role.toLowerCase().includes(q) ||
+    u.status.toLowerCase().includes(q)
+  )
+})
 
 const roleSeverity: Record<string, string> = {
   admin: 'danger',
@@ -91,8 +106,15 @@ onMounted(fetchUsers)
       <Button icon="pi pi-refresh" label="Actualiser" severity="secondary" @click="fetchUsers" />
     </div>
 
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+      </IconField>
+    </div>
+
     <DataTable
-      :value="users"
+      :value="filteredUsers"
       :loading="loading"
       striped-rows
       paginator
@@ -129,7 +151,7 @@ onMounted(fetchUsers)
               icon="pi pi-pencil"
               severity="info"
               text
-              @click="router.push(`/rh/users/${data.id}/edit`)"
+              @click="router.push(`/admin/users/${data.id}/edit`)"
             />
             <Button
               :icon="data.status === 'active' ? 'pi pi-ban' : 'pi pi-check'"
@@ -157,4 +179,6 @@ onMounted(fetchUsers)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .actions { display: flex; gap: 0.25rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 </style>
