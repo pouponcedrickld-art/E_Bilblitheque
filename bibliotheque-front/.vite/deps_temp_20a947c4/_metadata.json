@@ -1,0 +1,48 @@
+{
+  "hash": "6d203730",
+  "configHash": "edb64278",
+  "lockfileHash": "67999ffe",
+  "browserHash": "b5273135",
+  "optimized": {
+    "@primevue/themes/aura": {
+      "src": "../../node_modules/@primevue/themes/aura/index.mjs",
+      "file": "@primevue_themes_aura.js",
+      "fileHash": "576cdffd",
+      "needsInterop": false
+    },
+    "pinia": {
+      "src": "../../node_modules/pinia/dist/pinia.mjs",
+      "file": "pinia.js",
+      "fileHash": "443cd741",
+      "needsInterop": false
+    },
+    "primevue/config": {
+      "src": "../../node_modules/primevue/config/index.mjs",
+      "file": "primevue_config.js",
+      "fileHash": "9f3fbfc8",
+      "needsInterop": false
+    },
+    "primevue/toastservice": {
+      "src": "../../node_modules/primevue/toastservice/index.mjs",
+      "file": "primevue_toastservice.js",
+      "fileHash": "2c3b8e06",
+      "needsInterop": false
+    },
+    "vue": {
+      "src": "../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
+      "file": "vue.js",
+      "fileHash": "60b14dfc",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "eventbus-Cij-nrXf": {
+      "file": "eventbus-Cij-nrXf.js",
+      "isDynamicEntry": false
+    },
+    "vue.runtime.esm-bundler-BbnC8aGa": {
+      "file": "vue.runtime.esm-bundler-BbnC8aGa.js",
+      "isDynamicEntry": false
+    }
+  }
+}
