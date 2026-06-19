@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ReferenceResource extends JsonResource
 {
@@ -24,7 +25,9 @@ class ReferenceResource extends JsonResource
             'keywords' => $this->whenLoaded('keywords', fn() => $this->keywords->pluck('keyword')),
             'uploader' => new UserResource($this->whenLoaded('uploader')),
             'cover_image' => $this->cover_image,
+            'cover_url' => $this->cover_image ? Storage::disk('public')->url($this->cover_image) : null,
             'file_path' => $this->file_path,
+            'file_url' => $this->file_path ? Storage::disk('public')->url($this->file_path) : null,
             'pages' => $this->pages,
             'download_count' => $this->download_count,
             'view_count' => $this->view_count,
