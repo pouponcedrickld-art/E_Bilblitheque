@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 import Menubar from 'primevue/menubar'
 import type { MenuItem } from 'primevue/menuitem'
 
 const authStore = useAuthStore()
+const router = useRouter()
+
+function go(to: string) {
+  router.push(to)
+}
 
 const navItems: MenuItem[] = [
-  { label: 'Accueil', icon: 'pi pi-home', to: '/' },
-  { label: 'Catalogue', icon: 'pi pi-book', to: '/catalogue' },
-  { label: 'Recherche', icon: 'pi pi-search', to: '/search' },
+  { label: 'Accueil', icon: 'pi pi-home', command: () => go('/') },
+  { label: 'Catalogue', icon: 'pi pi-book', command: () => go('/catalogue') },
+  { label: 'Recherche', icon: 'pi pi-search', command: () => go('/search') },
 ]
 </script>
 
