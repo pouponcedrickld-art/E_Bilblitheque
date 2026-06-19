@@ -62,7 +62,7 @@ class UserSeeder extends Seeder
 // lorque je clic sur nouveau Journal d'activité je suis rediriger ver une  page blanche 
 // lorque je clic sur nouveau utilisateur je suis rediriger ver une  page blanche 
 // lorque je clic sur nouveau gere les utilisateurs je suis rediriger ver une  page blanche 
-// 
+// je n'ai pas aussi vu le vue qui sont sensé aider les utilisateur du site en cas de difficulté liee a leur compte le cahier de charge lui a confié cette tache 
 // 
 // 
 // concerant l'admin 
@@ -72,13 +72,16 @@ class UserSeeder extends Seeder
 // lorsque l'admin essais de modifier un user il y a un 403 se qui n'est pas conforme a ce que je voudrais pour  mon site 
 //  
 // 
+// cocernant le user standard il m'est impossible de charger un depot 
+//ajoute un fonctionne de rechercher complete (filtre divers et rechercher) sur ce tableau  
 // 
 // 
 // 
 // 
 // 
+// partout ou se trouve des tableau met moi une recherche et un filtre par divers element relative a cette  page 
 // 
 // 
 // 
-// 
-// 
+
+
