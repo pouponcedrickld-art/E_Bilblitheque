@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 import GuestLayout from '@/layouts/GuestLayout.vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 
@@ -20,6 +21,7 @@ const layout = computed(() => {
 
 <template>
   <Toast position="top-right" />
+  <ConfirmDialog />
   <component :is="layout">
     <router-view />
   </component>

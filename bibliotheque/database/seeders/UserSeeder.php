@@ -54,3 +54,31 @@ class UserSeeder extends Seeder
         User::factory(10)->create();
     }
 }
+
+
+
+
+////concernant le rh 
+// lorque je clic sur nouveau Journal d'activité je suis rediriger ver une  page blanche 
+// lorque je clic sur nouveau utilisateur je suis rediriger ver une  page blanche 
+// lorque je clic sur nouveau gere les utilisateurs je suis rediriger ver une  page blanche 
+// 
+// 
+// 
+// concerant l'admin 
+// pourla nav bar elle semble bouger elle n'est pas la même dans toutes les vue (il y a aussi ce bug chez le users standars )
+// 
+// lorsque je clic sur nouvlle reference je ne recoit pas le formulaire mais jes usi redireger vers la page d'afffiche de formulaire se qui n'est pasl'effet voulu 
+// lorsque l'admin essais de modifier un user il y a un 403 se qui n'est pas conforme a ce que je voudrais pour  mon site 
+//  
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 

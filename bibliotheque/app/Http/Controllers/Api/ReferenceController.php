@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ReferenceResource;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -56,7 +57,7 @@ class ReferenceController extends Controller
             });
         }
 
-        return response()->json($query->paginate(15));
+        return ReferenceResource::collection($query->paginate(15));
     }
 
     public function store(Request $request)
@@ -109,7 +110,7 @@ class ReferenceController extends Controller
             }
         }
 
-        return response()->json($reference->load(['category', 'publisher', 'authors', 'keywords']), 201);
+        return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
     }
 
     public function show(Request $request, Reference $reference)
@@ -124,7 +125,7 @@ class ReferenceController extends Controller
             $load = array_merge($load, ['downloads', 'views']);
         }
 
-        return response()->json($reference->load($load));
+        return new ReferenceResource($reference->load($load));
     }
 
     public function update(Request $request, Reference $reference)
@@ -145,7 +146,7 @@ class ReferenceController extends Controller
 
         $reference->update($request->all());
 
-        return response()->json($reference->load(['category', 'publisher', 'authors', 'keywords']));
+        return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
     }
 
     public function destroy(Reference $reference)

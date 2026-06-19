@@ -47,12 +47,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/references/{reference}', [ReferenceController::class, 'destroy']);
 
     // Dépôt (tout utilisateur connecté)
+    Route::get('/deposit-requests', [DepositRequestController::class, 'index']);
+    Route::get('/deposit-requests/{depositRequest}', [DepositRequestController::class, 'show']);
     Route::apiResource('deposit-requests', DepositRequestController::class)->except(['index', 'show']);
+
+    // Profil utilisateur (tout utilisateur connecté)
+    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
 
     // --- Admin + Responsable Demande ---
     Route::middleware('responsable.demande')->group(function () {
-        Route::get('/deposit-requests', [DepositRequestController::class, 'index']);
-        Route::get('/deposit-requests/{depositRequest}', [DepositRequestController::class, 'show']);
         Route::post('/deposit-requests/{depositRequest}/approve-manager', [DepositRequestController::class, 'approveByManager']);
         Route::post('/deposit-requests/{depositRequest}/reject-manager', [DepositRequestController::class, 'rejectByManager']);
     });

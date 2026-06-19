@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -78,5 +79,42 @@ class AuthController extends Controller
                 'notifications',
             ]))
         );
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $rules = [
+            'first_name' => 'string|max:255',
+            'last_name' => 'string|max:255',
+            'phone' => 'nullable|string|max:20',
+        ];
+
+        if ($request->has('current_password') || $request->has('new_password')) {
+            $rules['current_password'] = 'required_with:new_password|string';
+            $rules['new_password'] = 'required_with:current_password|string|min:6|regex:/[A-Z]/|regex:/[0-9]/|confirmed';
+
+            $request->validate($rules);
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'message' => 'Mot de passe actuel incorrect.',
+                    'errors' => ['current_password' => ['Le mot de passe actuel est incorrect.']],
+                ], 422);
+            }
+
+            $user->password = Hash::make($request->new_password);
+        } else {
+            $request->validate($rules);
+        }
+
+        $user->fill($request->only(['first_name', 'last_name', 'phone']));
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès.',
+            'user' => new UserResource($user),
+        ]);
     }
 }

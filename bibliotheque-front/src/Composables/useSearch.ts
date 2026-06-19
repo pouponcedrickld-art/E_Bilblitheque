@@ -11,6 +11,7 @@ export function useSearch() {
     document_type: undefined as string | undefined,
     language: undefined as string | undefined,
     keyword: undefined as string | undefined,
+    author: undefined as string | undefined,
   })
 
   async function search() {
@@ -22,6 +23,7 @@ export function useSearch() {
       if (filters.value.document_type) params.document_type = filters.value.document_type
       if (filters.value.language) params.language = filters.value.language
       if (filters.value.keyword) params.keyword = filters.value.keyword
+      if (filters.value.author) params.author = filters.value.author
       const res = await http.get('/references', { params })
       results.value = res.data?.data ?? res.data ?? []
     } finally {
@@ -31,7 +33,7 @@ export function useSearch() {
 
   function reset() {
     query.value = ''
-    filters.value = { category_id: undefined, document_type: undefined, language: undefined, keyword: undefined }
+    filters.value = { category_id: undefined, document_type: undefined, language: undefined, keyword: undefined, author: undefined }
     results.value = []
   }
 

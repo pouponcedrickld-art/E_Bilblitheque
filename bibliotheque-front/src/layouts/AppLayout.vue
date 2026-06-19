@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useConfirm } from 'primevue/useconfirm'
 import Menubar from 'primevue/menubar'
 import Avatar from 'primevue/avatar'
 import Menu from 'primevue/menu'
@@ -9,7 +10,7 @@ import type { MenuItem } from 'primevue/menuitem'
 
 const authStore = useAuthStore()
 const router = useRouter()
-// const route = useRoute()
+const confirm = useConfirm()
 
 const userMenu = ref<InstanceType<typeof Menu>>()
 const userMenuItems = ref<MenuItem[]>([
@@ -24,9 +25,21 @@ const userMenuItems = ref<MenuItem[]>([
   {
     label: 'Déconnexion',
     icon: 'pi pi-sign-out',
-    command: async () => {
-      await authStore.logout()
-      router.push('/')
+    command: (event) => {
+      confirm.require({
+        target: event.currentTarget,
+        message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+        header: 'Confirmation de déconnexion',
+        icon: 'pi pi-sign-out',
+        rejectLabel: 'Annuler',
+        acceptLabel: 'Se déconnecter',
+        rejectClass: 'p-button-text p-button-sm',
+        acceptClass: 'p-button-danger p-button-sm',
+        accept: async () => {
+          await authStore.logout()
+          router.push('/')
+        },
+      })
     },
   },
 ])
