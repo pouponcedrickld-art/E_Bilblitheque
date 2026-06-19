@@ -25,6 +25,7 @@ Route::get('/publishers', [PublisherController::class, 'index']);
 Route::get('/publishers/{publisher}', [PublisherController::class, 'show']);
 Route::get('/references', [ReferenceController::class, 'index']);
 Route::get('/references/{reference}', [ReferenceController::class, 'show']);
+Route::get('/references/{reference}/read', [ReferenceController::class, 'read']);
 
 // Routes protégées par session Sanctum
 Route::middleware('auth:sanctum')->group(function () {

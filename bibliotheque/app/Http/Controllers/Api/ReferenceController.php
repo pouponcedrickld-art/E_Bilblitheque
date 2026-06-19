@@ -163,6 +163,31 @@ class ReferenceController extends Controller
         return response()->json(null, 204);
     }
 
+    public function read(Request $request, Reference $reference)
+    {
+        if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
+            return response()->json(['message' => 'Document non disponible.'], 404);
+        }
+
+        // Les visiteurs ne peuvent lire que les références publiées
+        if (!$request->user() && $reference->status !== 'published') {
+            return response()->json(['message' => 'Document non disponible.'], 404);
+        }
+
+        // Log de consultation
+        $reference->views()->create([
+            'user_id' => $request->user()?->id,
+            'viewed_at' => now(),
+        ]);
+
+        $reference->increment('view_count');
+
+        $path = Storage::disk('public')->path($reference->file_path);
+        $mime = Storage::disk('public')->mimeType($reference->file_path);
+
+        return response()->file($path, ['Content-Type' => $mime]);
+    }
+
     public function download(Request $request, Reference $reference)
     {
         if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
