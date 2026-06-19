@@ -1,20 +1,28 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import Menubar from 'primevue/menubar'
+import type { MenuItem } from 'primevue/menuitem'
 
 const authStore = useAuthStore()
+
+const navItems: MenuItem[] = [
+  { label: 'Accueil', icon: 'pi pi-home', to: '/' },
+  { label: 'Catalogue', icon: 'pi pi-book', to: '/catalogue' },
+  { label: 'Recherche', icon: 'pi pi-search', to: '/search' },
+]
 </script>
 
 <template>
   <div class="guest-layout">
-    <header class="topbar">
-      <router-link to="/" class="logo">📚 BiblioNum</router-link>
+    <Menubar :model="navItems" class="guest-menubar">
+      <template #start>
+        <router-link to="/" class="logo">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">BiblioNum</span>
+        </router-link>
+      </template>
 
-      <nav class="nav-links">
-        <router-link to="/" class="nav-link">Accueil</router-link>
-        <router-link to="/catalogue" class="nav-link">Catalogue</router-link>
-      </nav>
-
-      <div class="topbar-right">
+      <template #end>
         <template v-if="authStore.isAuthenticated">
           <router-link :to="authStore.getDashboardPath()" class="btn btn-outline">
             Mon espace
@@ -24,8 +32,8 @@ const authStore = useAuthStore()
           <router-link to="/login" class="btn btn-outline">Connexion</router-link>
           <router-link to="/register" class="btn btn-primary">Inscription</router-link>
         </template>
-      </div>
-    </header>
+      </template>
+    </Menubar>
 
     <main class="content">
       <slot />
@@ -40,48 +48,29 @@ const authStore = useAuthStore()
   flex-direction: column;
 }
 
-.topbar {
-  height: var(--navbar-height);
-  background: #fff;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 1.5rem;
-  gap: 2rem;
+.guest-menubar {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 100;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  background: #fff;
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
+  margin-right: 1rem;
 }
 
-.nav-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.nav-link {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  padding: 0.3rem 0.5rem;
-  border-radius: 0.25rem;
-  transition: color 0.15s;
-}
-
-.nav-link:hover {
-  color: var(--primary);
-}
-
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.logo-icon {
+  font-size: 1.3rem;
 }
 
 .btn {
@@ -92,6 +81,7 @@ const authStore = useAuthStore()
   cursor: pointer;
   transition: all 0.15s;
   border: none;
+  white-space: nowrap;
 }
 
 .btn-outline {
@@ -117,11 +107,5 @@ const authStore = useAuthStore()
 .content {
   flex: 1;
   padding: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .nav-links {
-    display: none;
-  }
 }
 </style>
