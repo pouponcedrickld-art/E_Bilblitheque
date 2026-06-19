@@ -207,7 +207,7 @@ class DepositRequestController extends Controller
             // Créer la référence
             $reference = Reference::create([
                 'title' => $depositRequest->title,
-                'description' => $depositRequest->description,
+                'abstract' => $depositRequest->description,
                 'file_path' => $depositRequest->proposed_file,
                 'uploaded_by' => $depositRequest->applicant_id,
                 'status' => 'published',
@@ -295,7 +295,7 @@ class DepositRequestController extends Controller
 
             $reference = Reference::create([
                 'title' => $depositRequest->title,
-                'description' => $depositRequest->description,
+                'abstract' => $depositRequest->description,
                 'file_path' => $depositRequest->proposed_file,
                 'uploaded_by' => $depositRequest->applicant_id,
                 'status' => 'published',
