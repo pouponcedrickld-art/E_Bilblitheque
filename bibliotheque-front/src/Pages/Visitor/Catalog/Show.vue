@@ -89,7 +89,7 @@ onMounted(fetchReference)
       <div v-if="reference.keywords?.length" class="detail-section">
         <strong>Mots-clés :</strong>
         <div class="keywords">
-          <span v-for="kw in reference.keywords" :key="kw" class="keyword">{{ kw }}</span>
+          <span v-for="kw in reference.keywords" :key="kw.id" class="keyword">{{ kw.name }}</span>
         </div>
       </div>
     </div>

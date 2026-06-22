@@ -26,6 +26,7 @@ class Reference extends Model
         'download_count',
         'view_count',
         'status',
+        'is_featured',
     ];
 
     protected function casts(): array
@@ -35,6 +36,7 @@ class Reference extends Model
             'pages' => 'integer',
             'download_count' => 'integer',
             'view_count' => 'integer',
+            'is_featured' => 'boolean',
         ];
     }
 
@@ -61,7 +63,7 @@ class Reference extends Model
 
     public function keywords()
     {
-        return $this->hasMany(ReferenceKeyword::class);
+        return $this->belongsToMany(Keyword::class, 'keyword_reference');
     }
 
     public function downloads()

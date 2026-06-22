@@ -30,7 +30,7 @@ class DepositRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->paginate(15));
+        return response()->json($query->latest()->paginate(15));
     }
 
     public function store(Request $request)
@@ -122,12 +122,13 @@ class DepositRequestController extends Controller
     {
         $request->validate(['justification' => 'nullable|string']);
 
-        if ($depositRequest->status !== 'pending') {
+        if (!in_array($depositRequest->status, ['pending', 'second_review'])) {
             return response()->json(['message' => 'Cette demande ne peut plus être modifiée.'], 422);
         }
 
         DB::transaction(function () use ($request, $depositRequest) {
-            // Créer l'avis
+            $wasSecondReview = $depositRequest->status === 'second_review';
+
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
                 'reviewer_id' => $request->user()->id,
@@ -138,12 +139,11 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'approved_by_manager']);
 
-            // Notifier l'admin
             $admins = \App\Models\User::where('role', 'admin')->where('status', 'active')->get();
             foreach ($admins as $admin) {
                 Notification::create([
                     'user_id' => $admin->id,
-                    'title' => 'Demande validée par responsable',
+                    'title' => 'Demande validée par responsable' . ($wasSecondReview ? ' (second avis)' : ''),
                     'message' => "La demande \"{$depositRequest->title}\" a été validée par le responsable. En attente de publication.",
                     'type' => 'validation',
                 ]);
@@ -160,11 +160,13 @@ class DepositRequestController extends Controller
     {
         $request->validate(['justification' => 'required|string|min:10']);
 
-        if ($depositRequest->status !== 'pending') {
+        if (!in_array($depositRequest->status, ['pending', 'second_review'])) {
             return response()->json(['message' => 'Cette demande ne peut plus être modifiée.'], 422);
         }
 
         DB::transaction(function () use ($request, $depositRequest) {
+            $wasSecondReview = $depositRequest->status === 'second_review';
+
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
                 'reviewer_id' => $request->user()->id,
@@ -175,12 +177,11 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'rejected_by_manager']);
 
-            // Notifier l'admin
             $admins = \App\Models\User::where('role', 'admin')->where('status', 'active')->get();
             foreach ($admins as $admin) {
                 Notification::create([
                     'user_id' => $admin->id,
-                    'title' => 'Demande refusée par responsable',
+                    'title' => 'Demande refusée par responsable' . ($wasSecondReview ? ' (second avis)' : ''),
                     'message' => "La demande \"{$depositRequest->title}\" a été refusée. Justification : " . substr($request->justification, 0, 100) . '...',
                     'type' => 'validation',
                 ]);

@@ -45,7 +45,7 @@ class ReferenceController extends Controller
         // Recherche par mots-clés
         if ($request->has('keyword')) {
             $query->whereHas('keywords', function ($q) use ($request) {
-                $q->where('keyword', 'like', "%{$request->keyword}%");
+                $q->where('name', 'like', "%{$request->keyword}%");
             });
         }
 
@@ -58,6 +58,18 @@ class ReferenceController extends Controller
         }
 
         return ReferenceResource::collection($query->paginate(15));
+    }
+
+    public function featured()
+    {
+        $references = Reference::with(['category', 'authors', 'keywords'])
+            ->where('is_featured', true)
+            ->where('status', 'published')
+            ->latest()
+            ->take(6)
+            ->get();
+
+        return ReferenceResource::collection($references);
     }
 
     public function store(Request $request)
@@ -77,11 +89,12 @@ class ReferenceController extends Controller
             'pages' => 'nullable|integer|min:1',
             'author_ids' => 'nullable|array',
             'author_ids.*' => 'exists:authors,id',
-            'keywords' => 'nullable|array',
-            'keywords.*' => 'string|max:50',
+            'keyword_ids' => 'nullable|array',
+            'keyword_ids.*' => 'exists:keywords,id',
+            'is_featured' => 'boolean',
         ]);
 
-        $data = $request->except(['cover_image', 'file_path', 'author_ids', 'keywords']);
+        $data = $request->except(['cover_image', 'file_path', 'author_ids', 'keyword_ids']);
 
         // Upload cover
         if ($request->hasFile('cover_image')) {
@@ -103,11 +116,9 @@ class ReferenceController extends Controller
             $reference->authors()->attach($request->author_ids);
         }
 
-        // Ajouter mots-clés
-        if ($request->has('keywords')) {
-            foreach ($request->keywords as $keyword) {
-                $reference->keywords()->create(['keyword' => $keyword]);
-            }
+        // Attacher mots-clés
+        if ($request->has('keyword_ids')) {
+            $reference->keywords()->attach($request->keyword_ids);
         }
 
         return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
@@ -142,9 +153,17 @@ class ReferenceController extends Controller
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'in:draft,published,archived',
             'pages' => 'nullable|integer|min:1',
+            'keyword_ids' => 'nullable|array',
+            'keyword_ids.*' => 'exists:keywords,id',
+            'is_featured' => 'boolean',
         ]);
 
-        $reference->update($request->all());
+        $data = $request->except(['keyword_ids']);
+        $reference->update($data);
+
+        if ($request->has('keyword_ids')) {
+            $reference->keywords()->sync($request->keyword_ids);
+        }
 
         return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
     }

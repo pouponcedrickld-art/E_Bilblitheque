@@ -144,7 +144,7 @@ onMounted(fetchCategories)
             <div class="card-meta">
               <span v-if="ref.publication_year" class="meta-item"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
               <span v-if="ref.language" class="meta-item"><i class="pi pi-globe" /> {{ ref.language }}</span>
-              <span v-if="ref.keywords?.length" class="meta-item"><i class="pi pi-tag" /> {{ ref.keywords.slice(0, 3).join(', ') }}{{ ref.keywords.length > 3 ? '...' : '' }}</span>
+              <span v-if="ref.keywords?.length" class="meta-item"><i class="pi pi-tag" /> {{ ref.keywords.map(k => k.name).slice(0, 3).join(', ') }}{{ ref.keywords.length > 3 ? '...' : '' }}</span>
             </div>
           </div>
         </div>

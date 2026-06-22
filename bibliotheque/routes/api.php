@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\DownloadController;
 use App\Http\Controllers\Api\ViewController;
+use App\Http\Controllers\Api\KeywordController;
+use App\Http\Controllers\Api\StatsController;
 
 // Routes publiques (accessibles sans authentification)
 Route::post('/register', [AuthController::class, 'register']);
@@ -24,8 +26,11 @@ Route::get('/authors/{author}', [AuthorController::class, 'show']);
 Route::get('/publishers', [PublisherController::class, 'index']);
 Route::get('/publishers/{publisher}', [PublisherController::class, 'show']);
 Route::get('/references', [ReferenceController::class, 'index']);
-Route::get('/references/{reference}', [ReferenceController::class, 'show']);
+Route::get('/references/featured', [ReferenceController::class, 'featured']);
+Route::get('/references/{reference}', [ReferenceController::class, 'show'])->whereNumber('reference');
 Route::get('/references/{reference}/read', [ReferenceController::class, 'read']);
+Route::get('/keywords', [KeywordController::class, 'index']);
+Route::get('/stats', [StatsController::class, 'index']);
 
 // Routes protégées par session Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -104,4 +109,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/views', [ViewController::class, 'index']);
     Route::get('/views/stats', [ViewController::class, 'stats']);
     Route::get('/views/{view}', [ViewController::class, 'show']);
+
+    // Gestion des mots-clés
+    Route::post('/keywords', [KeywordController::class, 'store']);
+    Route::delete('/keywords/{keyword}', [KeywordController::class, 'destroy']);
 });

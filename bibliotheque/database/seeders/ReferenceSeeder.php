@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Reference;
 use App\Models\Author;
+use App\Models\Keyword;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ReferenceSeeder extends Seeder
 {
@@ -17,12 +19,19 @@ class ReferenceSeeder extends Seeder
             $reference->authors()->attach($authors);
 
             // Ajouter 2 à 5 mots-clés
-            $keywords = ['php', 'laravel', 'programmation', 'web', 'database', 'api', 'frontend', 'backend', 'devops', 'cloud'];
-            $selectedKeywords = array_rand(array_flip($keywords), rand(2, 5));
+            $keywordNames = ['php', 'laravel', 'programmation', 'web', 'database', 'api', 'frontend', 'backend', 'devops', 'cloud'];
+            $selectedNames = array_rand(array_flip($keywordNames), rand(2, 5));
 
-            foreach ((array) $selectedKeywords as $keyword) {
-                $reference->keywords()->create(['keyword' => $keyword]);
+            $keywordIds = [];
+            foreach ((array) $selectedNames as $name) {
+                $keyword = Keyword::firstOrCreate(
+                    ['name' => $name],
+                    ['slug' => Str::slug($name)]
+                );
+                $keywordIds[] = $keyword->id;
             }
+
+            $reference->keywords()->attach($keywordIds);
         });
     }
 }

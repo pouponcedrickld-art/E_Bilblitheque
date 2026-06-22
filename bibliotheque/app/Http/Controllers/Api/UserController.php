@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\PasswordResetNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -130,9 +132,14 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
-        // Seul admin peut supprimer, et ne peut pas se supprimer lui-même
-        if ($request->user()->role !== 'admin') {
+        // Admin et RH peuvent supprimer, mais pas eux-mêmes
+        if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
             return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        // RH ne peut pas supprimer un admin
+        if ($request->user()->role === 'responsable_rh' && $user->role === 'admin') {
+            return response()->json(['message' => 'Vous ne pouvez pas supprimer un administrateur.'], 403);
         }
 
         if ($request->user()->id === $user->id) {
@@ -185,18 +192,17 @@ class UserController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        $newPassword = \Illuminate\Support\Str::random(12);
+        $newPassword = Str::random(12);
 
         $user->update([
             'password' => Hash::make($newPassword),
             'email_verified_at' => null,
         ]);
 
-        // TODO: Envoyer email avec le nouveau mot de passe
+        $user->notify(new PasswordResetNotification($newPassword));
 
         return response()->json([
-            'message' => 'Mot de passe réinitialisé.',
-            'temporary_password' => $newPassword, // À retirer en production, envoyer par email
+            'message' => 'Mot de passe réinitialisé. Un email a été envoyé à l\'utilisateur.',
         ]);
     }
 }

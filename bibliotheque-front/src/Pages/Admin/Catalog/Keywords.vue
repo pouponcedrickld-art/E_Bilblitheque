@@ -5,48 +5,75 @@ import { useToastStore } from '@/stores/toast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Chip from 'primevue/chip'
+import ConfirmDialog from 'primevue/confirmdialog'
+import { useConfirm } from 'primevue/useconfirm'
 import Message from 'primevue/message'
 
 const toastStore = useToastStore()
+const confirm = useConfirm()
 
-const keywords = ref<string[]>([])
+interface Keyword {
+  id: number
+  name: string
+  slug: string
+  references_count?: number
+}
+
+const keywords = ref<Keyword[]>([])
 const loading = ref(false)
 const newKeyword = ref('')
 
 async function fetchKeywords() {
   loading.value = true
   try {
-    const res = await http.get('/references?per_page=100')
-    const refs = res.data?.data ?? res.data ?? []
-    const allKeywords = new Set<string>()
-    for (const ref of refs) {
-      if (ref.keywords && Array.isArray(ref.keywords)) {
-        for (const kw of ref.keywords) {
-          if (kw) allKeywords.add(kw)
-        }
-      }
-    }
-    keywords.value = Array.from(allKeywords).sort()
+    const res = await http.get('/keywords')
+    keywords.value = res.data?.data ?? res.data ?? []
+  } catch {
+    keywords.value = []
   } finally {
     loading.value = false
   }
 }
 
 async function addKeyword() {
-  const kw = newKeyword.value.trim()
-  if (!kw || keywords.value.includes(kw)) {
+  const name = newKeyword.value.trim()
+  if (!name) return
+
+  if (keywords.value.some((k) => k.name.toLowerCase() === name.toLowerCase())) {
+    toastStore.warn('Ce mot-clé existe déjà.')
     newKeyword.value = ''
     return
   }
-  keywords.value.push(kw)
-  keywords.value.sort()
-  newKeyword.value = ''
-  toastStore.success(`Mot-clé "${kw}" ajouté à la liste.`)
+
+  try {
+    const res = await http.post('/keywords', { name })
+    keywords.value.push(res.data)
+    keywords.value.sort((a, b) => a.name.localeCompare(b.name))
+    newKeyword.value = ''
+    toastStore.success(`Mot-clé "${name}" ajouté.`)
+  } catch (err: any) {
+    toastStore.error(err.response?.data?.message || 'Erreur lors de l\'ajout.')
+  }
 }
 
-function removeKeyword(kw: string) {
-  keywords.value = keywords.value.filter((k) => k !== kw)
-  toastStore.success(`Mot-clé "${kw}" retiré.`)
+function confirmRemove(kw: Keyword) {
+  confirm.require({
+    message: `Supprimer le mot-clé "${kw.name}" ?${kw.references_count ? ` (${kw.references_count} référence(s) liée(s))` : ''}`,
+    header: 'Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: () => removeKeyword(kw),
+  })
+}
+
+async function removeKeyword(kw: Keyword) {
+  try {
+    await http.delete(`/keywords/${kw.id}`)
+    keywords.value = keywords.value.filter((k) => k.id !== kw.id)
+    toastStore.success(`Mot-clé "${kw.name}" supprimé.`)
+  } catch {
+    toastStore.error('Erreur lors de la suppression.')
+  }
 }
 
 onMounted(fetchKeywords)
@@ -60,7 +87,7 @@ onMounted(fetchKeywords)
     </div>
 
     <Message severity="info" :closable="false" class="mb-3">
-      Les mots-clés sont extraits des références existantes. Ajoutez ou supprimez des mots-clés pour les référencer dans le catalogue.
+      Gérez la liste des mots-clés utilisés dans le catalogue. Les mots-clés peuvent être attachés aux références lors de leur création ou modification.
     </Message>
 
     <div class="add-form">
@@ -78,12 +105,15 @@ onMounted(fetchKeywords)
     <div v-else-if="!keywords.length" class="empty">Aucun mot-clé trouvé.</div>
 
     <div v-else class="keywords-list">
-      <div v-for="kw in keywords" :key="kw" class="keyword-item">
-        <Chip :label="kw" />
-        <Button icon="pi pi-times" severity="danger" text size="small" @click="removeKeyword(kw)" />
+      <div v-for="kw in keywords" :key="kw.id" class="keyword-item">
+        <Chip :label="kw.name" />
+        <span v-if="kw.references_count" class="ref-count">{{ kw.references_count }} réf.</span>
+        <Button icon="pi pi-times" severity="danger" text size="small" @click="confirmRemove(kw)" />
       </div>
     </div>
   </div>
+
+  <ConfirmDialog />
 </template>
 
 <style scoped>
@@ -95,6 +125,7 @@ onMounted(fetchKeywords)
 .keyword-input { flex: 1; }
 .loading { text-align: center; padding: 2rem; color: var(--text-secondary); }
 .empty { text-align: center; padding: 2rem; color: var(--text-secondary); }
-.keywords-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.keyword-item { display: flex; align-items: center; gap: 0.15rem; }
+.keywords-list { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.keyword-item { display: flex; align-items: center; gap: 0.35rem; }
+.ref-count { font-size: 0.75rem; color: var(--text-secondary); }
 </style>

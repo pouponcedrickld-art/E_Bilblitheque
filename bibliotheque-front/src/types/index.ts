@@ -54,13 +54,14 @@ export interface Reference {
   category?: Category
   publisher?: Publisher
   authors?: Author[]
-  keywords?: string[]
+  keywords?: Keyword[]
   cover_image: string | null
   file_path: string | null
   pages: number | null
   download_count: number
   view_count: number
   status: 'draft' | 'published' | 'archived'
+  is_featured?: boolean
   created_at: string
   updated_at: string
 }
@@ -72,6 +73,13 @@ export interface DepositRequest {
   status: string
   applicant?: User
   created_at: string
+}
+
+export interface Keyword {
+  id: number
+  name: string
+  slug: string
+  references_count?: number
 }
 
 export interface Notification {

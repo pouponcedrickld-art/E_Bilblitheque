@@ -5,16 +5,25 @@ import http from '@/services/http'
 import type { Reference } from '@/types'
 
 const router = useRouter()
+const featured = ref<Reference[]>([])
 const references = ref<Reference[]>([])
+const stats = ref({ total_references: 0, total_categories: 0, total_authors: 0, total_downloads: 0, total_views: 0 })
 const loading = ref(true)
 const search = ref('')
 
-async function fetchReferences() {
+async function fetchData() {
   loading.value = true
   try {
-    const res = await http.get('/references')
-    references.value = res.data?.data ?? res.data ?? []
+    const [featRes, refsRes, statsRes] = await Promise.all([
+      http.get('/references/featured'),
+      http.get('/references'),
+      http.get('/stats'),
+    ])
+    featured.value = featRes.data?.data ?? featRes.data ?? []
+    references.value = refsRes.data?.data ?? refsRes.data ?? []
+    stats.value = statsRes.data ?? stats.value
   } catch {
+    featured.value = []
     references.value = []
   } finally {
     loading.value = false
@@ -33,7 +42,7 @@ function getTypeIcon(type: string): string {
   return icons[type] || '📄'
 }
 
-onMounted(fetchReferences)
+onMounted(fetchData)
 </script>
 
 <template>
@@ -44,38 +53,93 @@ onMounted(fetchReferences)
     </div>
 
     <div class="filters">
-      <input v-model="search" type="text" class="search-input" placeholder="Rechercher un titre, un auteur..." />
+      <input v-model="search" type="text" class="search-input" placeholder="Rechercher un titre, un auteur..." @keyup.enter="search ? $router.push(`/search?q=${encodeURIComponent(search)}`) : undefined" />
     </div>
 
     <div v-if="loading" class="loading">
       <p>Chargement des références...</p>
     </div>
 
-    <div v-else-if="references.length === 0" class="empty">
-      <p>Aucune référence trouvée.</p>
-    </div>
-
-    <div v-else class="grid">
-      <div
-        v-for="ref in references"
-        :key="ref.id"
-        class="card"
-        @click="viewDetail(ref.id)"
-      >
-        <div class="card-icon">{{ getTypeIcon(ref.document_type) }}</div>
-        <div class="card-body">
-          <span class="card-badge">{{ ref.document_type }}</span>
-          <h3 class="card-title">{{ ref.title }}</h3>
-          <p v-if="ref.authors?.length" class="card-authors">
-            {{ ref.authors.map(a => a.full_name).join(', ') }}
-          </p>
-          <div class="card-meta">
-            <span v-if="ref.publication_year">{{ ref.publication_year }}</span>
-            <span v-if="ref.language">{{ ref.language }}</span>
+    <template v-else>
+      <div class="section">
+        <h2 class="section-title">La bibliothèque en chiffres</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ stats.total_references }}</span>
+            <span class="stat-label">Références</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ stats.total_categories }}</span>
+            <span class="stat-label">Catégories</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ stats.total_authors }}</span>
+            <span class="stat-label">Auteurs</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ stats.total_downloads }}</span>
+            <span class="stat-label">Téléchargements</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ stats.total_views }}</span>
+            <span class="stat-label">Consultations</span>
           </div>
         </div>
       </div>
-    </div>
+
+      <div v-if="featured.length" class="section">
+        <h2 class="section-title">À la une</h2>
+        <div class="featured-grid">
+          <div
+            v-for="ref in featured"
+            :key="ref.id"
+            class="card featured-card"
+            @click="viewDetail(ref.id)"
+          >
+            <div class="card-icon">{{ getTypeIcon(ref.document_type) }}</div>
+            <div class="card-body">
+              <span class="card-badge">{{ ref.document_type }}</span>
+              <h3 class="card-title">{{ ref.title }}</h3>
+              <p v-if="ref.authors?.length" class="card-authors">
+                {{ ref.authors.map(a => a.full_name).join(', ') }}
+              </p>
+              <div class="card-meta">
+                <span v-if="ref.publication_year">{{ ref.publication_year }}</span>
+                <span v-if="ref.language">{{ ref.language }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Toutes les références</h2>
+        <div v-if="references.length === 0" class="empty">
+          <p>Aucune référence trouvée.</p>
+        </div>
+        <div v-else class="grid">
+          <div
+            v-for="ref in references"
+            :key="ref.id"
+            class="card"
+            @click="viewDetail(ref.id)"
+          >
+            <div class="card-icon">{{ getTypeIcon(ref.document_type) }}</div>
+            <div class="card-body">
+              <span class="card-badge">{{ ref.document_type }}</span>
+              <h3 class="card-title">{{ ref.title }}</h3>
+              <p v-if="ref.authors?.length" class="card-authors">
+                {{ ref.authors.map(a => a.full_name).join(', ') }}
+              </p>
+              <div class="card-meta">
+                <span v-if="ref.publication_year">{{ ref.publication_year }}</span>
+                <span v-if="ref.language">{{ ref.language }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -122,6 +186,15 @@ onMounted(fetchReferences)
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
+
+.section { margin-bottom: 2rem; }
+.section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: #fff; border: 1px solid var(--border, #e5e7eb); border-radius: 0.5rem; padding: 1rem; text-align: center; }
+.stat-value { display: block; font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+.stat-label { display: block; font-size: 0.8rem; color: var(--text-secondary, #6b7280); margin-top: 0.25rem; }
+.featured-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.featured-card { border-color: var(--primary); border-width: 2px; background: #fafcff; }
 
 .loading, .empty {
   text-align: center;
