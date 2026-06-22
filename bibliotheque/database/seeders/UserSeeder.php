@@ -39,6 +39,15 @@ class UserSeeder extends Seeder
         ]);
 
         User::factory()->create([
+            'first_name' => 'Aminata',
+            'last_name' => 'Diallo',
+            'email' => 'demande2@bibliotheque.com',
+            'password' => Hash::make('password'),
+            'role' => 'responsable_demande',
+            'status' => 'active',
+        ]);
+
+        User::factory()->create([
             'first_name' => 'Jean',
             'last_name' => 'Kouassi',
             'email' => 'jean.kouassi@bibliotheque.com',

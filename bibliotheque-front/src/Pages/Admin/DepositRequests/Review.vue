@@ -88,6 +88,30 @@ async function rejectRequest() {
   }
 }
 
+// État du formulaire de réassignation
+const showReassignForm = ref(false)
+const reassignManagerId = ref<number | null>(null)
+
+// Réassigne la demande à un autre responsable
+async function reassignManager() {
+  if (!reassignManagerId.value) return
+  submitting.value = true
+  try {
+    const id = route.params.id as string
+    await http.post(`/deposit-requests/${id}/reassign`, {
+      new_manager_id: reassignManagerId.value,
+    })
+    toastStore.success('Demande réassignée.')
+    showReassignForm.value = false
+    reassignManagerId.value = null
+    await load()
+  } catch (err: any) {
+    toastStore.error(err.response?.data?.message || 'Erreur.')
+  } finally {
+    submitting.value = false
+  }
+}
+
 // Annule la décision précédente
 async function overrideRequest() {
   if (!overrideJustification.value.trim()) return
@@ -203,10 +227,21 @@ onMounted(load)
         <Button
           v-if="request.status !== 'second_review' && request.status !== 'published' && request.status !== 'rejected'"
           icon="pi pi-sync"
-          label="Demander un second avis"
-          severity="info"
+          label="Second avis"
+          severity="secondary"
+          outlined
           :disabled="showSecondReviewForm"
           @click="showSecondReviewForm = true"
+        />
+
+        <Button
+          v-if="request.assigned_manager"
+          icon="pi pi-user-edit"
+          label="Réassigner"
+          severity="secondary"
+          outlined
+          :disabled="showReassignForm"
+          @click="showReassignForm = true"
         />
       </div>
 
@@ -246,8 +281,22 @@ onMounted(load)
             <Select id="second-review-manager" v-model="secondReviewManagerId" :options="users" option-label="full_name" option-value="id" placeholder="Sélectionner un gestionnaire" />
           </div>
           <div class="form-actions">
-            <Button icon="pi pi-sync" label="Demander le second avis" severity="info" :loading="submitting" :disabled="!secondReviewManagerId" @click="requestSecondReview" />
+            <Button icon="pi pi-sync" label="Demander le second avis" severity="secondary" :loading="submitting" :disabled="!secondReviewManagerId" @click="requestSecondReview" />
             <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="showSecondReviewForm = false; secondReviewManagerId = null" />
+          </div>
+        </template>
+      </Card>
+
+      <Card v-if="showReassignForm" class="mb-3">
+        <template #title>Réassigner à un autre responsable</template>
+        <template #content>
+          <div class="field">
+            <label for="reassign-manager">Nouveau gestionnaire</label>
+            <Select id="reassign-manager" v-model="reassignManagerId" :options="users" option-label="full_name" option-value="id" placeholder="Sélectionner un responsable" />
+          </div>
+          <div class="form-actions">
+            <Button icon="pi pi-user-edit" label="Confirmer la réassignation" severity="secondary" :loading="submitting" :disabled="!reassignManagerId" @click="reassignManager" />
+            <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="showReassignForm = false; reassignManagerId = null" />
           </div>
         </template>
       </Card>

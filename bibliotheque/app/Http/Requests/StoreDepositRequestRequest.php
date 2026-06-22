@@ -16,7 +16,7 @@ class StoreDepositRequestRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'proposed_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'proposed_file' => 'nullable|file|mimes:pdf,doc,docx,odt,txt|max:10240',
         ];
     }
 }

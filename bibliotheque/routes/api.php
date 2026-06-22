@@ -95,6 +95,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/deposit-requests/{depositRequest}/reject-admin', [DepositRequestController::class, 'rejectByAdmin']);
     Route::post('/deposit-requests/{depositRequest}/override', [DepositRequestController::class, 'overrideReject']);
     Route::post('/deposit-requests/{depositRequest}/second-review', [DepositRequestController::class, 'requestSecondReview']);
+    Route::post('/deposit-requests/{depositRequest}/reassign', [DepositRequestController::class, 'reassignManager']);
 
     // Logs d'activité
     Route::get('/activity-logs', [ActivityLogController::class, 'index']);

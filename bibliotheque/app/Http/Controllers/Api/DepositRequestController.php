@@ -41,7 +41,7 @@ class DepositRequestController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'proposed_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'proposed_file' => 'nullable|file|mimes:pdf,doc,docx,odt,txt|max:10240',
         ]);
 
         $data = [
@@ -360,5 +360,33 @@ class DepositRequestController extends Controller
         });
 
         return response()->json($depositRequest->load('reviews'));
+    }
+
+    // Admin : réassigne la demande à un autre responsable
+    public function reassignManager(Request $request, DepositRequest $depositRequest)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        $request->validate([
+            'new_manager_id' => 'required|exists:users,id',
+        ]);
+
+        $newManager = \App\Models\User::find($request->new_manager_id);
+        if (!$newManager || $newManager->role !== 'responsable_demande') {
+            return response()->json(['message' => 'L\'utilisateur sélectionné n\'est pas un responsable demande.'], 422);
+        }
+
+        $depositRequest->update(['assigned_manager_id' => $request->new_manager_id]);
+
+        Notification::create([
+            'user_id' => $request->new_manager_id,
+            'title' => 'Nouvelle demande assignée',
+            'message' => "La demande \"{$depositRequest->title}\" vous a été réassignée.",
+            'type' => 'validation',
+        ]);
+
+        return response()->json($depositRequest->load('assignedManager', 'reviews'));
     }
 }

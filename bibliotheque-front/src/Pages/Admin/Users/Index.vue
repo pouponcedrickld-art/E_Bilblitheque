@@ -75,6 +75,7 @@ async function toggleStatus(user: User) {
     header: 'Confirmation',
     icon: 'pi pi-exclamation-triangle',
     acceptClass: action === 'suspend' ? 'p-button-danger' : 'p-button-success',
+    rejectClass: 'p-button-secondary',
     accept: async () => {
       try {
         await http.post(`/users/${user.id}/${action}`)
@@ -93,6 +94,7 @@ async function resetPassword(user: User) {
     message: `Réinitialiser le mot de passe de ${user.full_name} ?`,
     header: 'Confirmation',
     icon: 'pi pi-exclamation-triangle',
+    rejectClass: 'p-button-secondary',
     accept: async () => {
       try {
         await http.post(`/users/${user.id}/reset-password`)

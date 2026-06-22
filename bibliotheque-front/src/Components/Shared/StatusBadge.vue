@@ -6,6 +6,7 @@ const props = defineProps<{ status: string }>()
 
 const labels: Record<string, string> = {
   pending: 'En attente',
+  pending_validation: 'En attente de validation',
   approved_by_manager: 'Validé (resp.)',
   rejected_by_manager: 'Refusé (resp.)',
   second_review: 'Second avis',
@@ -24,6 +25,7 @@ const severity = computed(() => {
     published: 'success',
     active: 'success',
     pending: 'warn',
+    pending_validation: 'warn',
     approved_by_manager: 'info',
     second_review: 'info',
     rejected: 'danger',
@@ -55,7 +57,7 @@ const label = computed(() => labels[props.status] || props.status)
 }
 .badge-success { background: #dcfce7; color: #166534; }
 .badge-warn { background: #fef3c7; color: #92400e; }
-.badge-info { background: rgba(27, 67, 50, 0.08); color: var(--primary); }
+.badge-info { background: #e0f2fe; color: #0369a1; }
 .badge-danger { background: #fce4ec; color: #c62828; }
 .badge-contrast { background: var(--muted); color: var(--foreground); }
 .badge-secondary { background: var(--muted); color: var(--muted-foreground); }

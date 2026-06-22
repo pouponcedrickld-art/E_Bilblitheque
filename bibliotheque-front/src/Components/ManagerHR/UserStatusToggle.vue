@@ -9,6 +9,7 @@ import { useToast } from 'primevue/usetoast'
 const props = defineProps<{
   userId: number
   currentStatus: string
+  userName?: string
 }>()
 
 const emit = defineEmits<{
@@ -25,9 +26,11 @@ function toggle() {
   const action = isActive ? 'suspendre' : 'activer'
 
   confirm.require({
-    message: `Voulez-vous ${action} cet utilisateur ?`,
+    message: `Voulez-vous ${action} l'utilisateur "${props.userName ?? '#'}" ?`,
     header: 'Confirmation',
     icon: 'pi pi-exclamation-triangle',
+    acceptClass: isActive ? 'p-button-danger' : 'p-button-success',
+    rejectClass: 'p-button-secondary',
     accept: async () => {
       loading.value = true
       try {
