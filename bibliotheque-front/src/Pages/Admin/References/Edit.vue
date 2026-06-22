@@ -6,6 +6,7 @@ import { useToastStore } from '@/stores/toast'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
+import MultiSelect from 'primevue/multiselect'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
@@ -26,10 +27,12 @@ const form = ref({
   publisher_id: null as number | null,
   pages: null as number | null,
   status: 'draft',
+  keyword_ids: [] as number[],
 })
 
 const categories = ref<{ id: number; name: string }[]>([])
 const publishers = ref<{ id: number; name: string }[]>([])
+const keywords = ref<{ id: number; name: string }[]>([])
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
@@ -47,10 +50,11 @@ async function load() {
   loading.value = true
   try {
     const id = route.params.id as string
-    const [refRes, catRes, pubRes] = await Promise.all([
+    const [refRes, catRes, pubRes, kwRes] = await Promise.all([
       http.get(`/references/${id}`),
       http.get('/categories'),
       http.get('/publishers'),
+      http.get('/keywords'),
     ])
     const refData = refRes.data?.data ?? refRes.data
     form.value = {
@@ -65,9 +69,11 @@ async function load() {
       publisher_id: refData.publisher_id ?? refData.publisher?.id ?? null,
       pages: refData.pages ?? null,
       status: refData.status ?? 'draft',
+      keyword_ids: (refData.keywords ?? []).map((k: any) => k.id),
     }
     categories.value = catRes.data?.data ?? catRes.data ?? []
     publishers.value = pubRes.data?.data ?? pubRes.data ?? []
+    keywords.value = kwRes.data?.data ?? kwRes.data ?? []
   } catch {
     error.value = 'Impossible de charger la référence.'
   } finally {
@@ -80,7 +86,7 @@ async function submit() {
   error.value = ''
   try {
     const id = route.params.id as string
-    await http.put(`/references/${id}`, form.value)
+    await http.put(`/references/${id}`, { ...form.value, keyword_ids: form.value.keyword_ids })
     toastStore.success('Référence mise à jour.')
     router.push('/admin/references')
   } catch (err: any) {
@@ -150,6 +156,10 @@ onMounted(load)
           <label for="status">Statut</label>
           <Select id="status" v-model="form.status" :options="[{ label: 'Brouillon', value: 'draft' }, { label: 'Publié', value: 'published' }, { label: 'Archivé', value: 'archived' }]" option-label="label" option-value="value" />
         </div>
+        <div class="field full">
+          <label for="keywords">Mots-clés</label>
+          <MultiSelect id="keywords" v-model="form.keyword_ids" :options="keywords" option-label="name" option-value="id" placeholder="Sélectionner des mots-clés" :max-selected-labels="5" />
+        </div>
       </div>
 
       <div class="form-actions">
@@ -171,4 +181,5 @@ onMounted(load)
 .field.full { grid-column: 1 / -1; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 .form-actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
 </style>

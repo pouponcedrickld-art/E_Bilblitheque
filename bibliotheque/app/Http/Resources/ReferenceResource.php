@@ -9,7 +9,6 @@ use App\Http\Resources\KeywordResource;
 
 class ReferenceResource extends JsonResource
 {
-{
     public function toArray(Request $request): array
     {
         return [

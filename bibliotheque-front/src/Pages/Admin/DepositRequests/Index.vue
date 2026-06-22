@@ -121,4 +121,13 @@ onMounted(fetch)
 .actions { display: flex; gap: 0.5rem; }
 .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .search-input { min-width: 260px; }
+@media (max-width: 640px) {
+  .page { padding: 1rem; }
+  .page-header { flex-wrap: wrap; gap: 0.5rem; }
+  .page-header h1 { font-size: 1.1rem; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-input { min-width: 0; width: 100%; }
+  .actions { flex-direction: column; }
+  .actions .p-button { width: 100%; }
+}
 </style>

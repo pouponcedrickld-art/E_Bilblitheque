@@ -274,6 +274,7 @@ onMounted(load)
 .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
 .info-item.full { grid-column: 1 / -1; }
 .info-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
+@media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 .form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }

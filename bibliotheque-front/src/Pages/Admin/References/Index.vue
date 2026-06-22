@@ -6,6 +6,7 @@ import { useToastStore } from '@/stores/toast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Chip from 'primevue/chip'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
@@ -22,6 +23,7 @@ interface Reference {
   document_type: string
   status: string
   created_at: string
+  keywords?: { id: number; name: string }[]
 }
 
 const router = useRouter()
@@ -103,7 +105,7 @@ onMounted(fetchReferences)
         <InputIcon><i class="pi pi-search" /></InputIcon>
         <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
       </IconField>
-      <Select v-model="statusFilter" :options="statuses" optionLabel="label" optionValue="value" placeholder="Filtrer par statut" clearable @change="statusFilter.value = $event.value" class="filter-select" />
+      <Select v-model="statusFilter" :options="statuses" optionLabel="label" optionValue="value" placeholder="Filtrer par statut" clearable class="filter-select" />
     </div>
 
     <DataTable
@@ -132,7 +134,15 @@ onMounted(fetchReferences)
           {{ new Date(data.created_at).toLocaleDateString() }}
         </template>
       </Column>
-      <Column header="Actions" style="min-width: 10rem">
+      <Column header="Mots-clés" class="keywords-col">
+        <template #body="{ data }">
+          <div class="keyword-list">
+            <Chip v-for="kw in (data.keywords ?? []).slice(0, 3)" :key="kw.id" :label="kw.name" class="kw-chip" />
+            <span v-if="(data.keywords ?? []).length > 3" class="kw-more">+{{ (data.keywords ?? []).length - 3 }}</span>
+          </div>
+        </template>
+      </Column>
+      <Column header="Actions" style="min-width: 10rem" class="actions-col">
         <template #body="{ data }">
           <div class="actions">
             <Button
@@ -171,4 +181,17 @@ onMounted(fetchReferences)
 .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
 .search-input { min-width: 260px; }
 .filter-select { min-width: 170px; }
+.keyword-list { display: flex; gap: 0.25rem; flex-wrap: wrap; align-items: center; }
+.kw-chip { font-size: 0.75rem; }
+.kw-more { font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; }
+@media (max-width: 768px) { .keywords-col { display: none; } }
+@media (max-width: 640px) {
+  .page { padding: 1rem; }
+  .page-header { flex-wrap: wrap; gap: 0.5rem; }
+  .page-header h1 { font-size: 1.1rem; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .search-input { min-width: 0; width: 100%; }
+  .filter-select { min-width: 0; width: 100%; }
+  .actions-col { min-width: 8rem; }
+}
 </style>

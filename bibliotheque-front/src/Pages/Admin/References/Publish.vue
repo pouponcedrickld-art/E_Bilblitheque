@@ -106,4 +106,5 @@ onMounted(load)
 .info-item.full { grid-column: 1 / -1; }
 .info-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
 .actions { margin-top: 1rem; }
+@media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
 </style>

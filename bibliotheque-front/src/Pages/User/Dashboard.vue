@@ -96,134 +96,275 @@ onMounted(fetchStats)
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h1>{{ dashboardTitle }}</h1>
-      <p>Bienvenue, {{ authStore.user?.first_name }} {{ authStore.user?.last_name }}</p>
+      <div>
+        <h1>{{ dashboardTitle }}</h1>
+        <p class="greeting">Bonne journée, {{ authStore.user?.first_name }} {{ authStore.user?.last_name }}</p>
+      </div>
     </div>
 
     <div v-if="loading" class="loading">Chargement des statistiques...</div>
 
-    <div v-else class="stats-grid">
-      <div v-for="card in roleCards" :key="card.label" class="stat-card">
-        <div class="stat-icon">{{ card.icon }}</div>
-        <div class="stat-body">
-          <span class="stat-value">{{ card.value }}</span>
-          <span class="stat-label">{{ card.label }}</span>
+    <template v-else>
+      <div class="stats-grid">
+        <div v-for="card in roleCards" :key="card.label" class="stat-card">
+          <div class="stat-icon-box" :class="'icon-' + card.icon.codePointAt(0)">
+            <span class="stat-emoji">{{ card.icon }}</span>
+          </div>
+          <div class="stat-body">
+            <span class="stat-value">{{ card.value }}</span>
+            <span class="stat-label">{{ card.label }}</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="quick-links">
-      <h2>Actions rapides</h2>
-      <div class="links-grid">
-        <button v-if="authStore.isAdmin || authStore.isResponsableRH" class="link-card" @click="router.push('/admin/references/create')">
-          <i class="pi pi-plus" /> Nouvelle référence
-        </button>
-        <button v-if="authStore.isAdmin" class="link-card" @click="router.push('/admin/users')">
-          <i class="pi pi-users" /> Gérer les utilisateurs
-        </button>
-        <button v-if="authStore.isResponsableDemande || authStore.isUser" class="link-card" @click="router.push('/user/deposits/create')">
-          <i class="pi pi-upload" /> Faire une demande de dépôt
-        </button>
-        <button class="link-card" @click="router.push('/catalogue')">
-          <i class="pi pi-search" /> Parcourir le catalogue
-        </button>
+      <div class="content-grid">
+        <div class="card">
+          <h2>Aperçu</h2>
+          <div class="overview-stats">
+            <div class="overview-item">
+              <i class="pi pi-book" style="color: var(--primary);" />
+              <div>
+                <span class="overview-value">{{ stats.references }}</span>
+                <span class="overview-label">Références disponibles</span>
+              </div>
+            </div>
+            <div v-if="authStore.isAdmin || authStore.isResponsableRH" class="overview-item">
+              <i class="pi pi-download" style="color: var(--accent);" />
+              <div>
+                <span class="overview-value">{{ stats.downloads }}</span>
+                <span class="overview-label">Téléchargements</span>
+              </div>
+            </div>
+            <div v-if="authStore.isAdmin" class="overview-item">
+              <i class="pi pi-eye" style="color: #AF52DE;" />
+              <div>
+                <span class="overview-value">{{ stats.views }}</span>
+                <span class="overview-label">Consultations</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Actions rapides</h2>
+          <div class="actions-list">
+            <button v-if="authStore.isAdmin || authStore.isResponsableRH" class="action-btn" @click="router.push('/admin/references/create')">
+              <i class="pi pi-plus" />
+              <span>Nouvelle référence</span>
+            </button>
+            <button v-if="authStore.isAdmin" class="action-btn" @click="router.push('/admin/users')">
+              <i class="pi pi-users" />
+              <span>Gérer les utilisateurs</span>
+            </button>
+            <button v-if="authStore.isResponsableDemande || authStore.isUser" class="action-btn" @click="router.push('/user/deposits/create')">
+              <i class="pi pi-upload" />
+              <span>Faire une demande de dépôt</span>
+            </button>
+            <button class="action-btn" @click="router.push('/catalogue')">
+              <i class="pi pi-search" />
+              <span>Parcourir le catalogue</span>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
+.dashboard {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .dashboard-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .dashboard-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.75rem;
+  color: var(--foreground);
 }
 
-.dashboard-header p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+.greeting {
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
 
 .loading {
   text-align: center;
-  padding: 2rem;
-  color: var(--text-secondary);
+  padding: 3rem;
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .stat-card {
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-xl);
   padding: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s;
 }
 
-.stat-icon {
-  font-size: 1.75rem;
+.stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon-box {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(27, 67, 50, 0.1);
+}
+
+.stat-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .stat-body {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
+  color: var(--foreground);
+  font-family: var(--font-serif);
 }
 
 .stat-label {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.quick-links h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.links-grid {
+.content-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-.link-card {
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card h2 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  color: var(--foreground);
+}
+
+.overview-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.overview-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 1rem;
-  background: #fff;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.overview-item:last-child {
+  border-bottom: none;
+}
+
+.overview-item i {
+  font-size: 1.5rem;
+  width: 2.5rem;
+  text-align: center;
+}
+
+.overview-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  font-family: var(--font-serif);
+  display: block;
+  line-height: 1.2;
+}
+
+.overview-label {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: transparent;
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all 0.15s;
   font-size: 0.9rem;
   font-weight: 500;
+  color: var(--foreground);
   text-align: left;
+  width: 100%;
 }
 
-.link-card:hover {
-  border-color: var(--primary);
+.action-btn i {
+  font-size: 1rem;
   color: var(--primary);
+  width: 1.25rem;
+  text-align: center;
 }
 
-.link-card i {
-  font-size: 1.1rem;
+.action-btn:hover {
+  border-color: var(--primary);
+  background: rgba(27, 67, 50, 0.03);
+}
+
+@media (min-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
 }
 </style>

@@ -40,7 +40,7 @@ async function addKeyword() {
   if (!name) return
 
   if (keywords.value.some((k) => k.name.toLowerCase() === name.toLowerCase())) {
-    toastStore.warn('Ce mot-clé existe déjà.')
+    toastStore.warning('Ce mot-clé existe déjà.')
     newKeyword.value = ''
     return
   }

@@ -1,118 +1,297 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import Menubar from 'primevue/menubar'
-import type { MenuItem } from 'primevue/menuitem'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const mobileMenuOpen = ref(false)
 
-function go(to: string) {
-  router.push(to)
-}
-
-const navItems: MenuItem[] = [
-  { label: 'Accueil', icon: 'pi pi-home', command: () => go('/') },
-  { label: 'Catalogue', icon: 'pi pi-book', command: () => go('/catalogue') },
-  { label: 'Recherche', icon: 'pi pi-search', command: () => go('/search') },
-  { label: 'Aide', icon: 'pi pi-question-circle', command: () => go('/help') },
+const navLinks = [
+  { label: 'Catalogue', route: '/catalogue' },
+  { label: 'Recherche avancée', route: '/search' },
+  { label: 'À propos', route: '/help' },
 ]
+
+function go(path: string) {
+  mobileMenuOpen.value = false
+  router.push(path)
+}
 </script>
 
 <template>
-  <div class="guest-layout">
-    <Menubar :model="navItems" class="guest-menubar">
-      <template #start>
-        <router-link to="/" class="logo">
-          <span class="logo-icon">📚</span>
-          <span class="logo-text">BiblioNum</span>
+  <div style="min-height: 100vh; background: var(--background);">
+    <!-- Public Navbar -->
+    <nav
+      class="guest-nav"
+    >
+      <div class="guest-nav-inner">
+        <router-link to="/" class="guest-logo">
+          <i class="pi pi-book" style="font-size: 1.1rem"></i>
+          <span class="guest-logo-text">BibliNum</span>
         </router-link>
-      </template>
 
-      <template #end>
-        <template v-if="authStore.isAuthenticated">
-          <router-link :to="authStore.getDashboardPath()" class="btn btn-outline">
-            Mon espace
-          </router-link>
+        <!-- Desktop nav links -->
+        <div class="guest-nav-links">
+          <button
+            v-for="link in navLinks"
+            :key="link.label"
+            @click="go(link.route)"
+            class="guest-nav-link"
+          >
+            {{ link.label }}
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <template v-if="authStore.isAuthenticated">
+            <button
+              @click="go(authStore.getDashboardPath())"
+              class="guest-btn-primary"
+            >
+              <i class="pi pi-user" style="font-size: 0.8rem"></i>
+              Mon espace
+            </button>
+          </template>
+          <template v-else>
+            <button
+              @click="go('/login')"
+              class="guest-btn-outline"
+            >
+              Connexion
+            </button>
+            <button
+              @click="go('/register')"
+              class="guest-btn-primary"
+            >
+              S'inscrire
+            </button>
+          </template>
+          <!-- Mobile hamburger -->
+          <button
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="guest-hamburger"
+          >
+            <i :class="mobileMenuOpen ? 'pi pi-times' : 'pi pi-bars'" style="font-size: 1.2rem"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Mobile menu -->
+      <div v-if="mobileMenuOpen" class="guest-mobile-menu">
+        <button
+          v-for="link in navLinks"
+          :key="link.label"
+          @click="go(link.route)"
+          class="guest-mobile-link"
+        >
+          {{ link.label }}
+        </button>
+        <template v-if="!authStore.isAuthenticated">
+          <button @click="go('/login')" class="guest-mobile-link" style="margin-top: 0.25rem">
+            Connexion
+          </button>
         </template>
         <template v-else>
-          <router-link to="/login" class="btn btn-outline">Connexion</router-link>
-          <router-link to="/register" class="btn btn-primary">Inscription</router-link>
+          <button
+            @click="go(authStore.getDashboardPath())"
+            class="guest-mobile-link-primary"
+          >
+            <i class="pi pi-user" style="font-size: 0.85rem"></i>
+            Mon espace
+          </button>
         </template>
-      </template>
-    </Menubar>
+      </div>
+    </nav>
 
-    <main class="content">
+    <main class="guest-content">
       <slot />
     </main>
   </div>
 </template>
 
 <style scoped>
-.guest-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.guest-menubar {
+.guest-nav {
   position: sticky;
   top: 0;
-  z-index: 100;
-  border-radius: 0;
+  z-index: 30;
   border-bottom: 1px solid var(--border);
-  padding: 0 1rem;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-.logo {
+.guest-nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 56px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  margin-right: 1rem;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.logo-icon {
-  font-size: 1.3rem;
+.guest-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
-.btn {
-  padding: 0.45rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: none;
-  white-space: nowrap;
-}
-
-.btn-outline {
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  background: transparent;
-}
-
-.btn-outline:hover {
-  border-color: var(--primary);
+.guest-logo i {
   color: var(--primary);
 }
 
-.btn-primary {
+.guest-logo-text {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  color: var(--primary);
+}
+
+.guest-nav-links {
+  display: none;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .guest-nav-links {
+    display: flex;
+  }
+}
+
+.guest-nav-link {
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0.25rem 0;
+}
+
+.guest-nav-link:hover {
+  color: var(--foreground);
+}
+
+.guest-btn-outline {
+  display: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .guest-btn-outline {
+    display: block;
+  }
+}
+
+.guest-btn-outline:hover {
+  background: var(--muted);
+}
+
+.guest-btn-primary {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-xl);
+  border: none;
   background: var(--primary);
-  color: #fff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.btn-primary:hover {
-  background: var(--primary-dark);
+.guest-btn-primary:hover {
+  opacity: 0.9;
 }
 
-.content {
+.guest-hamburger {
+  display: flex;
+  padding: 0.5rem;
+  border-radius: var(--radius-xl);
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+@media (min-width: 768px) {
+  .guest-hamburger {
+    display: none;
+  }
+}
+
+.guest-hamburger:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.guest-mobile-menu {
+  display: block;
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: white;
+}
+
+@media (min-width: 768px) {
+  .guest-mobile-menu {
+    display: none;
+  }
+}
+
+.guest-mobile-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-xl);
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.guest-mobile-link:hover {
+  background: var(--muted);
+}
+
+.guest-mobile-link-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.guest-content {
   flex: 1;
-  padding: 1.5rem;
+  min-height: calc(100vh - 56px);
 }
 </style>

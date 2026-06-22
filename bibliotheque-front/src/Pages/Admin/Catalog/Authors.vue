@@ -129,7 +129,7 @@ onMounted(fetch)
       v-model:visible="dialogVisible"
       :header="editing ? 'Modifier l\'auteur' : 'Nouvel auteur'"
       :modal="true"
-      :style="{ width: '500px' }"
+      :style="{ width: '500px' }" class="responsive-dialog"
     >
       <form @submit.prevent="submit" class="dialog-form">
         <div class="form-row">
@@ -166,4 +166,8 @@ onMounted(fetch)
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .field { display: flex; flex-direction: column; gap: 0.35rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  :deep(.responsive-dialog) { width: 95vw !important; }
+}
 </style>

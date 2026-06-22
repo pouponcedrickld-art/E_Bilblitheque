@@ -48,8 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Références (tout utilisateur connecté peut proposer)
     Route::post('/references', [ReferenceController::class, 'store']);
-    Route::put('/references/{reference}', [ReferenceController::class, 'update']);
-    Route::delete('/references/{reference}', [ReferenceController::class, 'destroy']);
 
     // Dépôt (tout utilisateur connecté)
     Route::get('/deposit-requests', [DepositRequestController::class, 'index']);
@@ -113,4 +111,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     // Gestion des mots-clés
     Route::post('/keywords', [KeywordController::class, 'store']);
     Route::delete('/keywords/{keyword}', [KeywordController::class, 'destroy']);
+
+    // Modification/suppression des références (admin uniquement)
+    Route::put('/references/{reference}', [ReferenceController::class, 'update']);
+    Route::delete('/references/{reference}', [ReferenceController::class, 'destroy']);
 });

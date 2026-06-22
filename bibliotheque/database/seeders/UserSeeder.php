@@ -10,7 +10,6 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Admin
         User::factory()->create([
             'first_name' => 'Admin',
             'last_name' => 'System',
@@ -20,9 +19,8 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // Responsable RH
         User::factory()->create([
-            'first_name' => 'RH',
+            'first_name' => 'Rh',
             'last_name' => 'Manager',
             'email' => 'rh@bibliotheque.com',
             'password' => Hash::make('password'),
@@ -30,7 +28,6 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // Responsable Demande
         User::factory()->create([
             'first_name' => 'Demande',
             'last_name' => 'Manager',
@@ -40,30 +37,53 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // Utilisateur standard
         User::factory()->create([
-            'first_name' => 'User',
-            'last_name' => 'Standard',
-            'email' => 'user@bibliotheque.com',
+            'first_name' => 'Jean',
+            'last_name' => 'Kouassi',
+            'email' => 'jean.kouassi@bibliotheque.com',
             'password' => Hash::make('password'),
             'role' => 'user',
             'status' => 'active',
         ]);
 
-        // 10 utilisateurs aléatoires
+        User::factory()->create([
+            'first_name' => 'Fatou',
+            'last_name' => 'Diop',
+            'email' => 'fatou.diop@bibliotheque.com',
+            'password' => Hash::make('password'),
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Kofi',
+            'last_name' => 'Adebayor',
+            'email' => 'kofi.adebayor@bibliotheque.com',
+            'password' => Hash::make('password'),
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Amandine',
+            'last_name' => 'Hounkpatin',
+            'email' => 'amandine.hounkpatin@bibliotheque.com',
+            'password' => Hash::make('password'),
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Mamadou',
+            'last_name' => 'Traoré',
+            'email' => 'mamadou.traore@bibliotheque.com',
+            'password' => Hash::make('password'),
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
         User::factory(10)->create();
+
+        $this->command->info('Users seeded successfully.');
     }
 }
-
-
-
-//
-// j'ai toujours le probleme de navbar
-// gerer les utilsateur ne c onduit toujours null part 
-// nouvelle reference ne me  permet toujours pas de creer mes nouvelle reference
-// 
-// 
-// 
-// 
-
-

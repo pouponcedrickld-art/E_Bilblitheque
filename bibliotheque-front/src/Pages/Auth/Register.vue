@@ -47,11 +47,14 @@ async function handleSubmit() {
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-header">
-        <h1>Inscription</h1>
-        <p>Créez votre compte Bibliothèque Numérique</p>
+        <div class="auth-icon">
+          <i class="pi pi-book"></i>
+        </div>
+        <h1 class="auth-title">Inscription</h1>
+        <p class="auth-subtitle">Créez votre compte Bibliothèque Numérique</p>
       </div>
 
-      <div v-if="errors.length" class="alert alert-error">
+      <div v-if="errors.length" class="auth-alert">
         <p v-for="(msg, i) in errors" :key="i">{{ msg }}</p>
       </div>
 
@@ -152,15 +155,28 @@ async function handleSubmit() {
   justify-content: center;
   min-height: calc(100vh - var(--navbar-height) - 3rem);
   padding: 1rem;
+  background: var(--background, #F2F2F7);
 }
 
 .auth-card {
   width: 100%;
   max-width: 460px;
   background: #fff;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-xl, 1rem);
   border: 1px solid var(--border);
   padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.auth-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.auth-icon i {
+  font-size: 2.5rem;
+  color: var(--primary, #1B4332);
 }
 
 .auth-header {
@@ -168,31 +184,30 @@ async function handleSubmit() {
   margin-bottom: 1.5rem;
 }
 
-.auth-header h1 {
-  font-size: 1.5rem;
+.auth-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  color: var(--primary, #1B4332);
+  margin-bottom: 0.35rem;
 }
 
-.auth-header p {
+.auth-subtitle {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--foreground, #666);
 }
 
-.alert {
+.auth-alert {
   padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-xl, 1rem);
   font-size: 0.85rem;
   margin-bottom: 1rem;
-}
-
-.alert-error {
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
 }
 
-.alert p + p {
+.auth-alert p + p {
   margin-top: 0.25rem;
 }
 
@@ -217,32 +232,38 @@ async function handleSubmit() {
 .field label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground, #333);
 }
 
 .input {
-  padding: 0.6rem 0.85rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-xl, 1rem);
   font-size: 0.9rem;
-  transition: border-color 0.15s;
+  transition: border-color 0.2s;
   outline: none;
-  background: #fff;
+  background: var(--muted, #F2F2F7);
+  font-family: inherit;
+}
+
+.input::placeholder {
+  color: #999;
 }
 
 .input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: var(--primary, #1B4332);
+  box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.12);
 }
 
 .btn {
-  padding: 0.65rem 1.25rem;
+  padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 0.375rem;
-  font-size: 0.9rem;
+  border-radius: var(--radius-xl, 1rem);
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
+  font-family: inherit;
 }
 
 .btn:disabled {
@@ -251,12 +272,12 @@ async function handleSubmit() {
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary, #1B4332);
   color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-dark);
+  background: #143026;
 }
 
 .btn-full {
@@ -266,12 +287,12 @@ async function handleSubmit() {
 .auth-footer {
   text-align: center;
   margin-top: 1.25rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-size: 0.875rem;
+  color: var(--foreground, #666);
 }
 
 .link {
-  color: var(--primary);
+  color: var(--primary, #1B4332);
   font-weight: 600;
 }
 
@@ -280,6 +301,10 @@ async function handleSubmit() {
 }
 
 @media (max-width: 480px) {
+  .auth-card {
+    max-width: 100%;
+  }
+
   .field-row {
     grid-template-columns: 1fr;
   }

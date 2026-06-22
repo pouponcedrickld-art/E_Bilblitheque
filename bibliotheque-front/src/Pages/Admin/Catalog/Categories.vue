@@ -125,7 +125,7 @@ onMounted(fetch)
       v-model:visible="dialogVisible"
       :header="editing ? 'Modifier la catégorie' : 'Nouvelle catégorie'"
       :modal="true"
-      :style="{ width: '450px' }"
+      :style="{ width: '450px' }" class="responsive-dialog"
     >
       <form @submit.prevent="submit" class="dialog-form">
         <div class="field">
@@ -155,4 +155,7 @@ onMounted(fetch)
 .dialog-form { display: flex; flex-direction: column; gap: 1rem; }
 .field { display: flex; flex-direction: column; gap: 0.35rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+@media (max-width: 640px) {
+  :deep(.responsive-dialog) { width: 95vw !important; }
+}
 </style>
