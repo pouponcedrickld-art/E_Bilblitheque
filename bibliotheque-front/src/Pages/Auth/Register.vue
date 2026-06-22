@@ -27,7 +27,8 @@ async function handleSubmit() {
 
   try {
     await authStore.register({ ...form.value })
-    router.push(authStore.getDashboardPath())
+    // Compte créé mais en attente de validation → redirige vers login
+    router.push('/login?registered=1')
   } catch (err: any) {
     if (err.response?.data?.errors) {
       const msgs: string[] = []

@@ -54,7 +54,7 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8',
             'role' => ['required', Rule::in(['admin', 'responsable_rh', 'responsable_demande', 'user'])],
-            'status' => ['nullable', Rule::in(['active', 'inactive', 'suspended'])],
+            'status' => ['nullable', Rule::in(['active', 'inactive', 'suspended', 'pending_validation'])],
         ]);
 
         $user = User::create([
@@ -107,7 +107,7 @@ class UserController extends Controller
         // Seuls admin et RH peuvent changer rôle et statut
         if (in_array($currentUser->role, ['admin', 'responsable_rh'])) {
             $rules['role'] = [Rule::in(['admin', 'responsable_rh', 'responsable_demande', 'user'])];
-            $rules['status'] = [Rule::in(['active', 'inactive', 'suspended'])];
+            $rules['status'] = [Rule::in(['active', 'inactive', 'suspended', 'pending_validation'])];
         }
 
         // Changement de mot de passe (vérifie l'ancien si c'est l'utilisateur lui-même)

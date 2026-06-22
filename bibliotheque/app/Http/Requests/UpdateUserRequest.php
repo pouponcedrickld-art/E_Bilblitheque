@@ -22,7 +22,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:8',
             'role' => ['nullable', Rule::in(['admin', 'responsable_rh', 'responsable_demande', 'user'])],
-            'status' => ['nullable', Rule::in(['active', 'inactive', 'suspended'])],
+            'status' => ['nullable', Rule::in(['active', 'inactive', 'suspended', 'pending_validation'])],
             'current_password' => 'required_with:password|string',
         ];
     }

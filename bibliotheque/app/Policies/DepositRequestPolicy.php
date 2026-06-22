@@ -31,10 +31,10 @@ class DepositRequestPolicy
         return $user->id === $depositRequest->applicant_id;
     }
 
-    // User et admin peuvent créer une demande
+    // User et admin peuvent créer une demande (compte actif requis)
     public function create(User $user): bool
     {
-        return in_array($user->role, ['user', 'admin']);
+        return in_array($user->role, ['user', 'admin']) && $user->status === 'active';
     }
 
     // Le demandeur peut modifier tant que la demande est en attente

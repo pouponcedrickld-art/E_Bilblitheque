@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // Inscription avec rôle 'user' par défaut et statut 'active'
+    // Inscription avec rôle 'user' par défaut et statut 'pending_validation'
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -26,14 +26,11 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'role' => 'user',
-            'status' => 'active',
+            'status' => 'pending_validation',
         ]);
 
-        Auth::login($user);
-
         return response()->json([
-            'message' => 'Inscription réussie.',
-            'user' => new UserResource($user),
+            'message' => 'Votre compte a été créé. Il doit être validé par un administrateur avant que vous puissiez faire une demande de dépôt.',
         ], 201);
     }
 
@@ -48,7 +45,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if ($user->status !== 'active') {
+        if (in_array($user->status, ['inactive', 'suspended'])) {
             return response()->json(['message' => 'Compte suspendu ou inactif.'], 403);
         }
 

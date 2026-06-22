@@ -73,11 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = response.data?.data ?? response.data?.user ?? null
   }
 
-  // Inscrit un nouvel utilisateur et connecte automatiquement
-  /**
-   * Inscrit un nouvel utilisateur.
-   * Envoie les données du formulaire d'inscription et connecte automatiquement.
-   */
+  // Inscrit un nouvel utilisateur (compte en attente de validation, pas d'auto-login)
   async function register(data: {
     first_name: string
     last_name: string
@@ -87,17 +83,13 @@ export const useAuthStore = defineStore('auth', () => {
     password_confirmation: string
   }): Promise<void> {
     await fetchCsrfCookie()
-    const response = await http.post('/register', data)
-    user.value = response.data?.data ?? response.data?.user ?? null
+    await http.post('/register', data)
   }
 
   // Déconnecte l'utilisateur via l'API
-  /**
-   * Déconnecte l'utilisateur (appel API POST /logout).
-   * Réinitialise l'utilisateur à null dans tous les cas.
-   */
   async function logout(): Promise<void> {
     try {
+      await fetchCsrfCookie()
       await http.post('/logout')
     } finally {
       user.value = null

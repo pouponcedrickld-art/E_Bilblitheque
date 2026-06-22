@@ -36,6 +36,8 @@ class DepositRequestController extends Controller
     // Crée une demande de dépôt et assigne un responsable au hasard
     public function store(Request $request)
     {
+        $this->authorize('create', DepositRequest::class);
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',

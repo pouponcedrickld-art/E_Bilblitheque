@@ -2,6 +2,7 @@
 // Importations Vue, stores et composants PrimeVue
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useDepositRequestsStore } from '@/stores/depositRequests'
 import { useToastStore } from '@/stores/toast'
 import DataTable from 'primevue/datatable'
@@ -15,8 +16,12 @@ import { formatDate } from '@/Utils/formatters'
 
 // Routeur et stores
 const router = useRouter()
+const authStore = useAuthStore()
 const store = useDepositRequestsStore()
 const toastStore = useToastStore()
+
+// L'utilisateur peut créér une demande (compte actif requis)
+const canCreate = computed(() => authStore.user?.status === 'active')
 
 // État de chargement et filtre de recherche
 const loading = ref(false)
@@ -66,7 +71,11 @@ onMounted(fetchData)
         <h1>Mes dépôts</h1>
         <p>Consultez et suivez l'état de vos demandes de dépôt</p>
       </div>
-      <Button label="Nouveau dépôt" icon="pi pi-plus" @click="createNew" />
+      <Button v-if="canCreate" label="Nouveau dépôt" icon="pi pi-plus" @click="createNew" />
+    </div>
+
+    <div v-if="!canCreate" class="alert alert-info">
+      Votre compte est en attente de validation par un administrateur. Vous ne pouvez pas faire de demande de dépôt pour le moment.
     </div>
 
     <div class="toolbar">
@@ -137,4 +146,17 @@ onMounted(fetchData)
 }
 .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .search-input { min-width: 260px; }
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
 </style>

@@ -91,7 +91,7 @@ onMounted(fetchRequest)
         </div>
       </div>
 
-      <ReviewDecisionForm :deposit-request-id="request.id" :show="true" @done="onDone" />
+      <ReviewDecisionForm :deposit-request-id="request.id" :show="true" :status="request.status" @done="onDone" />
     </div>
   </div>
 </template>

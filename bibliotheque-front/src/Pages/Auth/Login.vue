@@ -1,12 +1,15 @@
 <script setup lang="ts">
 // Page de connexion
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+
+// Vrai si l'utilisateur vient de s'inscrire
+const justRegistered = computed(() => route.query.registered === '1')
 
 // Formulaire de connexion
 const form = ref({
@@ -61,6 +64,10 @@ async function handleSubmit() {
 
       <div v-if="errors.length" class="auth-alert">
         <p v-for="(msg, i) in errors" :key="i">{{ msg }}</p>
+      </div>
+
+      <div v-if="justRegistered" class="auth-success">
+        Votre compte a été créé avec succès. Un administrateur doit valider votre compte avant que vous puissiez faire une demande de dépôt.
       </div>
 
       <form @submit.prevent="handleSubmit" class="auth-form">
@@ -164,6 +171,16 @@ async function handleSubmit() {
 
 .auth-alert p + p {
   margin-top: 0.25rem;
+}
+
+.auth-success {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-xl, 1rem);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
 }
 
 .auth-form {

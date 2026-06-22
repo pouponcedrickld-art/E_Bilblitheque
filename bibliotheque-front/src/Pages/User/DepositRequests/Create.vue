@@ -1,17 +1,22 @@
 <script setup lang="ts">
 // Importations Vue et composants
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
 import DepositRequestForm from '@/Components/User/DepositRequestForm.vue'
 import Message from 'primevue/message'
 
 // Routeur et état du formulaire
 const router = useRouter()
+const authStore = useAuthStore()
 const loading = ref(false)
 const error = ref('')
 const submitted = ref(false)
 const createdTitle = ref('')
+
+// Vérifie si l'utilisateur peut faire une demande
+const canCreate = computed(() => authStore.user?.status === 'active')
 
 // Soumet une nouvelle demande de dépôt
 async function handleSubmit(data: { title: string; description: string; file: File | null }) {
@@ -84,7 +89,11 @@ function goToDeposits() {
         <div v-if="error" class="alert alert-error">{{ error }}</div>
       </Transition>
 
-      <div class="form-card">
+      <div v-if="!canCreate" class="alert alert-info">
+        Votre compte est en attente de validation par un administrateur. Vous ne pouvez pas faire de demande de dépôt pour le moment.
+      </div>
+
+      <div v-else class="form-card">
         <DepositRequestForm @submit="handleSubmit" />
       </div>
 
@@ -128,6 +137,12 @@ function goToDeposits() {
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
+}
+
+.alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
 }
 
 .form-card {
