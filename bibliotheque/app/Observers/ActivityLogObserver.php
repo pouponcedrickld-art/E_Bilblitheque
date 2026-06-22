@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Request;
 
 class ActivityLogObserver
 {
+    // Enregistre automatiquement les actions CRUD dans les logs d'activité
     public function created(Model $model): void
     {
         $this->log('created', $model);

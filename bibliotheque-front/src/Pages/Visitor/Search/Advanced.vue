@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations Vue, routeur, composables et composants
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
@@ -10,9 +11,11 @@ import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
 
+// Routeur et état de recherche via le composable useSearch
 const router = useRouter()
 const { query, results, loading, filters, search, reset } = useSearch()
 
+// Données pour les listes déroulantes
 const categories = ref<Category[]>([])
 const documentTypes = [
   { label: 'Livre', value: 'livre' },
@@ -36,6 +39,7 @@ const languages = [
   { label: 'Japonais', value: 'ja' },
 ]
 
+// Récupère les catégories depuis l'API
 async function fetchCategories() {
   try {
     const res = await http.get('/categories')
@@ -45,14 +49,17 @@ async function fetchCategories() {
   }
 }
 
+// Réinitialise tous les filtres
 function clearFilters() {
   reset()
 }
 
+// Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
+// Retourne l'icône correspondant au type de document
 function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
     livre: '📖', memoire: '📄', these: '🎓', article: '📰',
@@ -61,6 +68,7 @@ function getTypeIcon(type: string): string {
   return icons[type] || '📄'
 }
 
+// Charge les catégories au montage
 onMounted(fetchCategories)
 </script>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Composant du tableau de bord admin - statistiques globales
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -7,12 +8,14 @@ import http from '@/services/http'
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Statistiques du tableau de bord
 const stats = ref({
   references: 0, categories: 0, authors: 0,
   users: 0, downloads: 0, views: 0,
 })
 const loading = ref(true)
 
+// Charge les statistiques depuis différents endpoints
 async function fetchStats() {
   loading.value = true
   try {
@@ -39,6 +42,7 @@ async function fetchStats() {
   }
 }
 
+// Charge les stats au montage
 onMounted(fetchStats)
 </script>
 

@@ -7,11 +7,13 @@ use App\Models\User;
 
 class DepositRequestPolicy
 {
+    // Tout le monde peut lister les demandes
     public function viewAny(User $user): bool
     {
         return true;
     }
 
+    // Visibilité restreinte selon le rôle (admin, responsable, demandeur)
     public function view(User $user, DepositRequest $depositRequest): bool
     {
         // Admin voit tout
@@ -29,11 +31,13 @@ class DepositRequestPolicy
         return $user->id === $depositRequest->applicant_id;
     }
 
+    // User et admin peuvent créer une demande
     public function create(User $user): bool
     {
         return in_array($user->role, ['user', 'admin']);
     }
 
+    // Le demandeur peut modifier tant que la demande est en attente
     public function update(User $user, DepositRequest $depositRequest): bool
     {
         // Seul le demandeur peut modifier tant que pending
@@ -41,12 +45,14 @@ class DepositRequestPolicy
             && $depositRequest->status === 'pending';
     }
 
+    // Admin ou demandeur (si en attente) peuvent supprimer
     public function delete(User $user, DepositRequest $depositRequest): bool
     {
         return $user->role === 'admin'
             || ($user->id === $depositRequest->applicant_id && $depositRequest->status === 'pending');
     }
 
+    // Le responsable assigné peut approuver ou refuser une demande en attente
     /**
      * Responsable : approuver/refuser une demande
      */
@@ -57,6 +63,7 @@ class DepositRequestPolicy
             && $depositRequest->status === 'pending';
     }
 
+    // Admin peut publier, rejeter, outrepasser ou donner un second avis
     /**
      * Admin : actions de publication/rejet/override/second avis
      */

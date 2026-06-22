@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\DB;
 
 class DepositRequestController extends Controller
 {
+    // Liste des demandes de dépôt filtrée par rôle : admin voit tout, responsable voit ses assignations, user voit ses demandes
     public function index(Request $request)
     {
         $query = DepositRequest::with(['applicant', 'assignedManager', 'reviews']);
 
-        // Filtre par rôle
         if ($request->user()->role === 'responsable_demande') {
             $query->where('assigned_manager_id', $request->user()->id)
                   ->orWhereHas('reviews', function ($q) use ($request) {
@@ -33,6 +33,7 @@ class DepositRequestController extends Controller
         return response()->json($query->latest()->paginate(15));
     }
 
+    // Crée une demande de dépôt et assigne un responsable au hasard
     public function store(Request $request)
     {
         $request->validate([
@@ -52,7 +53,7 @@ class DepositRequestController extends Controller
             $data['proposed_file'] = $request->file('proposed_file')->store('deposits', 'public');
         }
 
-        // Assigner un responsable au hasard
+        // Assigne un responsable disponible aléatoirement
         $manager = \App\Models\User::where('role', 'responsable_demande')
             ->where('status', 'active')
             ->inRandomOrder()
@@ -64,7 +65,7 @@ class DepositRequestController extends Controller
 
         $depositRequest = DepositRequest::create($data);
 
-        // Notifier le responsable
+        // Notifie le responsable de la nouvelle assignation
         if ($manager) {
             Notification::create([
                 'user_id' => $manager->id,
@@ -77,6 +78,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest->load(['applicant', 'assignedManager']), 201);
     }
 
+    // Détail d'une demande avec ses relations (utilise Policy pour l'autorisation)
     public function show(DepositRequest $depositRequest)
     {
         $this->authorize('view', $depositRequest);
@@ -86,6 +88,7 @@ class DepositRequestController extends Controller
         ]));
     }
 
+    // Modifie le titre ou la description (utilise Policy)
     public function update(Request $request, DepositRequest $depositRequest)
     {
         $this->authorize('update', $depositRequest);
@@ -100,6 +103,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest);
     }
 
+    // Supprime une demande (utilise Policy)
     public function destroy(DepositRequest $depositRequest)
     {
         $this->authorize('delete', $depositRequest);
@@ -111,13 +115,11 @@ class DepositRequestController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Actions du workflow de validation
+    | Workflow de validation
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Responsable : valider une demande
-     */
+    // Le responsable valide la demande (pending ou second_review)
     public function approveByManager(Request $request, DepositRequest $depositRequest)
     {
         $request->validate(['justification' => 'nullable|string']);
@@ -139,6 +141,7 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'approved_by_manager']);
 
+            // Notifie tous les admins pour publication
             $admins = \App\Models\User::where('role', 'admin')->where('status', 'active')->get();
             foreach ($admins as $admin) {
                 Notification::create([
@@ -153,9 +156,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest->load('reviews'));
     }
 
-    /**
-     * Responsable : refuser une demande (avec justification obligatoire)
-     */
+    // Le responsable refuse la demande (justification obligatoire)
     public function rejectByManager(Request $request, DepositRequest $depositRequest)
     {
         $request->validate(['justification' => 'required|string|min:10']);
@@ -177,6 +178,7 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'rejected_by_manager']);
 
+            // Notifie les admins du refus
             $admins = \App\Models\User::where('role', 'admin')->where('status', 'active')->get();
             foreach ($admins as $admin) {
                 Notification::create([
@@ -191,9 +193,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest->load('reviews'));
     }
 
-    /**
-     * Admin : publier une demande validée
-     */
+    // Admin : publie la demande validée en créant la référence associée
     public function publish(Request $request, DepositRequest $depositRequest)
     {
         if ($request->user()->role !== 'admin') {
@@ -205,7 +205,6 @@ class DepositRequestController extends Controller
         }
 
         DB::transaction(function () use ($depositRequest) {
-            // Créer la référence
             $reference = Reference::create([
                 'title' => $depositRequest->title,
                 'abstract' => $depositRequest->description,
@@ -224,7 +223,7 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'published']);
 
-            // Notifier le demandeur
+            // Notifie le demandeur que sa référence est publiée
             Notification::create([
                 'user_id' => $depositRequest->applicant_id,
                 'title' => 'Votre référence a été publiée',
@@ -236,9 +235,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest->load('reviews'));
     }
 
-    /**
-     * Admin : rejeter définitivement
-     */
+    // Admin : rejette définitivement la demande
     public function rejectByAdmin(Request $request, DepositRequest $depositRequest)
     {
         if ($request->user()->role !== 'admin') {
@@ -258,7 +255,6 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'rejected']);
 
-            // Notifier le demandeur
             Notification::create([
                 'user_id' => $depositRequest->applicant_id,
                 'title' => 'Votre demande a été rejetée',
@@ -270,9 +266,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest->load('reviews'));
     }
 
-    /**
-     * Admin : passer outre un refus et publier
-     */
+    // Admin : passe outre le refus du responsable et publie directement
     public function overrideReject(Request $request, DepositRequest $depositRequest)
     {
         if ($request->user()->role !== 'admin') {
@@ -304,7 +298,7 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'published']);
 
-            // Notifier le demandeur ET le responsable
+            // Notifie le demandeur et le responsable de l'override
             Notification::create([
                 'user_id' => $depositRequest->applicant_id,
                 'title' => 'Votre référence a été publiée (override admin)',
@@ -325,9 +319,7 @@ class DepositRequestController extends Controller
         return response()->json($depositRequest->load('reviews'));
     }
 
-    /**
-     * Admin : demander un second avis
-     */
+    // Admin : demande un second avis à un autre responsable
     public function requestSecondReview(Request $request, DepositRequest $depositRequest)
     {
         if ($request->user()->role !== 'admin') {
@@ -357,7 +349,6 @@ class DepositRequestController extends Controller
                 'assigned_manager_id' => $request->new_manager_id,
             ]);
 
-            // Notifier le nouveau responsable
             Notification::create([
                 'user_id' => $request->new_manager_id,
                 'title' => 'Second avis demandé',

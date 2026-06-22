@@ -9,6 +9,7 @@ class AuthorSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée les auteurs de référence africains et internationaux
         $authors = [
             ['first_name' => 'Félix', 'last_name' => 'Houphouët-Boigny', 'nationality' => 'Ivoirienne', 'biography' => 'Homme politique et écrivain ivoirien, premier président de la Côte d\'Ivoire.'],
             ['first_name' => 'Cheikh', 'last_name' => 'Anta Diop', 'nationality' => 'Sénégalaise', 'biography' => 'Historien, anthropologue et homme politique sénégalais, spécialiste de l\'Égypte antique.'],

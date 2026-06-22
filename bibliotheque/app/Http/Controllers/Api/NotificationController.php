@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    // Liste les notifications de l'utilisateur connecté (avec le compte des non-lues)
     public function index(Request $request)
     {
         $notifications = Notification::where('user_id', $request->user()->id)
@@ -20,6 +21,7 @@ class NotificationController extends Controller
         ]);
     }
 
+    // Marque une notification comme lue
     public function markAsRead(Request $request, $id)
     {
         $notification = Notification::where('user_id', $request->user()->id)
@@ -31,6 +33,7 @@ class NotificationController extends Controller
         return response()->json($notification);
     }
 
+    // Marque toutes les notifications de l'utilisateur comme lues
     public function markAllAsRead(Request $request)
     {
         Notification::where('user_id', $request->user()->id)

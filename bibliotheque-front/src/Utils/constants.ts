@@ -1,3 +1,4 @@
+// Statuts possibles d'une demande de dépôt
 export const DEPOSIT_STATUS = {
   PENDING: 'pending',
   APPROVED_BY_MANAGER: 'approved_by_manager',

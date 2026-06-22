@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Liste des demandes de dépôt pour l'admin
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -10,6 +11,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
+// Interface d'une demande de dépôt
 interface DepositRequest {
   id: number
   title: string
@@ -20,10 +22,12 @@ interface DepositRequest {
 }
 
 const router = useRouter()
+// Demandes de dépôt et filtres
 const items = ref<DepositRequest[]>([])
 const loading = ref(false)
 const globalFilter = ref('')
 
+// Filtre les demandes par recherche textuelle
 const filteredItems = computed(() => {
   if (!globalFilter.value) return items.value
   const q = globalFilter.value.toLowerCase()
@@ -34,6 +38,7 @@ const filteredItems = computed(() => {
   )
 })
 
+// Récupère la liste des demandes
 async function fetch() {
   loading.value = true
   try {
@@ -44,6 +49,7 @@ async function fetch() {
   }
 }
 
+// Charge les demandes au montage
 onMounted(fetch)
 </script>
 

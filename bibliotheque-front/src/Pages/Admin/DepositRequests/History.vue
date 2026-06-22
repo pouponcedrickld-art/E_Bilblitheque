@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Historique détaillé des demandes de dépôt
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -7,6 +8,7 @@ import Timeline from 'primevue/timeline'
 import Card from 'primevue/card'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
+// Événement d'historique avec les avis associés
 interface HistoryEvent {
   id: number
   title: string
@@ -17,9 +19,11 @@ interface HistoryEvent {
 }
 
 const router = useRouter()
+// Liste des événements historiques
 const events = ref<HistoryEvent[]>([])
 const loading = ref(true)
 
+// Charge l'historique complet avec les avis
 async function fetchHistory() {
   loading.value = true
   try {
@@ -48,6 +52,7 @@ async function fetchHistory() {
   }
 }
 
+// Retourne l'icône correspondant au statut
 function statusTransitionIcon(status: string): string {
   const icons: Record<string, string> = {
     pending: 'pi pi-clock',
@@ -60,6 +65,7 @@ function statusTransitionIcon(status: string): string {
   return icons[status] || 'pi pi-circle'
 }
 
+// Charge l'historique au montage
 onMounted(fetchHistory)
 </script>
 

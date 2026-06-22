@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations Vue, stores et composants PrimeVue
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDepositRequestsStore } from '@/stores/depositRequests'
@@ -12,13 +13,16 @@ import InputIcon from 'primevue/inputicon'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import { formatDate } from '@/Utils/formatters'
 
+// Routeur et stores
 const router = useRouter()
 const store = useDepositRequestsStore()
 const toastStore = useToastStore()
 
+// État de chargement et filtre de recherche
 const loading = ref(false)
 const globalFilter = ref('')
 
+// Liste filtrée par recherche textuelle
 const filteredRequests = computed(() => {
   if (!globalFilter.value) return store.requests
   const q = globalFilter.value.toLowerCase()
@@ -28,6 +32,7 @@ const filteredRequests = computed(() => {
   )
 })
 
+// Charge les demandes de l'utilisateur connecté
 async function fetchData() {
   loading.value = true
   try {
@@ -40,14 +45,17 @@ async function fetchData() {
   }
 }
 
+// Navigue vers le détail d'une demande
 function viewRequest(id: number) {
   router.push(`/user/deposits/${id}`)
 }
 
+// Navigue vers le formulaire de création
 function createNew() {
   router.push('/user/deposits/create')
 }
 
+// Charge les données au montage
 onMounted(fetchData)
 </script>
 

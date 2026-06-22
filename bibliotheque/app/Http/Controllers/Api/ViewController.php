@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 
 class ViewController extends Controller
 {
+    // Liste des consultations (admin voit tout, user voit les siennes)
     public function index(Request $request)
     {
-        // Admin voit tout, user voit ses propres consultations
         if ($request->user()->role === 'admin') {
             $query = View::with(['user', 'reference']);
         } else {
@@ -18,6 +18,7 @@ class ViewController extends Controller
                 ->where('user_id', $request->user()->id);
         }
 
+        // Filtres optionnels
         if ($request->has('reference_id')) {
             $query->where('reference_id', $request->reference_id);
         }
@@ -31,6 +32,7 @@ class ViewController extends Controller
         return response()->json($query->orderBy('viewed_at', 'desc')->paginate(30));
     }
 
+    // Détail d'une consultation (admin ou propriétaire)
     public function show(Request $request, View $view)
     {
         if ($request->user()->role !== 'admin' && $request->user()->id !== $view->user_id) {
@@ -40,9 +42,7 @@ class ViewController extends Controller
         return response()->json($view->load(['user', 'reference']));
     }
 
-    /**
-     * Statistiques des consultations
-     */
+    // Statistiques des consultations (admin et RH uniquement)
     public function stats(Request $request)
     {
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
@@ -62,6 +62,7 @@ class ViewController extends Controller
                 ->orderByDesc('count')
                 ->limit(10)
                 ->get(),
+            // Évolution des vues sur les 30 derniers jours
             'views_over_time' => View::selectRaw('DATE(viewed_at) as date, count(*) as count')
                 ->whereDate('viewed_at', '>=', now()->subDays(30))
                 ->groupBy('date')

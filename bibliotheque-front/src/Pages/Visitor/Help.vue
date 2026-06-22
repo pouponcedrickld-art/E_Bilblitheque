@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations routeur et composants PrimeVue
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
@@ -7,6 +8,7 @@ import AccordionPanel from 'primevue/accordionpanel'
 import AccordionHeader from 'primevue/accordionheader'
 import AccordionContent from 'primevue/accordioncontent'
 
+// Routeur pour la navigation
 const router = useRouter()
 </script>
 

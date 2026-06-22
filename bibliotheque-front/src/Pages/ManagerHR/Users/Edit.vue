@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+// Modification d'un utilisateur (RH / Admin)
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
@@ -14,8 +15,27 @@ const route = useRoute()
 const toast = useToast()
 const authStore = useAuthStore()
 
+// Chemin de redirection selon le rôle
 const usersPath = authStore.isAdmin ? '/admin/users' : '/rh/users'
 
+// Options de rôle selon les permissions
+const roleOptions = computed(() => {
+  if (authStore.isAdmin) {
+    return [
+      { label: 'Utilisateur', value: 'user' },
+      { label: 'Responsable RH', value: 'responsable_rh' },
+      { label: 'Responsable Demande', value: 'responsable_demande' },
+      { label: 'Administrateur', value: 'admin' },
+    ]
+  }
+  return [
+    { label: 'Utilisateur', value: 'user' },
+    { label: 'Responsable RH', value: 'responsable_rh' },
+    { label: 'Responsable Demande', value: 'responsable_demande' },
+  ]
+})
+
+// Formulaire de modification
 const form = ref({
   first_name: '',
   last_name: '',
@@ -29,6 +49,7 @@ const submitting = ref(false)
 const loading = ref(true)
 const errors = ref<Record<string, string[]>>({})
 
+// Charge les données de l'utilisateur
 async function fetchUser() {
   loading.value = true
   try {
@@ -50,6 +71,7 @@ async function fetchUser() {
   }
 }
 
+// Met à jour l'utilisateur
 async function submit() {
   submitting.value = true
   errors.value = {}
@@ -68,6 +90,7 @@ async function submit() {
   }
 }
 
+// Charge l'utilisateur au montage
 onMounted(fetchUser)
 </script>
 
@@ -106,7 +129,7 @@ onMounted(fetchUser)
             </div>
             <div class="field">
               <label for="role">Rôle</label>
-              <Select id="role" v-model="form.role" :options="['user', 'responsable_rh', 'responsable_demande']" :class="{ 'p-invalid': errors.role }" />
+              <Select id="role" v-model="form.role" :options="roleOptions" optionLabel="label" optionValue="value" :class="{ 'p-invalid': errors.role }" />
               <small v-if="errors.role" class="p-error">{{ errors.role[0] }}</small>
             </div>
             <div class="field">

@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Attribue automatiquement toutes les permissions au rôle admin
         // Implicitly grant "admin" role all permissions
         Gate::before(function ($user, $ability) {
             if ($user->role === 'admin') {

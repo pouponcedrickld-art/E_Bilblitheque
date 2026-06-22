@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Crée la table 'reference_keywords' (ancienne structure, remplacée par keyword_reference)
     public function up(): void
     {
         Schema::create('reference_keywords', function (Blueprint $table) {

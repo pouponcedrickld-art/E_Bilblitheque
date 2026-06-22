@@ -16,7 +16,7 @@ class DepositRequestFactory extends Factory
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'proposed_file' => fake()->optional()->filePath(),
-            'status' => fake()->randomElement(['pending', 'approved_by_manager', 'rejected_by_manager', 'second_review', 'approved', 'rejected', 'published']),
+            'status' => fake()->randomElement(['pending', 'approved_by_manager', 'rejected_by_manager', 'second_review', 'approved', 'rejected', 'published']), // Statut de la demande
         ];
     }
 }

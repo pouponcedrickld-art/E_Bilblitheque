@@ -6,11 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAuthorRequest extends FormRequest
 {
+    // Autorise la mise à jour d'un auteur
     public function authorize(): bool
     {
         return true;
     }
 
+    // Validation des champs optionnels d'un auteur (date de décès après naissance)
     public function rules(): array
     {
         return [

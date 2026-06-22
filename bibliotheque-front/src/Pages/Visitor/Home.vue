@@ -1,9 +1,11 @@
 <script setup lang="ts">
+// Importations Vue, routeur, services et types
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import type { Reference } from '@/types'
 
+// Routeur et données réactives
 const router = useRouter()
 const featured = ref<Reference[]>([])
 const references = ref<Reference[]>([])
@@ -13,6 +15,7 @@ const loading = ref(true)
 const query = ref('')
 const category = ref('Tout')
 
+// Charge les données de la page d'accueil
 async function fetchData() {
   loading.value = true
   try {
@@ -39,6 +42,7 @@ async function fetchData() {
   }
 }
 
+// Filtre les références par catégorie et recherche textuelle
 const filtered = computed(() => {
   let list = references.value
   if (category.value !== 'Tout') {
@@ -55,14 +59,17 @@ const filtered = computed(() => {
   return list
 })
 
+// Navigue vers une route donnée
 function go(path: string) {
   router.push(path)
 }
 
+// Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
+// Charge les données au montage du composant
 onMounted(fetchData)
 </script>
 

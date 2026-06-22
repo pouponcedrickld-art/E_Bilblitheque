@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Crée la table 'views'
     public function up(): void
     {
         Schema::create('views', function (Blueprint $table) {

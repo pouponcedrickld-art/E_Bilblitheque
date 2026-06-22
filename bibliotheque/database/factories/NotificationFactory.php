@@ -14,8 +14,8 @@ class NotificationFactory extends Factory
             'user_id' => \App\Models\User::factory(),
             'title' => fake()->sentence(3),
             'message' => fake()->paragraph(),
-            'type' => fake()->randomElement(['system', 'validation', 'publication', 'information']),
-            'is_read' => fake()->boolean(),
+            'type' => fake()->randomElement(['system', 'validation', 'publication', 'information']), // Type de notification
+            'is_read' => fake()->boolean(), // Statut de lecture
         ];
     }
 }

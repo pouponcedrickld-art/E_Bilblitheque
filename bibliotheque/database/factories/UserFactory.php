@@ -19,8 +19,8 @@ class UserFactory extends Factory
             'phone' => fake()->optional()->phoneNumber(),
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
-            'role' => fake()->randomElement(['admin', 'responsable_rh', 'responsable_demande', 'user']),
-            'status' => fake()->randomElement(['active', 'inactive', 'suspended']),
+            'role' => fake()->randomElement(['admin', 'responsable_rh', 'responsable_demande', 'user']), // Rôle utilisateur
+            'status' => fake()->randomElement(['active', 'inactive', 'suspended']), // Statut du compte
             'remember_token' => Str::random(10),
         ];
     }

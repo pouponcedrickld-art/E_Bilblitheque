@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Gestion des mots-clés du catalogue
 import { ref, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -12,6 +13,7 @@ import Message from 'primevue/message'
 const toastStore = useToastStore()
 const confirm = useConfirm()
 
+// Interface représentant un mot-clé
 interface Keyword {
   id: number
   name: string
@@ -19,10 +21,12 @@ interface Keyword {
   references_count?: number
 }
 
+// Liste des mots-clés et état
 const keywords = ref<Keyword[]>([])
 const loading = ref(false)
 const newKeyword = ref('')
 
+// Récupère tous les mots-clés
 async function fetchKeywords() {
   loading.value = true
   try {
@@ -35,6 +39,7 @@ async function fetchKeywords() {
   }
 }
 
+// Ajoute un nouveau mot-clé
 async function addKeyword() {
   const name = newKeyword.value.trim()
   if (!name) return
@@ -56,6 +61,7 @@ async function addKeyword() {
   }
 }
 
+// Demande confirmation avant suppression
 function confirmRemove(kw: Keyword) {
   confirm.require({
     message: `Supprimer le mot-clé "${kw.name}" ?${kw.references_count ? ` (${kw.references_count} référence(s) liée(s))` : ''}`,
@@ -66,6 +72,7 @@ function confirmRemove(kw: Keyword) {
   })
 }
 
+// Supprime un mot-clé
 async function removeKeyword(kw: Keyword) {
   try {
     await http.delete(`/keywords/${kw.id}`)
@@ -76,6 +83,7 @@ async function removeKeyword(kw: Keyword) {
   }
 }
 
+// Charge les mots-clés au montage
 onMounted(fetchKeywords)
 </script>
 

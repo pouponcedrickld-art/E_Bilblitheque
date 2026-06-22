@@ -11,6 +11,7 @@ use App\Models\View;
 
 class StatsController extends Controller
 {
+    // Retourne les statistiques générales de la bibliothèque
     public function index()
     {
         return response()->json([

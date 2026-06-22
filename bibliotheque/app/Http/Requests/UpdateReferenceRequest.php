@@ -7,11 +7,13 @@ use Illuminate\Validation\Rule;
 
 class UpdateReferenceRequest extends FormRequest
 {
+    // Autorise la mise à jour d'une référence
     public function authorize(): bool
     {
         return true;
     }
 
+    // Validation des champs optionnels d'une référence (ISBN unique, type document, statut)
     public function rules(): array
     {
         return [

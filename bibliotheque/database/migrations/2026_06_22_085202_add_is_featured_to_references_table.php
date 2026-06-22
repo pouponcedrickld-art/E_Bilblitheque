@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Ajoute la colonne 'is_featured' à la table 'references'
     public function up(): void
     {
         Schema::table('references', function (Blueprint $table) {

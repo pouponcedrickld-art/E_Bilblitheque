@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Crée les tables 'jobs', 'job_batches' et 'failed_jobs'
     /**
      * Run the migrations.
      */

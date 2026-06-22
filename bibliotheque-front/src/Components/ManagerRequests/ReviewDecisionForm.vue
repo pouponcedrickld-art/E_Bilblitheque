@@ -1,3 +1,4 @@
+// Formulaire d'approbation ou de refus d'une demande (responsable)
 <script setup lang="ts">
 import { ref } from 'vue'
 import http from '@/services/http'
@@ -20,6 +21,7 @@ const showRejectForm = ref(false)
 const justification = ref('')
 const submitting = ref(false)
 
+// Approuve la demande
 async function approve() {
   submitting.value = true
   try {
@@ -33,6 +35,7 @@ async function approve() {
   }
 }
 
+// Refuse la demande avec justification
 async function reject() {
   if (!justification.value.trim()) return
   submitting.value = true

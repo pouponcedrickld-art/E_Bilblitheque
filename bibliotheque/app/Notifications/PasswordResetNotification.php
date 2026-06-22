@@ -9,6 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class PasswordResetNotification extends Notification implements ShouldQueue
 {
+    // Notification envoyée à l'utilisateur après une réinitialisation de mot de passe par un admin
     use Queueable;
 
     public function __construct(public string $temporaryPassword) {}

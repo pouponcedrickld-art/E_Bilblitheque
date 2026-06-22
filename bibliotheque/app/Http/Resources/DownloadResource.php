@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class DownloadResource extends JsonResource
 {
+    // Expose les données d'un téléchargement
     public function toArray(Request $request): array
     {
         return [

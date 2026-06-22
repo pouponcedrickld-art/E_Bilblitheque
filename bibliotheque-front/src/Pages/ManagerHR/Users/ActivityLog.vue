@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Journal d'activité pour le responsable RH
 import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToast } from 'primevue/usetoast'
@@ -12,6 +13,7 @@ import InputIcon from 'primevue/inputicon'
 
 const toast = useToast()
 
+// Entrée du journal d'activité
 interface ActivityLog {
   id: number
   user: { full_name: string; email: string } | null
@@ -21,10 +23,12 @@ interface ActivityLog {
   created_at: string
 }
 
+// Logs et filtre
 const logs = ref<ActivityLog[]>([])
 const loading = ref(true)
 const globalFilter = ref('')
 
+// Filtre les logs par recherche textuelle
 const filteredLogs = computed(() => {
   if (!globalFilter.value) return logs.value
   const q = globalFilter.value.toLowerCase()
@@ -35,6 +39,7 @@ const filteredLogs = computed(() => {
   )
 })
 
+// Récupère les logs d'activité
 async function fetchLogs() {
   loading.value = true
   try {
@@ -47,12 +52,14 @@ async function fetchLogs() {
   }
 }
 
+// Formate une date au format français
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('fr-FR', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
 
+// Traduit une action en libellé lisible
 function getActionLabel(action: string): string {
   const labels: Record<string, string> = {
     created: 'Création',
@@ -65,6 +72,7 @@ function getActionLabel(action: string): string {
   return labels[action] || action
 }
 
+// Charge les logs au montage
 onMounted(fetchLogs)
 </script>
 

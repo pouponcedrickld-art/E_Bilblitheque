@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations Vue, routeur, composables et composants
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
@@ -9,10 +10,12 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 
+// Routeur et état de recherche via le composable useSearch
 const router = useRouter()
 const { query, results, loading, filters, search } = useSearch()
 const categories = ref<Category[]>([])
 
+// Récupère les catégories depuis l'API
 async function fetchCategories() {
   try {
     const res = await http.get('/categories')
@@ -22,6 +25,7 @@ async function fetchCategories() {
   }
 }
 
+// Retourne l'icône correspondant au type de document
 function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
     livre: '📖', memoire: '📄', these: '🎓', article: '📰',
@@ -30,10 +34,12 @@ function getTypeIcon(type: string): string {
   return icons[type] || '📄'
 }
 
+// Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
+// Charge les catégories au montage
 onMounted(fetchCategories)
 </script>
 

@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 
 class KeywordController extends Controller
 {
+    // Liste les mots-clés avec recherche par nom
     public function index(Request $request)
     {
         $query = Keyword::query();
@@ -21,6 +22,7 @@ class KeywordController extends Controller
         return KeywordResource::collection($query->orderBy('name')->paginate(50));
     }
 
+    // Crée un mot-clé avec slug généré automatiquement
     public function store(Request $request)
     {
         $request->validate([
@@ -35,6 +37,7 @@ class KeywordController extends Controller
         return new KeywordResource($keyword);
     }
 
+    // Supprime un mot-clé après avoir détaché ses références
     public function destroy(Keyword $keyword)
     {
         $keyword->references()->detach();

@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class CategoryResource extends JsonResource
 {
+    // Expose les données d'une catégorie
     public function toArray(Request $request): array
     {
         return [

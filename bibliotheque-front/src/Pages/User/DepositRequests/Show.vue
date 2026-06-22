@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations Vue, routeur, services et composants
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -7,14 +8,17 @@ import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import Button from 'primevue/button'
 import { formatDate } from '@/Utils/formatters'
 
+// Route actuelle et routeur
 const route = useRoute()
 const router = useRouter()
 
+// Données de la demande et avis associés
 const request = ref<DepositRequest | null>(null)
 const reviews = ref<any[]>([])
 const loading = ref(true)
 const error = ref('')
 
+// Charge le détail d'une demande depuis l'API
 async function fetchRequest() {
   loading.value = true
   error.value = ''
@@ -32,15 +36,18 @@ async function fetchRequest() {
   }
 }
 
+// Télécharge le fichier proposé
 function downloadFile() {
   if (!request.value?.proposed_file_url) return
   window.open(request.value.proposed_file_url, '_blank')
 }
 
+// Retour à la liste des dépôts
 function goBack() {
   router.push('/user/deposits')
 }
 
+// Charge la demande au montage du composant
 onMounted(fetchRequest)
 </script>
 

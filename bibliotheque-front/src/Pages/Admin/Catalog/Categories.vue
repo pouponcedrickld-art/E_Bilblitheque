@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Gestion des catégories du catalogue
 import { ref, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -11,6 +12,7 @@ import Dialog from 'primevue/dialog'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 
+// Interface représentant une catégorie
 interface Category {
   id: number
   name: string
@@ -22,15 +24,18 @@ interface Category {
 const toastStore = useToastStore()
 const confirm = useConfirm()
 
+// Liste des catégories et état de chargement
 const categories = ref<Category[]>([])
 const loading = ref(false)
 
+// État du dialogue et du formulaire
 const dialogVisible = ref(false)
 const editing = ref(false)
 const selectedCategory = ref<Category | null>(null)
 const form = ref({ name: '', description: '' })
 const submitting = ref(false)
 
+// Récupère la liste des catégories
 async function fetch() {
   loading.value = true
   try {
@@ -41,6 +46,7 @@ async function fetch() {
   }
 }
 
+// Ouvre le dialogue de création
 function openCreate() {
   editing.value = false
   selectedCategory.value = null
@@ -48,6 +54,7 @@ function openCreate() {
   dialogVisible.value = true
 }
 
+// Ouvre le dialogue de modification
 function openEdit(cat: Category) {
   editing.value = true
   selectedCategory.value = cat
@@ -55,6 +62,7 @@ function openEdit(cat: Category) {
   dialogVisible.value = true
 }
 
+// Crée ou met à jour une catégorie
 async function submit() {
   submitting.value = true
   try {
@@ -74,6 +82,7 @@ async function submit() {
   }
 }
 
+// Supprime une catégorie après confirmation
 async function deleteCategory(id: number) {
   confirm.require({
     message: 'Supprimer cette catégorie ?',
@@ -92,6 +101,7 @@ async function deleteCategory(id: number) {
   })
 }
 
+// Charge les catégories au montage
 onMounted(fetch)
 </script>
 

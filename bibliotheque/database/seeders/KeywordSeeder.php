@@ -10,6 +10,7 @@ class KeywordSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée les mots-clés du thésaurus documentaire
         $keywords = [
             'droit constitutionnel',
             'droit des affaires',

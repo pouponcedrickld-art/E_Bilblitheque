@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ViewResource extends JsonResource
 {
+    // Expose les données d'une vue
     public function toArray(Request $request): array
     {
         return [

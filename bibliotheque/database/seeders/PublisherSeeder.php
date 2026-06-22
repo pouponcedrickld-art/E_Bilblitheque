@@ -9,6 +9,7 @@ class PublisherSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée les éditeurs partenaires
         $publishers = [
             ['name' => 'Les Éditions du Bénin', 'country' => 'Bénin', 'description' => 'Maison d\'édition généraliste basée à Cotonou.'],
             ['name' => 'Nouvelles Éditions Africaines', 'country' => 'Sénégal', 'description' => 'Éditeur panafricain de référence en Afrique francophone.'],

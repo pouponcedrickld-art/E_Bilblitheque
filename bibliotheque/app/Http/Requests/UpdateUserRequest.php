@@ -7,11 +7,13 @@ use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
+    // Autorise la mise à jour d'un utilisateur
     public function authorize(): bool
     {
         return true;
     }
 
+    // Validation des champs optionnels (mot de passe actuel requis si nouveau mot de passe)
     public function rules(): array
     {
         return [

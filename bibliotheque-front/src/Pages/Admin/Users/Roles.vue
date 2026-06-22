@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Gestion des rôles utilisateurs
 import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -11,6 +12,7 @@ import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 
+// Interface d'un utilisateur
 interface User {
   id: number
   first_name: string
@@ -22,10 +24,12 @@ interface User {
 
 const toastStore = useToastStore()
 
+// Utilisateurs et filtre
 const users = ref<User[]>([])
 const loading = ref(false)
 const globalFilter = ref('')
 
+// Filtre les utilisateurs par recherche textuelle
 const filteredUsers = computed(() => {
   if (!globalFilter.value) return users.value
   const q = globalFilter.value.toLowerCase()
@@ -35,8 +39,10 @@ const filteredUsers = computed(() => {
     u.role.toLowerCase().includes(q)
   )
 })
+// État de sauvegarde par utilisateur
 const saving = ref<Record<number, boolean>>({})
 
+// Options des rôles disponibles
 const roleOptions = [
   { label: 'Administrateur', value: 'admin' },
   { label: 'Responsable RH', value: 'responsable_rh' },
@@ -44,6 +50,7 @@ const roleOptions = [
   { label: 'Utilisateur', value: 'user' },
 ]
 
+// Couleurs des badges par rôle
 const roleSeverity: Record<string, string> = {
   admin: 'danger',
   responsable_rh: 'info',
@@ -51,6 +58,7 @@ const roleSeverity: Record<string, string> = {
   user: 'success',
 }
 
+// Récupère la liste des utilisateurs
 async function fetchUsers() {
   loading.value = true
   try {
@@ -61,6 +69,7 @@ async function fetchUsers() {
   }
 }
 
+// Met à jour le rôle d'un utilisateur
 async function changeRole(user: User) {
   saving.value[user.id] = true
   try {
@@ -74,6 +83,7 @@ async function changeRole(user: User) {
   }
 }
 
+// Charge les utilisateurs au montage
 onMounted(fetchUsers)
 </script>
 

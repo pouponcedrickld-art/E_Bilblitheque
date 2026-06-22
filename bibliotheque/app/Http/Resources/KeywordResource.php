@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class KeywordResource extends JsonResource
 {
+    // Expose les données d'un mot-clé
     public function toArray(Request $request): array
     {
         return [

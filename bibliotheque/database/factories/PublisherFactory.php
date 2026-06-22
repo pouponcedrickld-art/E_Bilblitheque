@@ -14,7 +14,7 @@ class PublisherFactory extends Factory
             'name' => fake()->company(),
             'description' => fake()->paragraph(),
             'country' => fake()->country(),
-            'website' => fake()->optional()->url(),
+            'website' => fake()->optional()->url(), // Site web (optionnel)
         ];
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class NotificationResource extends JsonResource
 {
+    // Expose les données d'une notification
     public function toArray(Request $request): array
     {
         return [

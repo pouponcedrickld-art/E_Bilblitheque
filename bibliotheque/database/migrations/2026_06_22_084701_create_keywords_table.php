@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Crée la table 'keywords'
     public function up(): void
     {
         Schema::create('keywords', function (Blueprint $table) {

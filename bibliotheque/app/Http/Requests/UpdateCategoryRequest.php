@@ -7,11 +7,13 @@ use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
+    // Autorise la mise à jour d'une catégorie
     public function authorize(): bool
     {
         return true;
     }
 
+    // Validation des champs optionnels avec vérification d'unicité (nom, slug)
     public function rules(): array
     {
         return [

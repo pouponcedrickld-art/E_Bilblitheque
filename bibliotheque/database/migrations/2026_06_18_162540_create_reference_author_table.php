@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Crée la table pivot 'reference_author'
     public function up(): void
     {
         Schema::create('reference_author', function (Blueprint $table) {

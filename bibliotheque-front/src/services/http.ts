@@ -1,5 +1,13 @@
+// Importation d'Axios pour les requêtes HTTP
 import axios from 'axios'
 
+/**
+ * Instance Axios préconfigurée pour communiquer avec l'API Laravel.
+ * - URL de base depuis la variable d'environnement VITE_API_URL
+ * - Envoie systématiquement les cookies de session (withCredentials)
+ * - Gère automatiquement le jeton CSRF XSRF de Sanctum
+ * - Déclare les en-têtes JSON et X-Requested-With pour Laravel
+ */
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5173/api',
   withCredentials: true,
@@ -11,6 +19,12 @@ const http = axios.create({
   },
 })
 
+// Intercepteur gérant les erreurs 401 et 419 (session expirée)
+/**
+ * Intercepteur de réponse – réinitialise l'authentification en cas
+ * d'erreur 401 (non authentifié) ou 419 (CSRF expiré), sauf pour
+ * la route /me (pour éviter une boucle infinie).
+ */
 http.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -27,6 +41,10 @@ http.interceptors.response.use(
   },
 )
 
+/**
+ * Récupère le cookie CSRF auprès de Sanctum.
+ * Nécessaire avant chaque requête POST /login ou /register.
+ */
 export async function fetchCsrfCookie(): Promise<void> {
   await axios.get(
     import.meta.env.VITE_API_SANCTUM_URL || 'http://localhost:5173/sanctum/csrf-cookie',

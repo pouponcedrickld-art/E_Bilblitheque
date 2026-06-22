@@ -16,7 +16,7 @@ class Category extends Model
         'status',
     ];
 
-    // Relations
+    // Toutes les références classées dans cette catégorie
     public function references()
     {
         return $this->hasMany(Reference::class);

@@ -1,3 +1,4 @@
+// Formulaire d'annulation de décision par l'administrateur
 <script setup lang="ts">
 import { ref } from 'vue'
 import http from '@/services/http'
@@ -18,6 +19,7 @@ const toastStore = useToastStore()
 const justification = ref('')
 const submitting = ref(false)
 
+// Soumet l'annulation avec justification
 async function submit() {
   if (!justification.value.trim()) return
   submitting.value = true
@@ -35,6 +37,7 @@ async function submit() {
 }
 </script>
 
+<!-- Interface d'annulation avec champ justification -->
 <template>
   <div class="override-form">
     <h3 class="form-title">Annuler la décision</h3>

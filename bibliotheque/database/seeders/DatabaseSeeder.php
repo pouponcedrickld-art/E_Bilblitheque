@@ -8,6 +8,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Lance tous les seeders dans l'ordre défini
         $this->call([
             UserSeeder::class,
             CategorySeeder::class,

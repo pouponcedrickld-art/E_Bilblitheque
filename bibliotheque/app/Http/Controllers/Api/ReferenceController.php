@@ -10,16 +10,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ReferenceController extends Controller
 {
+    // Liste paginée des références avec filtres (catégorie, type, langue, statut, recherche)
     public function index(Request $request)
     {
         $query = Reference::with(['category', 'publisher', 'authors', 'keywords', 'uploader']);
 
-        // Non-authentifiés : seulement les références publiées
+        // Les visiteurs non connectés ne voient que les références publiées
         if (!$request->user()) {
             $query->where('status', 'published');
         }
 
-        // Filtres
+        // Filtres optionnels
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
         }
@@ -42,14 +43,14 @@ class ReferenceController extends Controller
             });
         }
 
-        // Recherche par mots-clés
+        // Filtre par mot-clé
         if ($request->has('keyword')) {
             $query->whereHas('keywords', function ($q) use ($request) {
                 $q->where('name', 'like', "%{$request->keyword}%");
             });
         }
 
-        // Recherche par auteur
+        // Filtre par auteur
         if ($request->has('author')) {
             $query->whereHas('authors', function ($q) use ($request) {
                 $q->where('first_name', 'like', "%{$request->author}%")
@@ -60,6 +61,7 @@ class ReferenceController extends Controller
         return ReferenceResource::collection($query->paginate(15));
     }
 
+    // Retourne les 6 références mises en avant et publiées
     public function featured()
     {
         $references = Reference::with(['category', 'authors', 'keywords'])
@@ -72,6 +74,7 @@ class ReferenceController extends Controller
         return ReferenceResource::collection($references);
     }
 
+    // Crée une référence avec upload possible de couverture et fichier
     public function store(Request $request)
     {
         $request->validate([
@@ -96,12 +99,12 @@ class ReferenceController extends Controller
 
         $data = $request->except(['cover_image', 'file_path', 'author_ids', 'keyword_ids']);
 
-        // Upload cover
+        // Upload de l'image de couverture
         if ($request->hasFile('cover_image')) {
             $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
         }
 
-        // Upload file
+        // Upload du fichier PDF/DOC
         if ($request->hasFile('file_path')) {
             $data['file_path'] = $request->file('file_path')->store('documents', 'public');
         }
@@ -111,12 +114,11 @@ class ReferenceController extends Controller
 
         $reference = Reference::create($data);
 
-        // Attacher auteurs
+        // Attache les auteurs et mots-clés en relation many-to-many
         if ($request->has('author_ids')) {
             $reference->authors()->attach($request->author_ids);
         }
 
-        // Attacher mots-clés
         if ($request->has('keyword_ids')) {
             $reference->keywords()->attach($request->keyword_ids);
         }
@@ -124,14 +126,14 @@ class ReferenceController extends Controller
         return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
     }
 
+    // Détail d'une référence avec incrémentation du compteur de vues
     public function show(Request $request, Reference $reference)
     {
-        // Incrémenter les vues
         $reference->increment('view_count');
 
         $load = ['category', 'publisher', 'authors', 'keywords', 'uploader'];
 
-        // Charger les stats détaillées seulement si authentifié
+        // Les stats détaillées (téléchargements, vues) sont réservées aux utilisateurs connectés
         if ($request->user()) {
             $load = array_merge($load, ['downloads', 'views']);
         }
@@ -139,6 +141,7 @@ class ReferenceController extends Controller
         return new ReferenceResource($reference->load($load));
     }
 
+    // Met à jour une référence (remplace l'image si fournie, synchronise les mots-clés)
     public function update(Request $request, Reference $reference)
     {
         $request->validate([
@@ -161,6 +164,7 @@ class ReferenceController extends Controller
 
         $data = $request->except(['keyword_ids', 'cover_image']);
 
+        // Remplace l'ancienne couverture si une nouvelle est uploadée
         if ($request->hasFile('cover_image')) {
             if ($reference->cover_image) {
                 Storage::disk('public')->delete($reference->cover_image);
@@ -170,6 +174,7 @@ class ReferenceController extends Controller
 
         $reference->update($data);
 
+        // Synchronise les mots-clés (remplace les anciens)
         if ($request->has('keyword_ids')) {
             $reference->keywords()->sync($request->keyword_ids);
         }
@@ -177,9 +182,9 @@ class ReferenceController extends Controller
         return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
     }
 
+    // Supprime une référence et ses fichiers associés
     public function destroy(Reference $reference)
     {
-        // Supprimer les fichiers
         if ($reference->cover_image) {
             Storage::disk('public')->delete($reference->cover_image);
         }
@@ -192,18 +197,19 @@ class ReferenceController extends Controller
         return response()->json(null, 204);
     }
 
+    // Affiche le fichier PDF/DOC dans le navigateur (lecture seule)
     public function read(Request $request, Reference $reference)
     {
         if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
             return response()->json(['message' => 'Document non disponible.'], 404);
         }
 
-        // Les visiteurs ne peuvent lire que les références publiées
+        // Les visiteurs non connectés ne peuvent lire que les références publiées
         if (!$request->user() && $reference->status !== 'published') {
             return response()->json(['message' => 'Document non disponible.'], 404);
         }
 
-        // Log de consultation
+        // Enregistre la consultation
         $reference->views()->create([
             'user_id' => $request->user()?->id,
             'viewed_at' => now(),
@@ -217,13 +223,14 @@ class ReferenceController extends Controller
         return response()->file($path, ['Content-Type' => $mime]);
     }
 
+    // Télécharge le fichier PDF/DOC avec compteur
     public function download(Request $request, Reference $reference)
     {
         if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
             return response()->json(['message' => 'Fichier non disponible.'], 404);
         }
 
-        // Log du téléchargement
+        // Enregistre le téléchargement
         $reference->downloads()->create([
             'user_id' => $request->user()?->id,
             'downloaded_at' => now(),

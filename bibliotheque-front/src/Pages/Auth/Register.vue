@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Page d'inscription
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -6,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Formulaire d'inscription
 const form = ref({
   first_name: '',
   last_name: '',
@@ -18,6 +20,7 @@ const form = ref({
 const loading = ref(false)
 const errors = ref<string[]>([])
 
+// Soumet le formulaire d'inscription
 async function handleSubmit() {
   loading.value = true
   errors.value = []

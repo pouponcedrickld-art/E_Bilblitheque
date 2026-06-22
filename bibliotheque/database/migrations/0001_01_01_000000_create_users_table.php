@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Crée les tables 'users', 'password_reset_tokens' et 'sessions'
     /**
      * Run the migrations.
      */

@@ -1,3 +1,4 @@
+// Layout public pour les visiteurs non connectés
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
@@ -13,6 +14,7 @@ const navLinks = [
   { label: 'À propos', route: '/help' },
 ]
 
+// Navigue vers une route et ferme le menu mobile
 function go(path: string) {
   mobileMenuOpen.value = false
   router.push(path)
@@ -43,7 +45,7 @@ function go(path: string) {
           </button>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="guest-btn-group">
           <template v-if="authStore.isAuthenticated">
             <button
               @click="go(authStore.getDashboardPath())"
@@ -176,28 +178,30 @@ function go(path: string) {
   color: var(--foreground);
 }
 
+.guest-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .guest-btn-outline {
-  display: none;
+  display: inline-flex;
+  align-items: center;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
+  border: 1px solid var(--primary);
   background: transparent;
-  color: var(--foreground);
-  font-weight: 500;
+  color: var(--primary);
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
   white-space: nowrap;
 }
 
-@media (min-width: 640px) {
-  .guest-btn-outline {
-    display: block;
-  }
-}
-
 .guest-btn-outline:hover {
-  background: var(--muted);
+  background: rgba(27, 67, 50, 0.06);
 }
 
 .guest-btn-primary {
@@ -288,6 +292,14 @@ function go(path: string) {
   color: white;
   cursor: pointer;
   margin-top: 0.25rem;
+}
+
+@media (max-width: 400px) {
+  .guest-btn-outline,
+  .guest-btn-primary {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.8rem;
+  }
 }
 
 .guest-content {

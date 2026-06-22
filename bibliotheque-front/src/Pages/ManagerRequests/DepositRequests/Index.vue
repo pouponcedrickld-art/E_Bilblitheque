@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Liste des demandes attribuées au gestionnaire
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -10,6 +11,7 @@ import Button from 'primevue/button'
 
 const router = useRouter()
 
+// Interface d'une demande de dépôt
 interface DepositRequest {
   id: number
   title: string
@@ -19,9 +21,11 @@ interface DepositRequest {
   created_at: string
 }
 
+// Demandes de dépôt
 const requests = ref<DepositRequest[]>([])
 const loading = ref(true)
 
+// Récupère la liste des demandes attribuées
 async function fetchRequests() {
   loading.value = true
   try {
@@ -34,14 +38,17 @@ async function fetchRequests() {
   }
 }
 
+// Redirige vers la page d'examen
 function goReview(id: number) {
   router.push(`/manager/requests/${id}/review`)
 }
 
+// Redirige vers la page de second avis
 function goSecondOpinion(id: number) {
   router.push(`/manager/requests/${id}/second-opinion`)
 }
 
+// Charge les demandes au montage
 onMounted(fetchRequests)
 </script>
 

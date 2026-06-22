@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations Vue, routeur, services et composants
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
@@ -7,6 +8,7 @@ import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
 import CatalogFilters from '@/Components/Visitor/CatalogFilters.vue'
 
+// Interface pour l'état des filtres
 interface FilterState {
   category_id?: number | null
   document_type?: string | null
@@ -14,6 +16,7 @@ interface FilterState {
   keyword?: string | null
 }
 
+// Routeur et données réactives
 const router = useRouter()
 const route = useRoute()
 const references = ref<Reference[]>([])
@@ -30,8 +33,10 @@ const totalRecords = ref(0)
 const currentPage = ref(1)
 const rows = 15
 
+// Timer pour le debounce de la recherche
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
+// Récupère les références avec pagination et filtres
 async function fetchReferences(page = 1) {
   loading.value = true
   try {
@@ -54,6 +59,7 @@ async function fetchReferences(page = 1) {
   }
 }
 
+// Récupère la liste des catégories
 async function fetchCategories() {
   try {
     const res = await http.get('/categories')
@@ -63,19 +69,23 @@ async function fetchCategories() {
   }
 }
 
+// Recherche avec debounce (300ms)
 function onSearchInput() {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => fetchReferences(1), 300)
 }
 
+// Gère le changement de page
 function onPageChange(event: { page: number; first: number; rows: number }) {
   fetchReferences(event.page + 1)
 }
 
+// Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
+// Retourne l'icône correspondant au type de document
 function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
     livre: '📖', memoire: '📄', these: '🎓', article: '📰',
@@ -84,6 +94,7 @@ function getTypeIcon(type: string): string {
   return icons[type] || '📄'
 }
 
+// Initialise la recherche via query string et charge les données
 onMounted(() => {
   if (route.query.search) {
     search.value = route.query.search as string

@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ActivityLogResource extends JsonResource
 {
+    // Expose les données d'un log d'activité
     public function toArray(Request $request): array
     {
         return [

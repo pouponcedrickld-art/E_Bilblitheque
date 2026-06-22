@@ -1,3 +1,4 @@
+// Utilisateur du système
 export interface User {
   id: number
   first_name: string
@@ -14,6 +15,7 @@ export interface User {
   updated_at: string
 }
 
+// Catégorie de référence
 export interface Category {
   id: number
   name: string
@@ -25,6 +27,7 @@ export interface Category {
   updated_at: string
 }
 
+// Auteur d'une référence
 export interface Author {
   id: number
   first_name: string
@@ -35,6 +38,7 @@ export interface Author {
   references_count?: number
 }
 
+// Éditeur d'une référence
 export interface Publisher {
   id: number
   name: string
@@ -42,6 +46,7 @@ export interface Publisher {
   references_count?: number
 }
 
+// Référence documentaire
 export interface Reference {
   id: number
   title: string
@@ -67,6 +72,7 @@ export interface Reference {
   updated_at: string
 }
 
+// Demande de dépôt de document
 export interface DepositRequest {
   id: number
   title: string
@@ -76,6 +82,7 @@ export interface DepositRequest {
   created_at: string
 }
 
+// Mot-clé associé à une référence
 export interface Keyword {
   id: number
   name: string
@@ -83,6 +90,7 @@ export interface Keyword {
   references_count?: number
 }
 
+// Notification utilisateur
 export interface Notification {
   id: number
   title: string

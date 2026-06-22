@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Ajoute les colonnes first_name, last_name, phone, role, status et last_login_at à la table 'users'
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {

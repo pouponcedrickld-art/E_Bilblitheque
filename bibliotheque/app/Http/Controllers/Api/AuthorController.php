@@ -8,11 +8,13 @@ use Illuminate\Http\Request;
 
 class AuthorController extends Controller
 {
+    // Liste tous les auteurs avec le nombre de références associées
     public function index()
     {
         return response()->json(Author::withCount('references')->get());
     }
 
+    // Crée un auteur
     public function store(Request $request)
     {
         $request->validate([
@@ -29,6 +31,7 @@ class AuthorController extends Controller
         return response()->json($author, 201);
     }
 
+    // Détail d'un auteur avec ses références publiées
     public function show(Author $author)
     {
         return response()->json($author->load([
@@ -38,6 +41,7 @@ class AuthorController extends Controller
         ]));
     }
 
+    // Met à jour un auteur
     public function update(Request $request, Author $author)
     {
         $request->validate([
@@ -54,6 +58,7 @@ class AuthorController extends Controller
         return response()->json($author);
     }
 
+    // Supprime un auteur
     public function destroy(Author $author)
     {
         $author->delete();

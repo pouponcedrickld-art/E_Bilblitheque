@@ -1,4 +1,10 @@
+// Layout principal de l'application pour utilisateurs authentifiés
 <script setup lang="ts">
+/**
+ * AppLayout – Layout principal de l'application pour les utilisateurs connectés.
+ * Affiche la barre de navigation supérieure, le tiroir mobile, le menu utilisateur
+ * et la barre d'onglets inférieure (mobile).
+ */
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -8,16 +14,31 @@ const authStore = useAuthStore()
 const router = useRouter()
 const confirm = useConfirm()
 
+/** État du menu déroulant utilisateur (ouvert/fermé) */
 const userMenuOpen = ref(false)
+
+/** État du tiroir de navigation mobile (ouvert/fermé) */
 const drawerOpen = ref(false)
+
+/** État de la barre de recherche extensible */
 const searchOpen = ref(false)
+
+/** Référence au menu utilisateur pour la détection de clic à l'extérieur */
 const userMenuRef = ref<HTMLElement | null>(null)
 
+/**
+ * Navigue vers une route et ferme le tiroir mobile.
+ */
+// Navigue vers une route et ferme le tiroir mobile
 function go(path: string) {
   drawerOpen.value = false
   router.push(path)
 }
 
+/**
+ * Affiche une boîte de dialogue de confirmation avant de déconnecter l'utilisateur.
+ */
+// Affiche une confirmation avant déconnexion
 function confirmLogout() {
   confirm.require({
     message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
@@ -25,6 +46,7 @@ function confirmLogout() {
     icon: 'pi pi-sign-out',
     rejectLabel: 'Annuler',
     acceptLabel: 'Se déconnecter',
+    acceptClass: 'p-button-danger',
     accept: async () => {
       await authStore.logout()
       router.push('/')
@@ -32,6 +54,7 @@ function confirmLogout() {
   })
 }
 
+/** Ferme le menu utilisateur lors d'un clic à l'extérieur */
 onMounted(() => {
   function handleClick(e: MouseEvent) {
     if (userMenuRef.value && !userMenuRef.value.contains(e.target as Node)) {
@@ -42,12 +65,14 @@ onMounted(() => {
   onUnmounted(() => document.removeEventListener('mousedown', handleClick))
 })
 
+/** Nom complet de l'utilisateur connecté */
 const fullName = computed(() => {
   const u = authStore.user
   if (!u) return ''
   return `${u.first_name} ${u.last_name}`
 })
 
+/** Initiales de l'utilisateur (première lettre du prénom et du nom) */
 const initials = computed(() => {
   const u = authStore.user
   if (!u) return '?'
@@ -62,6 +87,11 @@ interface NavItem {
   badge?: number
 }
 
+/**
+ * Éléments de navigation filtrés selon le rôle de l'utilisateur.
+ * Chaque rôle (admin, responsable_rh, responsable_demande, user)
+ * dispose de son propre jeu de liens.
+ */
 const navItems = computed<NavItem[]>(() => {
   if (!authStore.user) return []
   const role = authStore.user.role
@@ -94,7 +124,7 @@ const navItems = computed<NavItem[]>(() => {
       { id: 'help', label: 'Aide', icon: 'pi pi-question-circle', route: '/help' },
     ]
   }
-  // user
+  // Utilisateur standard
   return [
     { id: 'dashboard', label: 'Tableau de bord', icon: 'pi pi-home', route: '/user/dashboard' },
     { id: 'catalog', label: 'Catalogue', icon: 'pi pi-book', route: '/catalogue' },
@@ -104,20 +134,26 @@ const navItems = computed<NavItem[]>(() => {
   ]
 })
 
+/** Vérifie si une route donnée correspond à la route active */
+// Vérifie si une route donnée correspond à la route active
 const isActive = (route: string) => router.currentRoute.value.path.startsWith(route)
 
+/** Identifiant de l'élément de navigation actif */
+// Identifiant de l'élément de navigation actif
 const activeNavId = computed(() => {
   const path = router.currentRoute.value.path
   const found = navItems.value.find(i => path.startsWith(i.route))
   return found?.id ?? 'dashboard'
 })
 
+/** Onglets de la barre inférieure mobile (limités aux 5 premiers éléments) */
+// Onglets de la barre inférieure mobile (5 premiers éléments)
 const bottomTabs = computed(() => navItems.value.slice(0, 5))
 </script>
 
 <template>
   <div class="app-shell">
-    <!-- Mobile Drawer -->
+    <!-- ==================== Tiroir de navigation mobile ==================== -->
     <teleport to="body">
       <div v-if="drawerOpen" class="drawer-backdrop" @click="drawerOpen = false" />
       <div :class="['drawer', { 'drawer-open': drawerOpen }]">
@@ -161,7 +197,7 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
       </div>
     </teleport>
 
-    <!-- Top Navbar -->
+    <!-- ==================== Barre de navigation supérieure ==================== -->
     <header class="topnav">
       <div class="topnav-inner">
         <!-- Hamburger (mobile) -->
@@ -807,13 +843,14 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   padding: 0.5rem;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--destructive);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: opacity 0.2s;
+  font-weight: 600;
 }
 
 .drawer-logout:hover {
-  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.8;
 }
 
 /* ─── Bottom Tab Bar (mobile only) ─── */

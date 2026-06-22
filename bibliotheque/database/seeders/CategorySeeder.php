@@ -9,6 +9,7 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée les catégories de documents (Droit, Sciences, Histoire, etc.)
         $categories = [
             ['name' => 'Droit', 'slug' => 'droit', 'description' => 'Ouvrages juridiques et législation', 'status' => 'active'],
             ['name' => 'Sciences', 'slug' => 'sciences', 'description' => 'Sciences exactes et naturelles', 'status' => 'active'],

@@ -10,6 +10,7 @@ class DepositRequestSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée des demandes de dépôt à différents statuts (pending, approved, rejected, etc.)
         $applicants = User::where('role', 'user')->take(5)->get();
         $managers = User::where('role', 'responsable_demande')->get();
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importation du routeur pour la navigation
 import { useRouter } from 'vue-router'
 const router = useRouter()
 </script>

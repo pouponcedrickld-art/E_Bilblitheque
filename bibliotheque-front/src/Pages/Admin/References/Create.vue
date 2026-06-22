@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Création d'une nouvelle référence
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -15,6 +16,7 @@ import Message from 'primevue/message'
 const router = useRouter()
 const toastStore = useToastStore()
 
+// Formulaire de création de référence
 const form = ref({
   title: '',
   subtitle: '',
@@ -30,6 +32,7 @@ const form = ref({
   keyword_ids: [] as number[],
 })
 
+// Données des listes déroulantes
 const categories = ref<{ id: number; name: string }[]>([])
 const publishers = ref<{ id: number; name: string }[]>([])
 const keywords = ref<{ id: number; name: string }[]>([])
@@ -38,6 +41,7 @@ const coverPreview = ref<string | null>(null)
 const submitting = ref(false)
 const error = ref('')
 
+// Types de documents disponibles
 const documentTypes = [
   { label: 'Article', value: 'article' },
   { label: 'Livre', value: 'book' },
@@ -47,6 +51,7 @@ const documentTypes = [
   { label: 'Chapitre de livre', value: 'book_chapter' },
 ]
 
+// Charge les données des listes (catégories, éditeurs, mots-clés)
 async function loadFormData() {
   try {
     const [catRes, pubRes, kwRes] = await Promise.all([
@@ -62,6 +67,7 @@ async function loadFormData() {
   }
 }
 
+// Gère le changement d'image de couverture
 function onCoverChange(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files && input.files[0]) {
@@ -70,6 +76,7 @@ function onCoverChange(event: Event) {
   }
 }
 
+// Crée la référence via l'API
 async function submit() {
   submitting.value = true
   error.value = ''
@@ -99,6 +106,7 @@ async function submit() {
   }
 }
 
+// Charge les données au montage
 onMounted(loadFormData)
 </script>
 

@@ -1,3 +1,4 @@
+// Filtres de catalogue (catégorie, type, langue, mot-clé)
 <script setup lang="ts">
 import type { Category } from '@/types'
 import InputText from 'primevue/inputtext'
@@ -22,11 +23,13 @@ const emit = defineEmits<{
 const documentTypes = ['livre', 'memoire', 'these', 'article', 'revue', 'rapport', 'guide']
 const languages = ['fr', 'en', 'ar', 'es', 'de', 'pt', 'it', 'ru', 'zh', 'ja']
 
+// Met à jour un filtre et émet la nouvelle valeur
 function update(key: keyof Filters, value: any) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
 }
 </script>
 
+<!-- Panneau de filtres pour le catalogue -->
 <template>
   <div class="catalog-filters">
     <h3 class="filter-title">Filtres</h3>

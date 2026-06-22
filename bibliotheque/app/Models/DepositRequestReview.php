@@ -17,12 +17,13 @@ class DepositRequestReview extends Model
         'justification',
     ];
 
-    // Relations
+    // Demande de dépôt liée à cet avis
     public function depositRequest()
     {
         return $this->belongsTo(DepositRequest::class);
     }
 
+    // Utilisateur (manager/admin) ayant donné son avis
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewer_id');

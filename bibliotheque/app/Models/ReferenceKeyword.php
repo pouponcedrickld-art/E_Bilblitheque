@@ -14,7 +14,7 @@ class ReferenceKeyword extends Model
         'keyword',
     ];
 
-    // Relations
+    // Référence associée à ce mot-clé
     public function reference()
     {
         return $this->belongsTo(Reference::class);

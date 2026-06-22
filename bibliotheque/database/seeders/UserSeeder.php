@@ -10,6 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée les utilisateurs par défaut (admin, RH, responsable demande) et des utilisateurs factices
         User::factory()->create([
             'first_name' => 'Admin',
             'last_name' => 'System',

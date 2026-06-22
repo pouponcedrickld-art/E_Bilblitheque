@@ -1,5 +1,7 @@
 <?php
 
+// Routes de l'API REST de l'application
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;

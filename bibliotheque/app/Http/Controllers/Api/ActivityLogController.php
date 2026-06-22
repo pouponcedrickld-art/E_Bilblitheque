@@ -8,15 +8,16 @@ use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
+    // Liste paginée des logs d'activité (admin uniquement) avec filtres
     public function index(Request $request)
     {
-        // Seul admin peut voir tous les logs
         if ($request->user()->role !== 'admin') {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
         $query = ActivityLog::with('user')->orderBy('created_at', 'desc');
 
+        // Filtres optionnels
         if ($request->has('user_id')) {
             $query->where('user_id', $request->user_id);
         }
@@ -36,6 +37,7 @@ class ActivityLogController extends Controller
         return response()->json($query->paginate(50));
     }
 
+    // Détail d'un log d'activité (admin uniquement)
     public function show(Request $request, ActivityLog $activityLog)
     {
         if ($request->user()->role !== 'admin') {
@@ -45,9 +47,7 @@ class ActivityLogController extends Controller
         return response()->json($activityLog->load('user'));
     }
 
-    /**
-     * Statistiques des activités
-     */
+    // Statistiques des activités (admin uniquement)
     public function stats(Request $request)
     {
         if ($request->user()->role !== 'admin') {

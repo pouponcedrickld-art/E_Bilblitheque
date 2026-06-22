@@ -1,7 +1,9 @@
+// Importations Vue Router et store d'authentification
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import type { RouteLocationNormalized } from 'vue-router'
 
+// Extension des métadonnées de route pour l'authentification et les rôles
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
@@ -10,9 +12,11 @@ declare module 'vue-router' {
   }
 }
 
+// Instance du routeur avec historique HTML5
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // ==================== Routes publiques (Visiteur) ====================
     {
       path: '/',
       name: 'home',
@@ -56,7 +60,7 @@ const router = createRouter({
       meta: { title: 'Recherche avancée' },
     },
 
-    // ---- Admin ----
+    // ==================== Routes Administrateur (rôle : admin) ====================
     {
       path: '/admin/dashboard',
       name: 'admin-dashboard',
@@ -160,7 +164,7 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'admin', title: "Journal d'activité" },
     },
 
-    // ---- Responsable RH ----
+    // ==================== Routes Responsable RH (rôle : responsable_rh) ====================
     {
       path: '/rh/dashboard',
       name: 'rh-dashboard',
@@ -192,7 +196,7 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'responsable_rh', title: "Journal d'activité" },
     },
 
-    // ---- Responsable Demande ----
+    // ==================== Routes Responsable Demande (rôle : responsable_demande) ====================
     {
       path: '/demandes/dashboard',
       name: 'demandes-dashboard',
@@ -218,7 +222,7 @@ const router = createRouter({
       meta: { requiresAuth: true, role: 'responsable_demande', title: 'Second avis' },
     },
 
-    // ---- Utilisateur ----
+    // ==================== Routes Utilisateur standard (rôle : user) ====================
     {
       path: '/user/dashboard',
       name: 'user-dashboard',
@@ -250,7 +254,7 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Mon profil' },
     },
 
-    // ---- Pages communes ----
+    // ==================== Pages communes (accessibles à tous les utilisateurs connectés) ====================
     {
       path: '/help',
       name: 'help',
@@ -284,25 +288,31 @@ const router = createRouter({
   ],
 })
 
+// Garde de navigation globale – vérifie l'authentification et les droits d'accès
 router.beforeEach(async (to: RouteLocationNormalized) => {
   const authStore = useAuthStore()
 
+  // Met à jour le titre de l'onglet du navigateur
   if (to.meta.title) {
     document.title = to.meta.title as string
   }
 
+  // Récupère l'utilisateur connecté si ce n'est pas déjà fait
   if (!authStore.authChecked) {
     await authStore.fetchUser()
   }
 
+  // Redirige vers la page de connexion si la route est protégée
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
+  // Redirige vers le tableau de bord si l'utilisateur est déjà connecté
   if (to.meta.guestOnly && authStore.isAuthenticated) {
     return authStore.getDashboardPath()
   }
 
+  // Vérifie le rôle requis pour la route
   if (to.meta.role) {
     const allowedRoles = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role]
     if (!allowedRoles.includes(authStore.user?.role ?? '')) {

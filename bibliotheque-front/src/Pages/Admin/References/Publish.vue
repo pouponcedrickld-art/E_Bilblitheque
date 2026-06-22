@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Publication d'une référence depuis une demande de dépôt
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -12,11 +13,13 @@ const route = useRoute()
 const router = useRouter()
 const toastStore = useToastStore()
 
+// Données de la demande de dépôt
 const request = ref<any>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
+// Charge la demande de dépôt
 async function load() {
   loading.value = true
   try {
@@ -30,6 +33,7 @@ async function load() {
   }
 }
 
+// Publie la référence
 async function publishRequest() {
   submitting.value = true
   error.value = ''
@@ -45,6 +49,7 @@ async function publishRequest() {
   }
 }
 
+// Charge la demande au montage
 onMounted(load)
 </script>
 

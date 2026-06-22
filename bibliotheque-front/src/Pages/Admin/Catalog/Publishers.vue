@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Gestion des éditeurs du catalogue
 import { ref, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -11,6 +12,7 @@ import Dialog from 'primevue/dialog'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 
+// Interface représentant un éditeur
 interface Publisher {
   id: number
   name: string
@@ -24,15 +26,18 @@ interface Publisher {
 const toastStore = useToastStore()
 const confirm = useConfirm()
 
+// Liste des éditeurs et état de chargement
 const publishers = ref<Publisher[]>([])
 const loading = ref(false)
 
+// État du dialogue et du formulaire
 const dialogVisible = ref(false)
 const editing = ref(false)
 const selectedPublisher = ref<Publisher | null>(null)
 const form = ref({ name: '', address: '', email: '', website: '', phone: '' })
 const submitting = ref(false)
 
+// Récupère la liste des éditeurs
 async function fetch() {
   loading.value = true
   try {
@@ -43,6 +48,7 @@ async function fetch() {
   }
 }
 
+// Ouvre le dialogue de création
 function openCreate() {
   editing.value = false
   selectedPublisher.value = null
@@ -50,6 +56,7 @@ function openCreate() {
   dialogVisible.value = true
 }
 
+// Ouvre le dialogue de modification
 function openEdit(pub: Publisher) {
   editing.value = true
   selectedPublisher.value = pub
@@ -63,6 +70,7 @@ function openEdit(pub: Publisher) {
   dialogVisible.value = true
 }
 
+// Crée ou met à jour un éditeur
 async function submit() {
   submitting.value = true
   try {
@@ -82,6 +90,7 @@ async function submit() {
   }
 }
 
+// Supprime un éditeur après confirmation
 async function deletePublisher(id: number) {
   confirm.require({
     message: "Supprimer cet éditeur ?",
@@ -100,6 +109,7 @@ async function deletePublisher(id: number) {
   })
 }
 
+// Charge les éditeurs au montage
 onMounted(fetch)
 </script>
 

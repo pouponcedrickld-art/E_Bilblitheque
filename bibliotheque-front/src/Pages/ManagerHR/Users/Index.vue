@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Liste des utilisateurs pour le responsable RH
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -18,10 +19,12 @@ const router = useRouter()
 const toast = useToast()
 const confirm = useConfirm()
 
+// Utilisateurs et filtre
 const users = ref<User[]>([])
 const loading = ref(true)
 const globalFilter = ref('')
 
+// Filtre les utilisateurs par recherche textuelle
 const filteredUsers = computed(() => {
   if (!globalFilter.value) return users.value
   const q = globalFilter.value.toLowerCase()
@@ -33,6 +36,7 @@ const filteredUsers = computed(() => {
   )
 })
 
+// Récupère la liste des utilisateurs
 async function fetchUsers() {
   loading.value = true
   try {
@@ -45,6 +49,7 @@ async function fetchUsers() {
   }
 }
 
+// Active ou suspend un utilisateur
 async function toggleStatus(user: User) {
   const newStatus = user.status === 'active' ? 'suspended' : 'active'
   const action = newStatus === 'suspended' ? 'suspendre' : 'activer'
@@ -64,6 +69,7 @@ async function toggleStatus(user: User) {
   })
 }
 
+// Réinitialise le mot de passe d'un utilisateur
 async function resetPassword(user: User) {
   confirm.require({
     message: `Réinitialiser le mot de passe de "${user.full_name}" ? Un nouveau mot de passe lui sera envoyé par email.`,
@@ -80,6 +86,7 @@ async function resetPassword(user: User) {
   })
 }
 
+// Traduit un rôle en libellé lisible
 function getRoleLabel(role: string): string {
   const labels: Record<string, string> = {
     admin: 'Administrateur',
@@ -90,6 +97,7 @@ function getRoleLabel(role: string): string {
   return labels[role] || role
 }
 
+// Charge les utilisateurs au montage
 onMounted(fetchUsers)
 </script>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Tableau de bord des demandes pour le gestionnaire
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -7,6 +8,7 @@ import http from '@/services/http'
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Statistiques des demandes de dépôt
 interface RequestStats {
   total: number
   pending: number
@@ -14,9 +16,11 @@ interface RequestStats {
   rejected: number
 }
 
+// Statistiques et état de chargement
 const stats = ref<RequestStats>({ total: 0, pending: 0, approved: 0, rejected: 0 })
 const loading = ref(true)
 
+// Calcule les stats à partir des demandes attribuées
 async function fetchStats() {
   loading.value = true
   try {
@@ -35,6 +39,7 @@ async function fetchStats() {
   }
 }
 
+// Cartes de statistiques pour l'affichage
 const statCards = computed(() => [
   { label: 'Total attribuées', value: stats.value.total, icon: 'pi pi-inbox', color: 'var(--primary)', bg: 'rgba(27, 67, 50, 0.1)' },
   { label: 'En attente', value: stats.value.pending, icon: 'pi pi-hourglass', color: '#52b788', bg: 'rgba(82, 183, 136, 0.1)' },
@@ -42,6 +47,7 @@ const statCards = computed(() => [
   { label: 'Refusées', value: stats.value.rejected, icon: 'pi pi-times-circle', color: 'var(--destructive)', bg: 'rgba(255, 59, 48, 0.1)' },
 ])
 
+// Charge les stats au montage
 onMounted(fetchStats)
 </script>
 

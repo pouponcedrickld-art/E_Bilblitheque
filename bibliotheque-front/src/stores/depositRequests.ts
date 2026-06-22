@@ -1,8 +1,10 @@
+// Store Pinia pour les demandes de dépôt
 import { defineStore } from 'pinia'
 import http from '@/services/http'
 import type { DepositRequest } from '@/types'
 
 export const useDepositRequestsStore = defineStore('depositRequests', {
+  // État initial du store
   state: () => ({
     requests: [] as DepositRequest[],
     current: null as DepositRequest | null,
@@ -10,6 +12,7 @@ export const useDepositRequestsStore = defineStore('depositRequests', {
     error: null as string | null,
   }),
   actions: {
+    // Récupère les demandes de l'utilisateur connecté
     async fetchMine() {
       this.loading = true
       this.error = null
@@ -22,6 +25,7 @@ export const useDepositRequestsStore = defineStore('depositRequests', {
         this.loading = false
       }
     },
+    // Récupère toutes les demandes (admin/responsable)
     async fetchAll() {
       this.loading = true
       this.error = null
@@ -34,6 +38,7 @@ export const useDepositRequestsStore = defineStore('depositRequests', {
         this.loading = false
       }
     },
+    // Récupère une demande par son identifiant
     async fetchById(id: number) {
       this.loading = true
       try {
@@ -44,6 +49,7 @@ export const useDepositRequestsStore = defineStore('depositRequests', {
         this.loading = false
       }
     },
+    // Crée une nouvelle demande de dépôt
     async create(data: FormData) {
       const res = await http.post('/deposit-requests', data, {
         headers: { 'Content-Type': 'multipart/form-data' },

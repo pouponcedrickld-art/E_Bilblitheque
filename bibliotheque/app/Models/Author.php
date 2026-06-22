@@ -26,7 +26,7 @@ class Author extends Model
         ];
     }
 
-    // Relations
+    // Toutes les références (ouvrages) de cet auteur
     public function references()
     {
         return $this->belongsToMany(Reference::class, 'reference_author');

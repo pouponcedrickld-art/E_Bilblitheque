@@ -15,9 +15,9 @@ class CategoryFactory extends Factory
 
         return [
             'name' => ucfirst($name),
-            'slug' => Str::slug($name),
+            'slug' => Str::slug($name), // Slug généré à partir du nom
             'description' => fake()->sentence(),
-            'status' => fake()->randomElement(['active', 'inactive']),
+            'status' => fake()->randomElement(['active', 'inactive']), // Statut d'activation
         ];
     }
 }

@@ -1,3 +1,4 @@
+// Script principal – sélection du layout selon l'état d'authentification
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -10,6 +11,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 const route = useRoute()
 const authStore = useAuthStore()
 
+// Layout dynamique : AppLayout si connecté, GuestLayout sinon
 const layout = computed(() => {
   if (route.meta.requiresAuth) return AppLayout
   if (route.meta.guestOnly && !authStore.isAuthenticated) return GuestLayout
@@ -18,6 +20,7 @@ const layout = computed(() => {
 })
 </script>
 
+<!-- Template racine avec Toast, ConfirmDialog et layout dynamique -->
 <template>
   <Toast position="top-right" />
   <ConfirmDialog />

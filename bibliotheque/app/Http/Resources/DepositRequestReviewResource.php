@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class DepositRequestReviewResource extends JsonResource
 {
+    // Expose les données d'un avis sur une demande de dépôt
     public function toArray(Request $request): array
     {
         return [

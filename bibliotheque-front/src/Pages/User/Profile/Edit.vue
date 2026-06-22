@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Importations Vue, services, stores et composants PrimeVue
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -8,9 +9,11 @@ import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
 
+// Store d'authentification et routeur
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Formulaire d'informations personnelles
 const form = ref({
   first_name: '',
   last_name: '',
@@ -18,6 +21,7 @@ const form = ref({
   phone: '',
 })
 
+// Formulaire de changement de mot de passe
 const passwordForm = reactive({
   current_password: '',
   new_password: '',
@@ -25,10 +29,12 @@ const passwordForm = reactive({
   show: false,
 })
 
+// État de sauvegarde et messages
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
 
+// Préremplit le formulaire avec les données de l'utilisateur
 onMounted(() => {
   if (authStore.user) {
     form.value.first_name = authStore.user.first_name
@@ -38,6 +44,7 @@ onMounted(() => {
   }
 })
 
+// Règles de validation du mot de passe
 const passwordErrors = {
   minLength: (v: string) => v.length >= 6 || '6 caractères minimum',
   hasUpper: (v: string) => /[A-Z]/.test(v) || 'Une majuscule requise',
@@ -45,6 +52,7 @@ const passwordErrors = {
   match: (v: string) => v === passwordForm.new_password || 'Les mots de passe ne correspondent pas',
 }
 
+// Valide les contraintes du nouveau mot de passe
 function validatePassword(): string[] {
   const errs: string[] = []
   if (!passwordForm.new_password) return errs
@@ -59,6 +67,7 @@ function validatePassword(): string[] {
   return errs
 }
 
+// Soumet les modifications du profil
 async function handleSubmit() {
   saving.value = true
   error.value = ''

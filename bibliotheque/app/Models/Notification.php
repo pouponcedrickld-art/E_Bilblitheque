@@ -24,7 +24,7 @@ class Notification extends Model
         ];
     }
 
-    // Relations
+    // Utilisateur destinataire de la notification
     public function user()
     {
         return $this->belongsTo(User::class);

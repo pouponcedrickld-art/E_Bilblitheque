@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Liste des références pour l'admin
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -16,6 +17,7 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
+// Interface d'une référence
 interface Reference {
   id: number
   title: string
@@ -30,11 +32,13 @@ const router = useRouter()
 const toastStore = useToastStore()
 const confirm = useConfirm()
 
+// Références et filtres
 const references = ref<Reference[]>([])
 const loading = ref(false)
 const globalFilter = ref('')
 const statusFilter = ref('')
 
+// Options de filtre par statut
 const statuses = [
   { label: 'Tous', value: '' },
   { label: 'Publié', value: 'published' },
@@ -42,6 +46,7 @@ const statuses = [
   { label: 'Archivé', value: 'archived' },
 ]
 
+// Filtre les références par statut et recherche
 const filteredRefs = computed(() => {
   let items = references.value
   if (statusFilter.value) items = items.filter(r => r.status === statusFilter.value)
@@ -57,6 +62,7 @@ const filteredRefs = computed(() => {
   return items
 })
 
+// Récupère la liste des références
 async function fetchReferences() {
   loading.value = true
   try {
@@ -67,6 +73,7 @@ async function fetchReferences() {
   }
 }
 
+// Demande confirmation avant suppression
 function confirmDelete(id: number) {
   confirm.require({
     message: 'Supprimer cette référence ?',
@@ -85,10 +92,12 @@ function confirmDelete(id: number) {
   })
 }
 
+// Redirige vers la page de publication
 async function publish(id: number) {
   router.push(`/admin/references/${id}/publish`)
 }
 
+// Charge les références au montage
 onMounted(fetchReferences)
 </script>
 

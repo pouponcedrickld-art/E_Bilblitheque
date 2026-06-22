@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Tableau de bord RH
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +9,7 @@ interface User {
   status: string
 }
 
+// Statistiques des utilisateurs
 interface UserStats {
   total: number
   active: number
@@ -17,9 +19,11 @@ interface UserStats {
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Statistiques et état de chargement
 const stats = ref<UserStats>({ total: 0, active: 0, suspended: 0 })
 const loading = ref(true)
 
+// Calcule les statistiques à partir des utilisateurs
 async function fetchStats() {
   loading.value = true
   try {
@@ -37,6 +41,7 @@ async function fetchStats() {
   }
 }
 
+// Charge les stats au montage
 onMounted(fetchStats)
 </script>
 

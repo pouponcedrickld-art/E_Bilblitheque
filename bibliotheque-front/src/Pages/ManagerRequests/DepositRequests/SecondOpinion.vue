@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Second avis sur une demande de dépôt
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -7,6 +8,7 @@ import ReviewDecisionForm from '@/Components/ManagerRequests/ReviewDecisionForm.
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import Button from 'primevue/button'
 
+// Détail d'une demande de dépôt
 interface DepositRequestDetail {
   id: number
   title: string
@@ -22,10 +24,12 @@ interface DepositRequestDetail {
 const route = useRoute()
 const router = useRouter()
 
+// Données de la demande pour second avis
 const request = ref<DepositRequestDetail | null>(null)
 const loading = ref(true)
 const error = ref('')
 
+// Charge les détails de la demande
 async function fetchRequest() {
   loading.value = true
   error.value = ''
@@ -39,10 +43,12 @@ async function fetchRequest() {
   }
 }
 
+// Retourne à la liste après décision
 function onDone() {
   router.push('/manager/requests')
 }
 
+// Charge la demande au montage
 onMounted(fetchRequest)
 </script>
 

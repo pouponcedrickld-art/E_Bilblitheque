@@ -1,3 +1,4 @@
+// Formulaire de dépôt d'une référence par l'utilisateur
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import InputText from 'primevue/inputtext'
@@ -18,10 +19,12 @@ const description = ref(props.initial?.description ?? '')
 const file = ref<File | null>(null)
 const submitted = ref(false)
 
+// Sélection d'un fichier joint
 function onFileSelect(event: { files: File[] }) {
   file.value = event.files[0] || null
 }
 
+// Soumet le formulaire si le titre est renseigné
 function handleSubmit() {
   submitted.value = true
   if (!title.value.trim()) return

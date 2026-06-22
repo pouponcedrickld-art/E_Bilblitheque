@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
+// Composable de vérification des rôles et permissions utilisateur
 export function usePermissions() {
   const auth = useAuthStore()
 

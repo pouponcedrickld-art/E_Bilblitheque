@@ -1,12 +1,15 @@
 <script setup lang="ts">
+// Importations Vue et utilitaires
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
 
+// Store d'authentification et routeur
 const authStore = useAuthStore()
 const router = useRouter()
 
+// Statistiques du tableau de bord
 const stats = ref({
   references: 0,
   categories: 0,
@@ -17,8 +20,10 @@ const stats = ref({
   views: 0,
 })
 
+// État de chargement
 const loading = ref(true)
 
+// Titre dynamique selon le rôle
 const dashboardTitle = computed(() => {
   const titles: Record<string, string> = {
     admin: 'Tableau de bord Administrateur',
@@ -29,6 +34,7 @@ const dashboardTitle = computed(() => {
   return titles[authStore.user?.role ?? ''] || 'Tableau de bord'
 })
 
+// Récupère les statistiques depuis l'API
 async function fetchStats() {
   loading.value = true
   try {
@@ -57,6 +63,7 @@ async function fetchStats() {
   }
 }
 
+// Cartes de statistiques selon le rôle
 const roleCards = computed(() => {
   const cards: { label: string; value: number | string; icon: string }[] = []
   const s = stats.value
@@ -90,6 +97,7 @@ const roleCards = computed(() => {
   return cards
 })
 
+// Charge les données au montage du composant
 onMounted(fetchStats)
 </script>
 

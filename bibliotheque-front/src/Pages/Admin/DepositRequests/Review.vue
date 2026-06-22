@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Examen détaillé d'une demande de dépôt par l'admin
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -15,6 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const toastStore = useToastStore()
 
+// Données de la demande et des avis
 const request = ref<any>(null)
 const reviews = ref<any[]>([])
 const users = ref<any[]>([])
@@ -22,15 +24,15 @@ const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
+// État des formulaires de rejet, annulation et second avis
 const showRejectForm = ref(false)
 const rejectJustification = ref('')
-
 const showOverrideForm = ref(false)
 const overrideJustification = ref('')
-
 const showSecondReviewForm = ref(false)
 const secondReviewManagerId = ref<number | null>(null)
 
+// Charge la demande et les utilisateurs
 async function load() {
   loading.value = true
   try {
@@ -51,6 +53,7 @@ async function load() {
   }
 }
 
+// Publie la demande de dépôt
 async function publishRequest() {
   submitting.value = true
   try {
@@ -65,6 +68,7 @@ async function publishRequest() {
   }
 }
 
+// Rejette la demande avec justification
 async function rejectRequest() {
   if (!rejectJustification.value.trim()) return
   submitting.value = true
@@ -84,6 +88,7 @@ async function rejectRequest() {
   }
 }
 
+// Annule la décision précédente
 async function overrideRequest() {
   if (!overrideJustification.value.trim()) return
   submitting.value = true
@@ -103,6 +108,7 @@ async function overrideRequest() {
   }
 }
 
+// Demande un second avis à un autre gestionnaire
 async function requestSecondReview() {
   if (!secondReviewManagerId.value) return
   submitting.value = true
@@ -122,6 +128,7 @@ async function requestSecondReview() {
   }
 }
 
+// Charge les données au montage
 onMounted(load)
 </script>
 

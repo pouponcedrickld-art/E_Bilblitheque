@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+// Création d'un utilisateur (RH / Admin)
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
@@ -14,8 +15,27 @@ const router = useRouter()
 const toast = useToast()
 const authStore = useAuthStore()
 
+// Chemin de redirection selon le rôle
 const usersPath = authStore.isAdmin ? '/admin/users' : '/rh/users'
 
+// Options de rôle selon les permissions
+const roleOptions = computed(() => {
+  if (authStore.isAdmin) {
+    return [
+      { label: 'Utilisateur', value: 'user' },
+      { label: 'Responsable RH', value: 'responsable_rh' },
+      { label: 'Responsable Demande', value: 'responsable_demande' },
+      { label: 'Administrateur', value: 'admin' },
+    ]
+  }
+  return [
+    { label: 'Utilisateur', value: 'user' },
+    { label: 'Responsable RH', value: 'responsable_rh' },
+    { label: 'Responsable Demande', value: 'responsable_demande' },
+  ]
+})
+
+// Formulaire de création
 const form = ref({
   first_name: '',
   last_name: '',
@@ -30,6 +50,7 @@ const form = ref({
 const submitting = ref(false)
 const errors = ref<Record<string, string[]>>({})
 
+// Crée un nouvel utilisateur
 async function submit() {
   submitting.value = true
   errors.value = {}
@@ -92,7 +113,7 @@ async function submit() {
             </div>
             <div class="field">
               <label for="role">Rôle</label>
-              <Select id="role" v-model="form.role" :options="['user', 'responsable_demande']" :class="{ 'p-invalid': errors.role }" />
+              <Select id="role" v-model="form.role" :options="roleOptions" optionLabel="label" optionValue="value" :class="{ 'p-invalid': errors.role }" />
               <small v-if="errors.role" class="p-error">{{ errors.role[0] }}</small>
             </div>
             <div class="field">

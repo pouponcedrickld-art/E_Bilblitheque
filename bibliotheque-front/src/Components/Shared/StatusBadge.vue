@@ -1,3 +1,4 @@
+// Badge de statut avec label et couleur dynamiques selon la valeur
 <script setup lang="ts">
 import { computed } from 'vue'
 
@@ -17,6 +18,7 @@ const labels: Record<string, string> = {
   inactive: 'Inactif',
 }
 
+// Couleur du badge selon le statut
 const severity = computed(() => {
   const map: Record<string, string> = {
     published: 'success',
@@ -34,6 +36,7 @@ const severity = computed(() => {
   return map[props.status] || 'contrast'
 })
 
+// Libellé traduit du statut
 const label = computed(() => labels[props.status] || props.status)
 </script>
 

@@ -1,10 +1,13 @@
 <script setup lang="ts">
+// Importations Vue et routeur
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+// Route actuelle et routeur
 const route = useRoute()
 const router = useRouter()
 
+// Déclenche le téléchargement du fichier au montage
 onMounted(() => {
   const id = route.params.id
   const url = `/api/references/${id}/download`

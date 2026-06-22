@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Crée la table 'personal_access_tokens' pour l'authentification API Sanctum
     /**
      * Run the migrations.
      */

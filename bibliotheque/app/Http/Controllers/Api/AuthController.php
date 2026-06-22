@@ -16,6 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    // Inscription avec rôle 'user' par défaut et statut 'active'
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -36,6 +37,7 @@ class AuthController extends Controller
         ], 201);
     }
 
+    // Authentification avec vérification du mot de passe et du statut du compte
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::where('email', $request->email)->first();
@@ -52,6 +54,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // Met à jour la date de dernière connexion
         $user->update(['last_login_at' => now()]);
 
         return response()->json([
@@ -60,6 +63,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Déconnexion avec invalidation de session
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();
@@ -70,6 +74,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Déconnexion réussie.']);
     }
 
+    // Retourne le profil de l'utilisateur connecté avec ses relations
     public function me(Request $request): JsonResponse
     {
         return response()->json(
@@ -81,6 +86,7 @@ class AuthController extends Controller
         );
     }
 
+    // Met à jour le profil ou le mot de passe de l'utilisateur connecté
     public function updateProfile(Request $request): JsonResponse
     {
         $user = $request->user();

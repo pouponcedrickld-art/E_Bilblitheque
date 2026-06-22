@@ -16,7 +16,7 @@ class Publisher extends Model
         'website',
     ];
 
-    // Relations
+    // Toutes les références publiées par cet éditeur
     public function references()
     {
         return $this->hasMany(Reference::class);

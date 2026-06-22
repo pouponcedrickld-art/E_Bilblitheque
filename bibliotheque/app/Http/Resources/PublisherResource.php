@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PublisherResource extends JsonResource
 {
+    // Expose les données d'un éditeur
     public function toArray(Request $request): array
     {
         return [

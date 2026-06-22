@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class DepositRequestResource extends JsonResource
 {
+    // Expose les données d'une demande de dépôt
     public function toArray(Request $request): array
     {
         return [

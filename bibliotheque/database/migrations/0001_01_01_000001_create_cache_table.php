@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Crée les tables 'cache' et 'cache_locks'
     /**
      * Run the migrations.
      */

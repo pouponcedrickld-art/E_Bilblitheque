@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
+    // Expose les données d'un utilisateur
     public function toArray(Request $request): array
     {
         return [

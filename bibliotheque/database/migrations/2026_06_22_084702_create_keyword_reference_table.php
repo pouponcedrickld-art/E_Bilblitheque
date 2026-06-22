@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Crée la table pivot 'keyword_reference' et migre les anciens mots-clés depuis 'reference_keywords'
     public function up(): void
     {
         Schema::create('keyword_reference', function (Blueprint $table) {

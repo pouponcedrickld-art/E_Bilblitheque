@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Crée la table 'references'
     public function up(): void
     {
         Schema::create('references', function (Blueprint $table) {

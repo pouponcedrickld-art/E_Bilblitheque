@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Supprime la table 'reference_keywords' (remplacée par 'keyword_reference')
     public function up(): void
     {
         Schema::dropIfExists('reference_keywords');

@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 
 class DownloadController extends Controller
 {
+    // Liste des téléchargements (admin voit tout, user voit les siens)
     public function index(Request $request)
     {
-        // Admin voit tout, user voit ses propres téléchargements
         if ($request->user()->role === 'admin') {
             $query = Download::with(['user', 'reference']);
         } else {
@@ -18,6 +18,7 @@ class DownloadController extends Controller
                 ->where('user_id', $request->user()->id);
         }
 
+        // Filtres optionnels
         if ($request->has('reference_id')) {
             $query->where('reference_id', $request->reference_id);
         }
@@ -31,6 +32,7 @@ class DownloadController extends Controller
         return response()->json($query->orderBy('downloaded_at', 'desc')->paginate(30));
     }
 
+    // Détail d'un téléchargement (admin ou propriétaire)
     public function show(Request $request, Download $download)
     {
         if ($request->user()->role !== 'admin' && $request->user()->id !== $download->user_id) {
@@ -40,9 +42,7 @@ class DownloadController extends Controller
         return response()->json($download->load(['user', 'reference']));
     }
 
-    /**
-     * Statistiques des téléchargements
-     */
+    // Statistiques des téléchargements (admin et RH uniquement)
     public function stats(Request $request)
     {
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {

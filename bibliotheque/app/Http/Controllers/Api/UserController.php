@@ -12,15 +12,16 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    // Liste paginée des utilisateurs avec filtres (rôle, statut, recherche)
     public function index(Request $request)
     {
-        // Seul admin et responsable_rh peuvent voir la liste
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
         $query = User::query();
 
+        // Filtres optionnels
         if ($request->has('role')) {
             $query->where('role', $request->role);
         }
@@ -39,9 +40,9 @@ class UserController extends Controller
         return response()->json($query->paginate(20));
     }
 
+    // Crée un utilisateur avec rôle (admin/RH uniquement)
     public function store(Request $request)
     {
-        // Seul admin et responsable_rh peuvent créer
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
@@ -69,9 +70,10 @@ class UserController extends Controller
         return response()->json($user, 201);
     }
 
+    // Détail d'un utilisateur avec toutes ses relations
     public function show(Request $request, User $user)
     {
-        // Admin/RH peuvent voir tout le monde, user ne voit que son profil
+        // Un utilisateur standard ne voit que son propre profil
         if ($request->user()->role === 'user' && $request->user()->id !== $user->id) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
@@ -82,15 +84,16 @@ class UserController extends Controller
         ]));
     }
 
+    // Met à jour un utilisateur (rôle, statut, password) avec vérifications de droits
     public function update(Request $request, User $user)
     {
-        // Admin peut tout modifier, RH peut modifier users et responsables, user ne modifie que son profil
         $currentUser = $request->user();
 
         if ($currentUser->role === 'user' && $currentUser->id !== $user->id) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
+        // Un RH ne peut pas modifier un admin
         if ($currentUser->role === 'responsable_rh' && in_array($user->role, ['admin'])) {
             return response()->json(['message' => 'Vous ne pouvez pas modifier un admin.'], 403);
         }
@@ -101,13 +104,13 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
         ];
 
-        // Seul admin et RH peuvent changer le rôle et le statut
+        // Seuls admin et RH peuvent changer rôle et statut
         if (in_array($currentUser->role, ['admin', 'responsable_rh'])) {
             $rules['role'] = [Rule::in(['admin', 'responsable_rh', 'responsable_demande', 'user'])];
             $rules['status'] = [Rule::in(['active', 'inactive', 'suspended'])];
         }
 
-        // Seul l'user lui-même ou un admin peut changer le password
+        // Changement de mot de passe (vérifie l'ancien si c'est l'utilisateur lui-même)
         if ($request->has('password')) {
             $rules['password'] = 'string|min:8';
             $rules['current_password'] = 'required_with:password';
@@ -130,14 +133,13 @@ class UserController extends Controller
         return response()->json($user);
     }
 
+    // Supprime un utilisateur (admin/RH, pas soi-même, RH ne peut pas supprimer admin)
     public function destroy(Request $request, User $user)
     {
-        // Admin et RH peuvent supprimer, mais pas eux-mêmes
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        // RH ne peut pas supprimer un admin
         if ($request->user()->role === 'responsable_rh' && $user->role === 'admin') {
             return response()->json(['message' => 'Vous ne pouvez pas supprimer un administrateur.'], 403);
         }
@@ -151,9 +153,7 @@ class UserController extends Controller
         return response()->json(null, 204);
     }
 
-    /**
-     * Activer un compte
-     */
+    // Active un compte utilisateur (admin/RH)
     public function activate(Request $request, User $user)
     {
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
@@ -165,9 +165,7 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    /**
-     * Suspendre un compte
-     */
+    // Suspend un compte utilisateur (admin/RH, pas soi-même)
     public function suspend(Request $request, User $user)
     {
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {
@@ -183,9 +181,7 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    /**
-     * Réinitialiser le mot de passe
-     */
+    // Réinitialise le mot de passe et envoie un email avec le nouveau mot de passe
     public function resetPassword(Request $request, User $user)
     {
         if (!in_array($request->user()->role, ['admin', 'responsable_rh'])) {

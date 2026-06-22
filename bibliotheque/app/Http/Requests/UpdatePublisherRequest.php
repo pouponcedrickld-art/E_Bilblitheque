@@ -7,11 +7,13 @@ use Illuminate\Validation\Rule;
 
 class UpdatePublisherRequest extends FormRequest
 {
+    // Autorise la mise à jour d'un éditeur
     public function authorize(): bool
     {
         return true;
     }
 
+    // Validation des champs optionnels d'un éditeur (nom unique, site valide)
     public function rules(): array
     {
         return [

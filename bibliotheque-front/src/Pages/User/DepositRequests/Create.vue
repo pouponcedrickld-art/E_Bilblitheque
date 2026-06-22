@@ -1,16 +1,19 @@
 <script setup lang="ts">
+// Importations Vue et composants
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import DepositRequestForm from '@/Components/User/DepositRequestForm.vue'
 import Message from 'primevue/message'
 
+// Routeur et état du formulaire
 const router = useRouter()
 const loading = ref(false)
 const error = ref('')
 const submitted = ref(false)
 const createdTitle = ref('')
 
+// Soumet une nouvelle demande de dépôt
 async function handleSubmit(data: { title: string; description: string; file: File | null }) {
   loading.value = true
   error.value = ''
@@ -51,6 +54,7 @@ async function handleSubmit(data: { title: string; description: string; file: Fi
   }
 }
 
+// Redirige vers la liste des dépôts
 function goToDeposits() {
   router.push('/user/deposits')
 }

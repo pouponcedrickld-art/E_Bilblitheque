@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Gestion des utilisateurs pour l'admin
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -14,6 +15,7 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
+// Interface d'un utilisateur
 interface User {
   id: number
   first_name: string
@@ -29,10 +31,12 @@ const router = useRouter()
 const toastStore = useToastStore()
 const confirm = useConfirm()
 
+// Utilisateurs et filtre
 const users = ref<User[]>([])
 const loading = ref(false)
 const globalFilter = ref('')
 
+// Filtre les utilisateurs par recherche textuelle
 const filteredUsers = computed(() => {
   if (!globalFilter.value) return users.value
   const q = globalFilter.value.toLowerCase()
@@ -44,6 +48,7 @@ const filteredUsers = computed(() => {
   )
 })
 
+// Couleurs des badges par rôle
 const roleSeverity: Record<string, string> = {
   admin: 'danger',
   responsable_rh: 'info',
@@ -51,6 +56,7 @@ const roleSeverity: Record<string, string> = {
   user: 'success',
 }
 
+// Récupère la liste des utilisateurs
 async function fetchUsers() {
   loading.value = true
   try {
@@ -61,6 +67,7 @@ async function fetchUsers() {
   }
 }
 
+// Active ou suspend un utilisateur
 async function toggleStatus(user: User) {
   const action = user.status === 'active' ? 'suspend' : 'activate'
   confirm.require({
@@ -80,6 +87,7 @@ async function toggleStatus(user: User) {
   })
 }
 
+// Réinitialise le mot de passe d'un utilisateur
 async function resetPassword(user: User) {
   confirm.require({
     message: `Réinitialiser le mot de passe de ${user.full_name} ?`,
@@ -96,6 +104,7 @@ async function resetPassword(user: User) {
   })
 }
 
+// Charge les utilisateurs au montage
 onMounted(fetchUsers)
 </script>
 

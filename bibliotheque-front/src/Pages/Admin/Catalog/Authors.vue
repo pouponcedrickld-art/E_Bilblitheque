@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Gestion des auteurs du catalogue
 import { ref, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -11,6 +12,7 @@ import Dialog from 'primevue/dialog'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 
+// Interface représentant un auteur
 interface Author {
   id: number
   first_name: string
@@ -23,15 +25,18 @@ interface Author {
 const toastStore = useToastStore()
 const confirm = useConfirm()
 
+// Liste des auteurs et état de chargement
 const authors = ref<Author[]>([])
 const loading = ref(false)
 
+// État du dialogue et du formulaire
 const dialogVisible = ref(false)
 const editing = ref(false)
 const selectedAuthor = ref<Author | null>(null)
 const form = ref({ first_name: '', last_name: '', biography: '' })
 const submitting = ref(false)
 
+// Récupère la liste des auteurs
 async function fetch() {
   loading.value = true
   try {
@@ -42,6 +47,7 @@ async function fetch() {
   }
 }
 
+// Ouvre le dialogue de création
 function openCreate() {
   editing.value = false
   selectedAuthor.value = null
@@ -49,6 +55,7 @@ function openCreate() {
   dialogVisible.value = true
 }
 
+// Ouvre le dialogue de modification
 function openEdit(author: Author) {
   editing.value = true
   selectedAuthor.value = author
@@ -60,6 +67,7 @@ function openEdit(author: Author) {
   dialogVisible.value = true
 }
 
+// Crée ou met à jour un auteur
 async function submit() {
   submitting.value = true
   try {
@@ -79,6 +87,7 @@ async function submit() {
   }
 }
 
+// Supprime un auteur après confirmation
 async function deleteAuthor(id: number) {
   confirm.require({
     message: 'Supprimer cet auteur ?',
@@ -97,6 +106,7 @@ async function deleteAuthor(id: number) {
   })
 }
 
+// Charge les auteurs au montage
 onMounted(fetch)
 </script>
 

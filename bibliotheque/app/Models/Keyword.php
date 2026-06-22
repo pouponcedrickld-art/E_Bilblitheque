@@ -9,6 +9,7 @@ class Keyword extends Model
 {
     protected $fillable = ['name', 'slug'];
 
+    // Génère automatiquement un slug à partir du nom
     protected static function booted(): void
     {
         static::creating(function (Keyword $keyword) {
@@ -18,6 +19,7 @@ class Keyword extends Model
         });
     }
 
+    // Références associées à ce mot-clé
     public function references()
     {
         return $this->belongsToMany(Reference::class, 'keyword_reference');

@@ -39,11 +39,13 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    // Vrai si l'utilisateur a un rôle RH (admin ou responsable_rh)
     public function isResponsableRH(): bool
     {
         return in_array($this->role, ['admin', 'responsable_rh']);
     }
 
+    // Vrai si l'utilisateur peut gérer les demandes de dépôt
     public function isResponsableDemande(): bool
     {
         return in_array($this->role, ['admin', 'responsable_demande']);
@@ -54,9 +56,11 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
-    // Relations
+    // Références uploadées par l'utilisateur
     public function references() { return $this->hasMany(Reference::class, 'uploaded_by'); }
+    // Demandes de dépôt soumises par l'utilisateur
     public function depositRequests() { return $this->hasMany(DepositRequest::class, 'applicant_id'); }
+    // Demandes de dépôt assignées à l'utilisateur (manager)
     public function assignedDepositRequests() { return $this->hasMany(DepositRequest::class, 'assigned_manager_id'); }
     public function notifications() { return $this->hasMany(Notification::class); }
     public function activityLogs() { return $this->hasMany(ActivityLog::class); }

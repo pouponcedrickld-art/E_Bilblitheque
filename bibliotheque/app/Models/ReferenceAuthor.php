@@ -18,12 +18,13 @@ class ReferenceAuthor extends Model
 
     public $timestamps = false;
 
-    // Relations
+    // Référence liée
     public function reference()
     {
         return $this->belongsTo(Reference::class);
     }
 
+    // Auteur lié
     public function author()
     {
         return $this->belongsTo(Author::class);

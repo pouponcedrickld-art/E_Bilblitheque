@@ -10,6 +10,7 @@ class NotificationSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée des notifications aléatoires pour chaque utilisateur
         $users = User::all();
 
         foreach ($users as $user) {

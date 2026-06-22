@@ -14,6 +14,7 @@ class ReferenceSeeder extends Seeder
 {
     public function run(): void
     {
+        // Crée les références documentaires avec auteurs et mots-clés associés
         $categories = Category::pluck('id', 'name')->toArray();
         $publisherIds = Publisher::pluck('id')->toArray();
         $userIds = User::pluck('id')->toArray();

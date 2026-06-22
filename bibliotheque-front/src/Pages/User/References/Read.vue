@@ -1,16 +1,20 @@
 <script setup lang="ts">
+// Importations Vue, routeur, services et types
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
 import type { Reference } from '@/types'
 
+// Route actuelle et routeur
 const route = useRoute()
 const router = useRouter()
 
+// Référence chargée depuis l'API
 const reference = ref<Reference | null>(null)
 const loading = ref(true)
 const error = ref('')
 
+// Charge les détails de la référence
 async function fetchReference() {
   loading.value = true
   error.value = ''
@@ -26,11 +30,13 @@ async function fetchReference() {
   }
 }
 
+// Construit l'URL de lecture du document
 function readUrl() {
   if (!reference.value) return ''
   return reference.value.file_path || `/api/references/${reference.value.id}/read`
 }
 
+// Charge la référence au montage
 onMounted(fetchReference)
 </script>
 

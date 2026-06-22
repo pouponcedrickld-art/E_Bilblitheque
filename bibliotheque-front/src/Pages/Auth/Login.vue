@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Page de connexion
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -7,6 +8,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
+// Formulaire de connexion
 const form = ref({
   email: '',
   password: '',
@@ -15,6 +17,7 @@ const form = ref({
 const loading = ref(false)
 const errors = ref<string[]>([])
 
+// Soumet le formulaire de connexion
 async function handleSubmit() {
   loading.value = true
   errors.value = []

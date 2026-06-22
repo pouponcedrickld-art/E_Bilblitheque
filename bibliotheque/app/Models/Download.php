@@ -24,12 +24,13 @@ class Download extends Model
         ];
     }
 
-    // Relations
+    // Utilisateur ayant téléchargé
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Référence téléchargée
     public function reference()
     {
         return $this->belongsTo(Reference::class);

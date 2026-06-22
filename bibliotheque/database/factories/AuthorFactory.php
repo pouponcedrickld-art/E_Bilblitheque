@@ -15,8 +15,8 @@ class AuthorFactory extends Factory
             'last_name' => fake()->lastName(),
             'biography' => fake()->paragraph(),
             'nationality' => fake()->country(),
-            'birth_date' => fake()->optional()->date(),
-            'death_date' => fake()->optional()->date(),
+            'birth_date' => fake()->optional()->date(), // Date de naissance (optionnelle)
+            'death_date' => fake()->optional()->date(), // Date de décès (optionnelle)
         ];
     }
 }

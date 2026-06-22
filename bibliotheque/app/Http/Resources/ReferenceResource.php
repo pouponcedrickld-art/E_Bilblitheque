@@ -9,6 +9,7 @@ use App\Http\Resources\KeywordResource;
 
 class ReferenceResource extends JsonResource
 {
+    // Expose les données d'une référence bibliographique
     public function toArray(Request $request): array
     {
         return [
