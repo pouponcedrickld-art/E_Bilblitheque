@@ -56,6 +56,7 @@ export interface Reference {
   authors?: Author[]
   keywords?: Keyword[]
   cover_image: string | null
+  cover_url: string | null
   file_path: string | null
   pages: number | null
   download_count: number

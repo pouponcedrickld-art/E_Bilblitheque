@@ -33,6 +33,8 @@ const form = ref({
 const categories = ref<{ id: number; name: string }[]>([])
 const publishers = ref<{ id: number; name: string }[]>([])
 const keywords = ref<{ id: number; name: string }[]>([])
+const coverFile = ref<File | null>(null)
+const coverPreview = ref<string | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
@@ -71,6 +73,9 @@ async function load() {
       status: refData.status ?? 'draft',
       keyword_ids: (refData.keywords ?? []).map((k: any) => k.id),
     }
+    if (refData.cover_url) {
+      coverPreview.value = refData.cover_url
+    }
     categories.value = catRes.data?.data ?? catRes.data ?? []
     publishers.value = pubRes.data?.data ?? pubRes.data ?? []
     keywords.value = kwRes.data?.data ?? kwRes.data ?? []
@@ -81,12 +86,36 @@ async function load() {
   }
 }
 
+function onCoverChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    coverFile.value = input.files[0]
+    coverPreview.value = URL.createObjectURL(input.files[0])
+  }
+}
+
 async function submit() {
   submitting.value = true
   error.value = ''
   try {
     const id = route.params.id as string
-    await http.put(`/references/${id}`, { ...form.value, keyword_ids: form.value.keyword_ids })
+    const fd = new FormData()
+    fd.append('title', form.value.title)
+    fd.append('subtitle', form.value.subtitle)
+    fd.append('abstract', form.value.abstract)
+    fd.append('isbn', form.value.isbn)
+    if (form.value.publication_year) fd.append('publication_year', String(form.value.publication_year))
+    fd.append('language', form.value.language)
+    fd.append('document_type', form.value.document_type)
+    if (form.value.category_id) fd.append('category_id', String(form.value.category_id))
+    if (form.value.publisher_id) fd.append('publisher_id', String(form.value.publisher_id))
+    if (form.value.pages) fd.append('pages', String(form.value.pages))
+    fd.append('status', form.value.status)
+    form.value.keyword_ids.forEach(id => fd.append('keyword_ids[]', String(id)))
+    if (coverFile.value) fd.append('cover_image', coverFile.value)
+    fd.append('_method', 'PUT')
+
+    await http.post(`/references/${id}`, fd)
     toastStore.success('Référence mise à jour.')
     router.push('/admin/references')
   } catch (err: any) {
@@ -160,6 +189,13 @@ onMounted(load)
           <label for="keywords">Mots-clés</label>
           <MultiSelect id="keywords" v-model="form.keyword_ids" :options="keywords" option-label="name" option-value="id" placeholder="Sélectionner des mots-clés" :max-selected-labels="5" />
         </div>
+        <div class="field full">
+          <label for="cover_image">Image de couverture</label>
+          <input type="file" id="cover_image" accept="image/*" @change="onCoverChange" class="file-input" />
+          <div v-if="coverPreview" class="cover-preview">
+            <img :src="coverPreview" alt="Aperçu" />
+          </div>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -181,5 +217,8 @@ onMounted(load)
 .field.full { grid-column: 1 / -1; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 .form-actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; }
+.file-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.5rem; background: #fff; font-size: 0.85rem; }
+.cover-preview { margin-top: 0.5rem; width: 120px; height: 160px; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border); }
+.cover-preview img { width: 100%; height: 100%; object-fit: cover; }
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
 </style>

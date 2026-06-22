@@ -38,6 +38,14 @@ onMounted(fetchReference)
     <div v-else-if="error" class="error">{{ error }}</div>
 
     <div v-else-if="reference" class="detail-card">
+      <div v-if="reference.cover_url" class="detail-cover">
+        <img :src="reference.cover_url" :alt="reference.title" />
+      </div>
+      <div v-else class="detail-cover-placeholder">
+        <i class="pi pi-book" style="font-size: 2rem; color: var(--primary)"></i>
+        <span class="cover-placeholder-text">Couverture non disponible</span>
+      </div>
+
       <div class="detail-header">
         <span class="badge">{{ reference.document_type }}</span>
         <span class="badge" :class="reference.status">{{ reference.status }}</span>
@@ -131,6 +139,40 @@ onMounted(fetchReference)
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: 2rem;
+}
+
+.detail-cover {
+  width: 200px;
+  height: 280px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-cover-placeholder {
+  width: 200px;
+  height: 280px;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: #f8fafc;
+  border: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cover-placeholder-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .detail-header {

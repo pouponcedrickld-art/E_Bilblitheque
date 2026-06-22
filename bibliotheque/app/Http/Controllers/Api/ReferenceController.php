@@ -153,12 +153,21 @@ class ReferenceController extends Controller
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'in:draft,published,archived',
             'pages' => 'nullable|integer|min:1',
+            'cover_image' => 'nullable|image|max:2048',
             'keyword_ids' => 'nullable|array',
             'keyword_ids.*' => 'exists:keywords,id',
             'is_featured' => 'boolean',
         ]);
 
-        $data = $request->except(['keyword_ids']);
+        $data = $request->except(['keyword_ids', 'cover_image']);
+
+        if ($request->hasFile('cover_image')) {
+            if ($reference->cover_image) {
+                Storage::disk('public')->delete($reference->cover_image);
+            }
+            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+        }
+
         $reference->update($data);
 
         if ($request->has('keyword_ids')) {

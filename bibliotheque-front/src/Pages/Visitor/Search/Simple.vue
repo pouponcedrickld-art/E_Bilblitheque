@@ -1,12 +1,26 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
+import http from '@/services/http'
+import type { Category } from '@/types'
 import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 
 const router = useRouter()
-const { query, results, loading, search } = useSearch()
+const { query, results, loading, filters, search } = useSearch()
+const categories = ref<Category[]>([])
+
+async function fetchCategories() {
+  try {
+    const res = await http.get('/categories')
+    categories.value = res.data?.data ?? res.data ?? []
+  } catch {
+    // ignore
+  }
+}
 
 function getTypeIcon(type: string): string {
   const icons: Record<string, string> = {
@@ -19,6 +33,8 @@ function getTypeIcon(type: string): string {
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
+
+onMounted(fetchCategories)
 </script>
 
 <template>
@@ -31,6 +47,11 @@ function viewDetail(id: number) {
         <InputText v-model="query" placeholder="Titre, auteur, ISBN, mot-clé..." class="search-input" @keyup.enter="search" />
         <Button label="Rechercher" @click="search" :loading="loading" class="search-btn" />
       </div>
+    </div>
+
+    <div class="simple-filters">
+      <Select v-model="filters.category_id" :options="categories" optionLabel="name" optionValue="id" placeholder="Toutes les catégories" clearable class="filter-select" @change="search" />
+      <Select v-model="filters.document_type" :options="['livre','memoire','these','article','revue','rapport','guide']" placeholder="Tous les types" clearable class="filter-select" @change="search" />
     </div>
 
     <div v-if="loading" class="message-box">
@@ -138,6 +159,14 @@ function viewDetail(id: number) {
   flex-shrink: 0;
 }
 
+.simple-filters {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 640px;
+  margin: 1rem auto;
+  padding: 0 1rem;
+}
+.filter-select { flex: 1; }
 .message-box {
   margin-bottom: 1.5rem;
 }

@@ -8,6 +8,7 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import InputNumber from 'primevue/inputnumber'
+import FileUpload from 'primevue/fileupload'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 
@@ -32,6 +33,8 @@ const form = ref({
 const categories = ref<{ id: number; name: string }[]>([])
 const publishers = ref<{ id: number; name: string }[]>([])
 const keywords = ref<{ id: number; name: string }[]>([])
+const coverFile = ref<File | null>(null)
+const coverPreview = ref<string | null>(null)
 const submitting = ref(false)
 const error = ref('')
 
@@ -59,11 +62,34 @@ async function loadFormData() {
   }
 }
 
+function onCoverChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files[0]) {
+    coverFile.value = input.files[0]
+    coverPreview.value = URL.createObjectURL(input.files[0])
+  }
+}
+
 async function submit() {
   submitting.value = true
   error.value = ''
   try {
-    await http.post('/references', { ...form.value, keyword_ids: form.value.keyword_ids })
+    const fd = new FormData()
+    fd.append('title', form.value.title)
+    fd.append('subtitle', form.value.subtitle)
+    fd.append('abstract', form.value.abstract)
+    fd.append('isbn', form.value.isbn)
+    if (form.value.publication_year) fd.append('publication_year', String(form.value.publication_year))
+    fd.append('language', form.value.language)
+    fd.append('document_type', form.value.document_type)
+    if (form.value.category_id) fd.append('category_id', String(form.value.category_id))
+    if (form.value.publisher_id) fd.append('publisher_id', String(form.value.publisher_id))
+    if (form.value.pages) fd.append('pages', String(form.value.pages))
+    fd.append('status', form.value.status)
+    form.value.keyword_ids.forEach(id => fd.append('keyword_ids[]', String(id)))
+    if (coverFile.value) fd.append('cover_image', coverFile.value)
+
+    await http.post('/references', fd)
     toastStore.success('Référence créée avec succès.')
     router.push('/admin/references')
   } catch (err: any) {
@@ -135,6 +161,13 @@ onMounted(loadFormData)
           <label for="keywords">Mots-clés</label>
           <MultiSelect id="keywords" v-model="form.keyword_ids" :options="keywords" option-label="name" option-value="id" placeholder="Sélectionner des mots-clés" :max-selected-labels="5" />
         </div>
+        <div class="field full">
+          <label for="cover_image">Image de couverture</label>
+          <input type="file" id="cover_image" accept="image/*" @change="onCoverChange" class="file-input" />
+          <div v-if="coverPreview" class="cover-preview">
+            <img :src="coverPreview" alt="Aperçu" />
+          </div>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -155,5 +188,8 @@ onMounted(loadFormData)
 .field.full { grid-column: 1 / -1; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 .form-actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; }
+.file-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.5rem; background: #fff; font-size: 0.85rem; }
+.cover-preview { margin-top: 0.5rem; width: 120px; height: 160px; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border); }
+.cover-preview img { width: 100%; height: 100%; object-fit: cover; }
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
 </style>
