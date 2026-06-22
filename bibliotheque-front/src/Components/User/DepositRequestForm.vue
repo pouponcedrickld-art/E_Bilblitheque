@@ -99,12 +99,12 @@ function handleSubmit() {
 }
 
 .input-invalid {
-  border-color: #e53e3e !important;
+  border-color: var(--destructive) !important;
 }
 
 .error {
   font-size: 0.8rem;
-  color: #e53e3e;
+  color: var(--destructive);
 }
 
 .file-name {

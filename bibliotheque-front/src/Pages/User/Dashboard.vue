@@ -136,7 +136,7 @@ onMounted(fetchStats)
               </div>
             </div>
             <div v-if="authStore.isAdmin" class="overview-item">
-              <i class="pi pi-eye" style="color: #AF52DE;" />
+              <i class="pi pi-eye" style="color: var(--primary-light);" />
               <div>
                 <span class="overview-value">{{ stats.views }}</span>
                 <span class="overview-label">Consultations</span>

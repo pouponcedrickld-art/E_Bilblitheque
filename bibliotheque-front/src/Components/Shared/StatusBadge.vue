@@ -52,8 +52,8 @@ const label = computed(() => labels[props.status] || props.status)
 }
 .badge-success { background: #dcfce7; color: #166534; }
 .badge-warn { background: #fef3c7; color: #92400e; }
-.badge-info { background: #dbeafe; color: #1e40af; }
+.badge-info { background: rgba(27, 67, 50, 0.08); color: var(--primary); }
 .badge-danger { background: #fce4ec; color: #c62828; }
-.badge-contrast { background: #e2e8f0; color: #334155; }
-.badge-secondary { background: #f1f5f9; color: #64748b; }
+.badge-contrast { background: var(--muted); color: var(--foreground); }
+.badge-secondary { background: var(--muted); color: var(--muted-foreground); }
 </style>

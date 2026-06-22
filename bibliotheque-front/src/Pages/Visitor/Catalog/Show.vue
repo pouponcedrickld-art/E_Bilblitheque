@@ -137,14 +137,14 @@ onMounted(fetchReference)
 .detail-card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   padding: 2rem;
 }
 
 .detail-cover {
   width: 200px;
   height: 280px;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -159,9 +159,9 @@ onMounted(fetchReference)
 .detail-cover-placeholder {
   width: 200px;
   height: 280px;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   margin-bottom: 1.5rem;
-  background: #f8fafc;
+  background: var(--muted);
   border: 1px dashed var(--border);
   display: flex;
   flex-direction: column;
@@ -188,13 +188,13 @@ onMounted(fetchReference)
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  background: #eff6ff;
+  background: rgba(27, 67, 50, 0.08);
   color: var(--primary);
 }
 
 .badge.published { background: #ecfdf5; color: #059669; }
 .badge.draft { background: #fef3c7; color: #d97706; }
-.badge.archived { background: #f3f4f6; color: #6b7280; }
+.badge.archived { background: var(--muted); color: var(--muted-foreground); }
 
 .detail-title {
   font-size: 1.5rem;
@@ -228,7 +228,7 @@ onMounted(fetchReference)
   margin-bottom: 1.25rem;
   padding: 1rem;
   background: var(--bg);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
 }
 
 .detail-item {
@@ -253,8 +253,8 @@ onMounted(fetchReference)
 
 .keyword {
   padding: 0.2rem 0.6rem;
-  background: #f0f9ff;
-  color: #0369a1;
+  background: rgba(27, 67, 50, 0.08);
+  color: var(--primary);
   border-radius: 999px;
   font-size: 0.75rem;
 }

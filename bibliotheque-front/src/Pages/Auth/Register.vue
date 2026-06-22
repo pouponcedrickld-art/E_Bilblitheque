@@ -185,7 +185,7 @@ async function handleSubmit() {
 }
 
 .auth-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-serif);
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--primary, #1B4332);

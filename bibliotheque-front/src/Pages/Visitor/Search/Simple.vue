@@ -113,8 +113,8 @@ onMounted(fetchCategories)
   text-align: center;
   padding: 3rem 1rem;
   margin-bottom: 2rem;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(27, 67, 50, 0.04) 0%, rgba(45, 106, 79, 0.08) 100%);
+  border-radius: var(--radius-xl);
 }
 
 .hero-title {
@@ -138,7 +138,7 @@ onMounted(fetchCategories)
   margin: 0 auto;
   background: #fff;
   padding: 0.5rem 0.5rem 0.5rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -207,7 +207,7 @@ onMounted(fetchCategories)
 .card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   display: flex;
   overflow: hidden;
   cursor: pointer;
@@ -216,7 +216,7 @@ onMounted(fetchCategories)
 
 .card:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.12);
   transform: translateY(-2px);
 }
 
@@ -225,7 +225,7 @@ onMounted(fetchCategories)
   min-height: 100%;
   flex-shrink: 0;
   overflow: hidden;
-  background: #f1f5f9;
+  background: var(--muted);
 }
 
 .card-cover img {
@@ -241,7 +241,7 @@ onMounted(fetchCategories)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--muted);
 }
 
 .card-icon {
@@ -264,7 +264,7 @@ onMounted(fetchCategories)
 .card-badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;
-  background: #eff6ff;
+  background: rgba(27, 67, 50, 0.08);
   color: var(--primary);
   border-radius: 999px;
   font-size: 0.68rem;

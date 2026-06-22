@@ -37,7 +37,7 @@ async function fetchStats() {
 
 const statCards = computed(() => [
   { label: 'Total attribuées', value: stats.value.total, icon: 'pi pi-inbox', color: 'var(--primary)', bg: 'rgba(27, 67, 50, 0.1)' },
-  { label: 'En attente', value: stats.value.pending, icon: 'pi pi-hourglass', color: '#FF9F0A', bg: 'rgba(255, 159, 10, 0.1)' },
+  { label: 'En attente', value: stats.value.pending, icon: 'pi pi-hourglass', color: '#52b788', bg: 'rgba(82, 183, 136, 0.1)' },
   { label: 'Validées', value: stats.value.approved, icon: 'pi pi-check-circle', color: 'var(--accent)', bg: 'rgba(52, 199, 89, 0.1)' },
   { label: 'Refusées', value: stats.value.rejected, icon: 'pi pi-times-circle', color: 'var(--destructive)', bg: 'rgba(255, 59, 48, 0.1)' },
 ])
@@ -273,7 +273,7 @@ onMounted(fetchStats)
   transition: width 0.6s ease;
 }
 
-.bar-fill--orange { background: #FF9F0A; }
+.bar-fill--orange { background: #52b788; }
 .bar-fill--green { background: var(--accent); }
 .bar-fill--red { background: var(--destructive); }
 

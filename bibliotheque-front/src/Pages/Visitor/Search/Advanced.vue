@@ -182,7 +182,7 @@ onMounted(fetchCategories)
 
 .filter-card {
   margin-bottom: 1.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
 }
 
 .filter-form {
@@ -249,7 +249,7 @@ onMounted(fetchCategories)
 .card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   display: flex;
   overflow: hidden;
   cursor: pointer;
@@ -258,7 +258,7 @@ onMounted(fetchCategories)
 
 .card:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.12);
   transform: translateY(-2px);
 }
 
@@ -267,7 +267,7 @@ onMounted(fetchCategories)
   min-height: 100%;
   flex-shrink: 0;
   overflow: hidden;
-  background: #f1f5f9;
+  background: var(--muted);
 }
 
 .card-cover img {
@@ -283,7 +283,7 @@ onMounted(fetchCategories)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--muted);
 }
 
 .card-icon-lg {
@@ -306,7 +306,7 @@ onMounted(fetchCategories)
 .card-badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;
-  background: #eff6ff;
+  background: rgba(27, 67, 50, 0.08);
   color: var(--primary);
   border-radius: 999px;
   font-size: 0.68rem;

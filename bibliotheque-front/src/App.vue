@@ -50,6 +50,10 @@ const layout = computed(() => {
   --border: rgba(60, 60, 67, 0.13);
   --input-background: #F2F2F7;
   --ring: #1B4332;
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted-foreground);
+  --bg: var(--muted);
+  --primary-dark: #143026;
   --radius: 0.75rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

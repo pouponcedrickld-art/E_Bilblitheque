@@ -83,7 +83,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: #007AFF;">
+          <div class="stat-icon-box" style="background: rgba(82, 183, 136, 0.1); color: #52b788;">
             <i class="pi pi-users" />
           </div>
           <div class="stat-body">
@@ -101,7 +101,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(175, 82, 222, 0.1); color: #AF52DE;">
+          <div class="stat-icon-box" style="background: rgba(45, 106, 79, 0.1); color: var(--primary-light);">
             <i class="pi pi-eye" />
           </div>
           <div class="stat-body">
@@ -328,11 +328,11 @@ onMounted(fetchStats)
   transition: width 0.6s ease;
 }
 
-.bar-fill--orange { background: #FF9F0A; }
+.bar-fill--orange { background: #52b788; }
 .bar-fill--teal { background: #40916C; }
-.bar-fill--blue { background: #007AFF; }
+.bar-fill--blue { background: var(--primary); }
 .bar-fill--green { background: var(--accent); }
-.bar-fill--purple { background: #AF52DE; }
+.bar-fill--purple { background: #74c69d; }
 
 .bar-value {
   font-size: 0.85rem;

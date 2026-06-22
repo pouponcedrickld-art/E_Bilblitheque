@@ -158,16 +158,16 @@ onMounted(() => {
 .filter-btn { width: 100%; }
 .main-content { min-width: 0; }
 .search-bar { margin-bottom: 1.5rem; }
-.search-input { width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 0.5rem; font-size: 0.9rem; outline: none; background: #fff; transition: border-color 0.15s; }
-.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+.search-input { width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; background: #fff; transition: border-color 0.15s; }
+.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.15); }
 .loading, .empty { text-align: center; padding: 3rem; color: var(--text-secondary); }
 .result-count { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
-.card { background: #fff; border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.25rem; display: flex; gap: 1rem; cursor: pointer; transition: all 0.15s; }
-.card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1); transform: translateY(-1px); }
+.card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; gap: 1rem; cursor: pointer; transition: all 0.15s; }
+.card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(27, 67, 50, 0.1); transform: translateY(-1px); }
 .card-icon { font-size: 2rem; flex-shrink: 0; }
 .card-body { flex: 1; min-width: 0; }
-.card-badge { display: inline-block; padding: 0.15rem 0.5rem; background: #eff6ff; color: var(--primary); border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.35rem; }
+.card-badge { display: inline-block; padding: 0.15rem 0.5rem; background: rgba(27, 67, 50, 0.08); color: var(--primary); border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.35rem; }
 .card-title { font-size: 0.95rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-authors { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }

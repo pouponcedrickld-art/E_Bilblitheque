@@ -284,7 +284,7 @@ onMounted(fetchData)
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(150deg, #0F2419 0%, #1B4332 50%, #2D6A4F 100%);
+  background: linear-gradient(150deg, #143026 0%, #1B4332 50%, #2D6A4F 100%);
 }
 
 .hero-bg {
@@ -824,10 +824,10 @@ onMounted(fetchData)
 }
 
 .cta-card {
-  border-radius: 1.5rem;
+  border-radius: var(--radius-xl);
   padding: 2rem 1.5rem;
   text-align: center;
-  background: linear-gradient(135deg, #0F2419 0%, #1B4332 100%);
+  background: linear-gradient(135deg, #143026 0%, #1B4332 100%);
 }
 
 @media (min-width: 640px) {

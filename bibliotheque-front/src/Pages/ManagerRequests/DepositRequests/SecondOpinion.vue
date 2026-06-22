@@ -135,11 +135,11 @@ onMounted(fetchRequest)
   align-items: center;
   gap: 0.6rem;
   padding: 0.85rem 1rem;
-  background: #fff8e1;
-  border: 1px solid #ffe082;
-  border-radius: 0.5rem;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
-  color: #6d4c00;
+  color: #92400e;
 }
 
 .info-banner i {
@@ -150,7 +150,7 @@ onMounted(fetchRequest)
 .detail-card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;

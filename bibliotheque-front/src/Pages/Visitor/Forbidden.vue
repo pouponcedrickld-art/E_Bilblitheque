@@ -28,7 +28,7 @@ const router = useRouter()
 .error-code {
   font-size: 5rem;
   font-weight: 800;
-  color: #dc2626;
+  color: var(--destructive);
   line-height: 1;
   margin-bottom: 0.5rem;
 }
@@ -47,7 +47,7 @@ p {
 .btn {
   padding: 0.65rem 1.5rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;

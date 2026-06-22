@@ -47,7 +47,7 @@ p {
 .btn {
   padding: 0.65rem 1.5rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
