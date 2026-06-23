@@ -1,22 +1,32 @@
 <script setup lang="ts">
-// Importations Vue, routeur, services et composants
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
 import type { DepositRequest } from '@/types'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import Button from 'primevue/button'
+import { useConfirm } from 'primevue/useconfirm'
+import ConfirmDialog from 'primevue/confirmdialog'
+import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
 import { formatDate } from '@/Utils/formatters'
 
-// Route actuelle et routeur
 const route = useRoute()
 const router = useRouter()
+const confirm = useConfirm()
+const authStore = useAuthStore()
+const toastStore = useToastStore()
 
-// Données de la demande et avis associés
 const request = ref<DepositRequest | null>(null)
 const reviews = ref<any[]>([])
 const loading = ref(true)
 const error = ref('')
+
+const canDelete = computed(() => {
+  if (!request.value) return false
+  if (authStore.user?.role === 'admin') return true
+  return request.value.status === 'pending'
+})
 
 // Charge le détail d'une demande depuis l'API
 async function fetchRequest() {
@@ -42,12 +52,29 @@ function downloadFile() {
   window.open(request.value.proposed_file_url, '_blank')
 }
 
-// Retour à la liste des dépôts
 function goBack() {
   router.push('/user/deposits')
 }
 
-// Charge la demande au montage du composant
+function confirmDelete() {
+  if (!request.value) return
+  confirm.require({
+    message: 'Voulez-vous vraiment supprimer ce dépôt ? Cette action est irréversible.',
+    header: 'Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: async () => {
+      try {
+        await http.delete(`/deposit-requests/${request.value!.id}`)
+        toastStore.success('Dépôt supprimé avec succès.')
+        router.push('/user/deposits')
+      } catch {
+        toastStore.error('Erreur lors de la suppression.')
+      }
+    },
+  })
+}
+
 onMounted(fetchRequest)
 </script>
 
@@ -58,7 +85,16 @@ onMounted(fetchRequest)
       <div>
         <h1>Détail du dépôt</h1>
       </div>
+      <Button
+        v-if="canDelete"
+        label="Supprimer"
+        icon="pi pi-trash"
+        severity="danger"
+        class="p-button-sm"
+        @click="confirmDelete"
+      />
     </div>
+    <ConfirmDialog />
 
     <div v-if="loading" class="loading">Chargement...</div>
     <div v-else-if="error" class="alert alert-error">{{ error }}</div>
@@ -115,6 +151,7 @@ onMounted(fetchRequest)
 .page-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
@@ -122,6 +159,7 @@ onMounted(fetchRequest)
 .page-header h1 {
   font-size: 1.5rem;
   font-weight: 700;
+  flex: 1;
 }
 
 .loading {

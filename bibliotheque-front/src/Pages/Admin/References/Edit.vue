@@ -23,7 +23,7 @@ const form = ref({
   abstract: '',
   isbn: '',
   publication_year: null as number | null,
-  language: '',
+  language: 'fr',
   document_type: 'article',
   category_id: null as number | null,
   publisher_id: null as number | null,
@@ -42,14 +42,21 @@ const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
-// Types de documents disponibles
 const documentTypes = [
   { label: 'Article', value: 'article' },
-  { label: 'Livre', value: 'book' },
-  { label: 'Thèse', value: 'thesis' },
-  { label: 'Rapport', value: 'report' },
-  { label: 'Article de conférence', value: 'conference' },
-  { label: 'Chapitre de livre', value: 'book_chapter' },
+  { label: 'Livre', value: 'livre' },
+  { label: 'Mémoire', value: 'memoire' },
+  { label: 'Thèse', value: 'these' },
+  { label: 'Revue', value: 'revue' },
+  { label: 'Rapport', value: 'rapport' },
+  { label: 'Guide', value: 'guide' },
+  { label: 'Autre', value: 'autre' },
+]
+
+const languages = [
+  { label: 'Français', value: 'fr' },
+  { label: 'Anglais', value: 'en' },
+  { label: 'Autre', value: 'autre' },
 ]
 
 // Charge la référence et les listes associées
@@ -171,7 +178,7 @@ onMounted(load)
         </div>
         <div class="field">
           <label for="language">Langue</label>
-          <InputText id="language" v-model="form.language" placeholder="ex: fr, en" />
+          <Select id="language" v-model="form.language" :options="languages" option-label="label" option-value="value" />
         </div>
         <div class="field">
           <label for="document_type">Type de document</label>
