@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\DownloadController;
 use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\KeywordController;
 use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\DocumentTypeController;
 
 // Routes publiques (accessibles sans authentification)
 Route::post('/register', [AuthController::class, 'register']);
@@ -33,6 +34,8 @@ Route::get('/references/{reference}', [ReferenceController::class, 'show'])->whe
 Route::get('/references/{reference}/read', [ReferenceController::class, 'read']);
 Route::get('/keywords', [KeywordController::class, 'index']);
 Route::get('/stats', [StatsController::class, 'index']);
+Route::get('/document-types', [DocumentTypeController::class, 'index']);
+Route::get('/document-types/{documentType}', [DocumentTypeController::class, 'show']);
 
 // Routes protégées par session Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -59,6 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Profil utilisateur (tout utilisateur connecté)
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
 
+    // Création rapide de catégories, éditeurs et types de document (tout utilisateur connecté)
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::post('/publishers', [PublisherController::class, 'store']);
+    Route::post('/document-types', [DocumentTypeController::class, 'store']);
+
     // --- Admin + Responsable Demande ---
     Route::middleware('responsable.demande')->group(function () {
         Route::post('/deposit-requests/{depositRequest}/approve-manager', [DepositRequestController::class, 'approveByManager']);
@@ -78,7 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () {
 
     // Gestion du catalogue (CRUD catégories, auteurs, éditeurs)
-    Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
@@ -86,9 +93,11 @@ Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () 
     Route::put('/authors/{author}', [AuthorController::class, 'update']);
     Route::delete('/authors/{author}', [AuthorController::class, 'destroy']);
 
-    Route::post('/publishers', [PublisherController::class, 'store']);
     Route::put('/publishers/{publisher}', [PublisherController::class, 'update']);
     Route::delete('/publishers/{publisher}', [PublisherController::class, 'destroy']);
+
+    Route::put('/document-types/{documentType}', [DocumentTypeController::class, 'update']);
+    Route::delete('/document-types/{documentType}', [DocumentTypeController::class, 'destroy']);
 
     // Workflow admin
     Route::post('/deposit-requests/{depositRequest}/publish', [DepositRequestController::class, 'publish']);

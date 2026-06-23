@@ -4,7 +4,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
 import http from '@/services/http'
-import type { Category } from '@/types'
+import type { Category, DocumentType } from '@/types'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
@@ -17,15 +17,7 @@ const { query, results, loading, filters, search, reset } = useSearch()
 
 // Données pour les listes déroulantes
 const categories = ref<Category[]>([])
-const documentTypes = [
-  { label: 'Livre', value: 'livre' },
-  { label: 'Mémoire', value: 'memoire' },
-  { label: 'Thèse', value: 'these' },
-  { label: 'Article', value: 'article' },
-  { label: 'Revue', value: 'revue' },
-  { label: 'Rapport', value: 'rapport' },
-  { label: 'Guide', value: 'guide' },
-]
+const documentTypes = ref<DocumentType[]>([])
 const languages = [
   { label: 'Français', value: 'fr' },
   { label: 'Anglais', value: 'en' },
@@ -49,6 +41,16 @@ async function fetchCategories() {
   }
 }
 
+// Récupère les types de document depuis l'API
+async function fetchDocumentTypes() {
+  try {
+    const res = await http.get('/document-types')
+    documentTypes.value = res.data?.data ?? res.data ?? []
+  } catch {
+    documentTypes.value = []
+  }
+}
+
 // Réinitialise tous les filtres
 function clearFilters() {
   reset()
@@ -69,7 +71,7 @@ function getTypeIcon(type: string): string {
 }
 
 // Charge les catégories au montage
-onMounted(fetchCategories)
+onMounted(() => { fetchCategories(); fetchDocumentTypes() })
 </script>
 
 <template>
@@ -99,7 +101,7 @@ onMounted(fetchCategories)
             </div>
             <div class="field">
               <label>Type de document</label>
-              <Select v-model="filters.document_type" :options="documentTypes" optionLabel="label" optionValue="value" placeholder="Tous les types" clearable class="field-input" />
+              <Select v-model="filters.document_type_id" :options="documentTypes" optionLabel="label" optionValue="id" placeholder="Tous les types" clearable class="field-input" />
             </div>
             <div class="field">
               <label>Langue</label>
@@ -137,11 +139,11 @@ onMounted(fetchCategories)
             <img :src="ref.cover_url" :alt="ref.title" />
           </div>
           <div v-else class="card-icon-wrapper">
-            <span class="card-icon-lg">{{ getTypeIcon(ref.document_type) }}</span>
+            <span class="card-icon-lg">{{ getTypeIcon(ref.document_type?.name ?? '') }}</span>
           </div>
           <div class="card-body">
             <div class="card-header">
-              <span class="card-badge">{{ ref.document_type }}</span>
+              <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? ref.document_type }}</span>
               <span v-if="ref.status === 'published'" class="card-status">Publié</span>
             </div>
             <h3 class="card-title">{{ ref.title }}</h3>

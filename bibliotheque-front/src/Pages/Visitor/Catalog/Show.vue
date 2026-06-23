@@ -52,7 +52,7 @@ onMounted(fetchReference)
       </div>
 
       <div class="detail-header">
-        <span class="badge">{{ reference.document_type }}</span>
+        <span class="badge">{{ reference.document_type?.label ?? reference.document_type?.name ?? '-' }}</span>
         <span class="badge" :class="reference.status">{{ reference.status }}</span>
       </div>
 

@@ -23,7 +23,7 @@ export function useSearch() {
   /** Filtres avancés (catégorie, type, langue, mot-clé, auteur) */
   const filters = ref({
     category_id: undefined as number | undefined,
-    document_type: undefined as string | undefined,
+    document_type_id: undefined as number | undefined,
     language: undefined as string | undefined,
     keyword: undefined as string | undefined,
     author: undefined as string | undefined,
@@ -42,7 +42,7 @@ export function useSearch() {
       const params: Record<string, any> = {}
       if (query.value) params.search = query.value
       if (filters.value.category_id) params.category_id = filters.value.category_id
-      if (filters.value.document_type) params.document_type = filters.value.document_type
+      if (filters.value.document_type_id) params.document_type_id = filters.value.document_type_id
       if (filters.value.language) params.language = filters.value.language
       if (filters.value.keyword) params.keyword = filters.value.keyword
       if (filters.value.author) params.author = filters.value.author
@@ -62,7 +62,7 @@ export function useSearch() {
   // Réinitialise tous les champs, filtres et résultats
   function reset() {
     query.value = ''
-    filters.value = { category_id: undefined, document_type: undefined, language: undefined, keyword: undefined, author: undefined }
+    filters.value = { category_id: undefined, document_type_id: undefined, language: undefined, keyword: undefined, author: undefined }
     results.value = []
     error.value = null
   }

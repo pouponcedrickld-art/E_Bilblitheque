@@ -4,7 +4,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
 import http from '@/services/http'
-import type { Category } from '@/types'
+import type { Category, DocumentType } from '@/types'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
@@ -14,12 +14,23 @@ import Message from 'primevue/message'
 const router = useRouter()
 const { query, results, loading, filters, search } = useSearch()
 const categories = ref<Category[]>([])
+const documentTypes = ref<DocumentType[]>([])
 
 // Récupère les catégories depuis l'API
 async function fetchCategories() {
   try {
     const res = await http.get('/categories')
     categories.value = res.data?.data ?? res.data ?? []
+  } catch {
+    // ignore
+  }
+}
+
+// Récupère les types de document depuis l'API
+async function fetchDocumentTypes() {
+  try {
+    const res = await http.get('/document-types')
+    documentTypes.value = res.data?.data ?? res.data ?? []
   } catch {
     // ignore
   }
@@ -40,7 +51,7 @@ function viewDetail(id: number) {
 }
 
 // Charge les catégories au montage
-onMounted(fetchCategories)
+onMounted(() => { fetchCategories(); fetchDocumentTypes() })
 </script>
 
 <template>
@@ -57,7 +68,7 @@ onMounted(fetchCategories)
 
     <div class="simple-filters">
       <Select v-model="filters.category_id" :options="categories" optionLabel="name" optionValue="id" placeholder="Toutes les catégories" clearable class="filter-select" @change="search" />
-      <Select v-model="filters.document_type" :options="['livre','memoire','these','article','revue','rapport','guide']" placeholder="Tous les types" clearable class="filter-select" @change="search" />
+      <Select v-model="filters.document_type_id" :options="documentTypes" optionLabel="label" optionValue="id" placeholder="Tous les types" clearable class="filter-select" @change="search" />
     </div>
 
     <div v-if="loading" class="message-box">
@@ -80,11 +91,11 @@ onMounted(fetchCategories)
             <img :src="ref.cover_url" :alt="ref.title" />
           </div>
           <div v-else class="card-icon-wrapper">
-            <span class="card-icon">{{ getTypeIcon(ref.document_type) }}</span>
+            <span class="card-icon">{{ getTypeIcon(ref.document_type?.name ?? '') }}</span>
           </div>
           <div class="card-body">
             <div class="card-header">
-              <span class="card-badge">{{ ref.document_type }}</span>
+              <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? ref.document_type }}</span>
               <span v-if="ref.status" class="card-status">{{ ref.status === 'published' ? 'Publié' : ref.status }}</span>
             </div>
             <h3 class="card-title">{{ ref.title }}</h3>

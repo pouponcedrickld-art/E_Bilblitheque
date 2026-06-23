@@ -20,7 +20,7 @@ class StoreReferenceRequest extends FormRequest
             'isbn' => 'nullable|string|unique:references',
             'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
             'language' => 'in:fr,en,autre',
-            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
+            'document_type_id' => 'nullable|exists:document_types,id',
             'category_id' => 'required|exists:categories,id',
             'publisher_id' => 'nullable|exists:publishers,id',
             'cover_image' => 'nullable|image|max:5120',

@@ -55,7 +55,7 @@ const filteredRefs = computed(() => {
     items = items.filter(r =>
       r.title.toLowerCase().includes(q) ||
       (r.subtitle || '').toLowerCase().includes(q) ||
-      r.document_type.toLowerCase().includes(q) ||
+      r.document_type?.name?.toLowerCase().includes(q) ||
       r.status.toLowerCase().includes(q)
     )
   }
@@ -130,7 +130,7 @@ onMounted(fetchReferences)
       <Column field="title" header="Titre" sortable />
       <Column field="document_type" header="Type" sortable>
         <template #body="{ data }">
-          <Tag :value="data.document_type" />
+          <Tag :value="data.document_type?.label ?? data.document_type?.name ?? '-'" />
         </template>
       </Column>
       <Column field="status" header="Statut" sortable>

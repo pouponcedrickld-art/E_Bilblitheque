@@ -202,7 +202,7 @@ onMounted(fetchData)
               </div>
             </div>
             <div class="featured-card-body">
-              <span class="featured-card-type">{{ ref.document_type }}</span>
+              <span class="featured-card-type">{{ ref.document_type?.label ?? ref.document_type?.name ?? ref.document_type }}</span>
               <h3 class="featured-card-title">{{ ref.title }}</h3>
               <p v-if="ref.authors?.length" class="featured-card-author">
                 {{ ref.authors.map(a => a.full_name).join(', ') }}
@@ -251,7 +251,7 @@ onMounted(fetchData)
               </div>
             </div>
             <div class="catalog-card-body">
-              <span class="catalog-card-type">{{ ref.category?.name || ref.document_type }}</span>
+              <span class="catalog-card-type">{{ ref.category?.name || ref.document_type?.label || '-' }}</span>
               <h3 class="catalog-card-title">{{ ref.title }}</h3>
               <p class="catalog-card-author">{{ ref.authors?.length ? ref.authors[0].full_name : '' }}</p>
               <div class="catalog-card-stats">
@@ -291,18 +291,18 @@ onMounted(fetchData)
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(150deg, #143026 0%, #1B4332 50%, #2D6A4F 100%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(20, 48, 38, 0.6) 100%),
+    url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1600&h=700&fit=crop&auto=format');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .hero-bg {
   position: absolute;
   inset: 0;
-  opacity: 0.08;
-  background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1600&h=700&fit=crop&auto=format');
-  background-size: cover;
-  background-position: center;
+  opacity: 0; /* Désactiver le bg secondaire */
 }
-
 .hero-content {
   position: relative;
   max-width: 1024px;
@@ -321,8 +321,8 @@ onMounted(fetchData)
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--surface, rgba(0,0,0,0.02));
+  border: 1px solid var(--border, rgba(0,0,0,0.08));
   border-radius: 999px;
   padding: 0.375rem 1rem;
   margin-bottom: 1.5rem;
@@ -336,7 +336,7 @@ onMounted(fetchData)
 }
 
 .hero-badge-text {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-weight: 500;
 }

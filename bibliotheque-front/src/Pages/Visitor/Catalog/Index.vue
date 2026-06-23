@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Importations Vue, routeur, services et composants
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
@@ -8,24 +7,23 @@ import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
 import CatalogFilters from '@/Components/Visitor/CatalogFilters.vue'
 
-// Interface pour l'état des filtres
 interface FilterState {
   category_id?: number | null
-  document_type?: string | null
+  document_type_id?: number | null
   language?: string | null
   keyword?: string | null
 }
 
-// Routeur et données réactives
 const router = useRouter()
 const route = useRoute()
 const references = ref<Reference[]>([])
 const categories = ref<Category[]>([])
+const documentTypes = ref<{ id: number; name: string; label: string }[]>([])
 const loading = ref(false)
 const search = ref('')
 const filters = ref<FilterState>({
   category_id: null,
-  document_type: null,
+  document_type_id: null,
   language: null,
   keyword: null,
 })
@@ -33,17 +31,15 @@ const totalRecords = ref(0)
 const currentPage = ref(1)
 const rows = 15
 
-// Timer pour le debounce de la recherche
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-// Récupère les références avec pagination et filtres
 async function fetchReferences(page = 1) {
   loading.value = true
   try {
     const params: Record<string, any> = { page, per_page: rows }
     if (search.value.trim()) params.search = search.value.trim()
     if (filters.value.category_id) params.category_id = filters.value.category_id
-    if (filters.value.document_type) params.document_type = filters.value.document_type
+    if (filters.value.document_type_id) params.document_type_id = filters.value.document_type_id
     if (filters.value.language) params.language = filters.value.language
     if (filters.value.keyword) params.keyword = filters.value.keyword
     const res = await http.get('/references', { params })
@@ -59,47 +55,47 @@ async function fetchReferences(page = 1) {
   }
 }
 
-// Récupère la liste des catégories
 async function fetchCategories() {
   try {
     const res = await http.get('/categories')
     categories.value = res.data?.data ?? res.data ?? []
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
-// Recherche avec debounce (300ms)
+async function fetchDocumentTypes() {
+  try {
+    const res = await http.get('/document-types')
+    documentTypes.value = res.data?.data ?? res.data ?? []
+  } catch {}
+}
+
 function onSearchInput() {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => fetchReferences(1), 300)
 }
 
-// Gère le changement de page
 function onPageChange(event: { page: number; first: number; rows: number }) {
   fetchReferences(event.page + 1)
 }
 
-// Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
-// Retourne l'icône correspondant au type de document
-function getTypeIcon(type: string): string {
+function getTypeIcon(type?: string): string {
   const icons: Record<string, string> = {
     livre: '📖', memoire: '📄', these: '🎓', article: '📰',
     revue: '📓', rapport: '📑', guide: '📋',
   }
-  return icons[type] || '📄'
+  return icons[type ?? ''] || '📄'
 }
 
-// Initialise la recherche via query string et charge les données
 onMounted(() => {
   if (route.query.search) {
     search.value = route.query.search as string
   }
   fetchCategories()
+  fetchDocumentTypes()
   fetchReferences()
 })
 </script>
@@ -107,7 +103,7 @@ onMounted(() => {
 <template>
   <div class="catalogue">
     <aside class="filters-sidebar">
-      <CatalogFilters v-model="filters" :categories="categories" />
+      <CatalogFilters v-model="filters" :categories="categories" :document-types="documentTypes" />
       <Button label="Appliquer les filtres" @click="fetchReferences(1)" class="filter-btn" />
     </aside>
 
@@ -135,9 +131,9 @@ onMounted(() => {
             class="card"
             @click="viewDetail(ref.id)"
           >
-            <div class="card-icon">{{ getTypeIcon(ref.document_type) }}</div>
+            <div class="card-icon">{{ getTypeIcon(ref.document_type?.name) }}</div>
             <div class="card-body">
-              <span class="card-badge">{{ ref.document_type }}</span>
+              <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? '-' }}</span>
               <h3 class="card-title">{{ ref.title }}</h3>
               <p v-if="ref.authors?.length" class="card-authors">
                 {{ ref.authors.map(a => a.full_name).join(', ') }}

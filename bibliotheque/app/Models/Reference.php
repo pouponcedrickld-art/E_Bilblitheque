@@ -16,7 +16,7 @@ class Reference extends Model
         'isbn',
         'publication_year',
         'language',
-        'document_type',
+        'document_type_id',
         'category_id',
         'publisher_id',
         'uploaded_by',
@@ -50,6 +50,12 @@ class Reference extends Model
     public function publisher()
     {
         return $this->belongsTo(Publisher::class);
+    }
+
+    // Type de document
+    public function documentType()
+    {
+        return $this->belongsTo(DocumentType::class);
     }
 
     // Utilisateur ayant uploadé la référence

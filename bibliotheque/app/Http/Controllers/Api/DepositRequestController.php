@@ -10,6 +10,7 @@ use App\Models\Notification;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DepositRequestController extends Controller
 {
@@ -48,7 +49,7 @@ class DepositRequestController extends Controller
             'isbn' => $request->isbn,
             'publication_year' => $request->filled('publication_year') ? $request->publication_year : null,
             'language' => $request->language ?? 'fr',
-            'document_type' => $request->document_type ?? 'autre',
+            'document_type_id' => $request->filled('document_type_id') ? $request->document_type_id : null,
             'category_id' => $request->filled('category_id') ? $request->category_id : null,
             'publisher_id' => $request->filled('publisher_id') ? $request->publisher_id : null,
             'pages' => $request->filled('pages') ? $request->pages : null,
@@ -120,6 +121,10 @@ class DepositRequestController extends Controller
     public function destroy(DepositRequest $depositRequest)
     {
         $this->authorize('delete', $depositRequest);
+
+        if ($depositRequest->cover_image) {
+            Storage::disk('public')->delete($depositRequest->cover_image);
+        }
 
         $depositRequest->delete();
 
@@ -398,7 +403,7 @@ class DepositRequestController extends Controller
             'isbn' => $depositRequest->isbn,
             'publication_year' => $depositRequest->publication_year,
             'language' => $depositRequest->language,
-            'document_type' => $depositRequest->document_type,
+            'document_type_id' => $depositRequest->document_type_id,
             'category_id' => $depositRequest->category_id,
             'publisher_id' => $depositRequest->publisher_id,
             'pages' => $depositRequest->pages,

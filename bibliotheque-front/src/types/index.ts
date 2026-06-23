@@ -38,6 +38,14 @@ export interface Author {
   references_count?: number
 }
 
+// Type de document
+export interface DocumentType {
+  id: number
+  name: string
+  label: string
+  description: string | null
+}
+
 // Éditeur d'une référence
 export interface Publisher {
   id: number
@@ -57,7 +65,8 @@ export interface Reference {
   isbn: string | null
   publication_year: number | null
   language: string | null
-  document_type: string
+  document_type_id: number | null
+  document_type?: DocumentType | null
   category?: Category
   publisher?: Publisher
   authors?: Author[]
@@ -84,7 +93,8 @@ export interface DepositRequest {
   isbn: string | null
   publication_year: number | null
   language: string | null
-  document_type: string | null
+  document_type_id: number | null
+  document_type?: DocumentType | null
   category_id: number | null
   category?: Category
   publisher_id: number | null

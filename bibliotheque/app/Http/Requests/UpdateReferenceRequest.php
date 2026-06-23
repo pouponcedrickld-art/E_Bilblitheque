@@ -23,7 +23,7 @@ class UpdateReferenceRequest extends FormRequest
             'isbn' => ['nullable', 'string', 'max:20', Rule::unique('references')->ignore($this->reference)],
             'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
             'language' => 'nullable|in:fr,en,autre',
-            'document_type' => 'nullable|in:livre,memoire,these,article,revue,rapport,guide,autre',
+            'document_type_id' => 'nullable|exists:document_types,id',
             'category_id' => 'nullable|exists:categories,id',
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'nullable|in:draft,published,archived',

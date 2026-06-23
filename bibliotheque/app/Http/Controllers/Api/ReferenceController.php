@@ -14,7 +14,7 @@ class ReferenceController extends Controller
     // Liste paginée des références avec filtres (catégorie, type, langue, statut, recherche)
     public function index(Request $request)
     {
-        $query = Reference::with(['category', 'publisher', 'authors', 'keywords', 'uploader']);
+        $query = Reference::with(['category', 'publisher', 'documentType', 'authors', 'keywords', 'uploader']);
 
         // Les visiteurs non connectés ne voient que les références publiées
         if (!$request->user()) {
@@ -25,8 +25,8 @@ class ReferenceController extends Controller
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
         }
-        if ($request->has('document_type')) {
-            $query->where('document_type', $request->document_type);
+        if ($request->has('document_type_id')) {
+            $query->where('document_type_id', $request->document_type_id);
         }
         if ($request->has('language')) {
             $query->where('language', $request->language);
@@ -104,7 +104,7 @@ class ReferenceController extends Controller
             $reference->keywords()->attach($request->keyword_ids);
         }
 
-        return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
+        return new ReferenceResource($reference->load(['category', 'publisher', 'documentType', 'authors', 'keywords']));
     }
 
     // Détail d'une référence avec incrémentation du compteur de vues
@@ -112,7 +112,7 @@ class ReferenceController extends Controller
     {
         $reference->increment('view_count');
 
-        $load = ['category', 'publisher', 'authors', 'keywords', 'uploader'];
+        $load = ['category', 'publisher', 'documentType', 'authors', 'keywords', 'uploader'];
 
         // Les stats détaillées (téléchargements, vues) sont réservées aux utilisateurs connectés
         if ($request->user()) {
@@ -132,7 +132,7 @@ class ReferenceController extends Controller
             'isbn' => 'nullable|string|unique:references,isbn,' . $reference->id,
             'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
             'language' => 'in:fr,en,autre',
-            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
+            'document_type_id' => 'nullable|exists:document_types,id',
             'category_id' => 'exists:categories,id',
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'in:draft,published,archived',
@@ -160,7 +160,7 @@ class ReferenceController extends Controller
             $reference->keywords()->sync($request->keyword_ids);
         }
 
-        return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
+        return new ReferenceResource($reference->load(['category', 'publisher', 'documentType', 'authors', 'keywords']));
     }
 
     // Supprime une référence et ses fichiers associés

@@ -19,11 +19,6 @@ const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
-const documentTypeLabels: Record<string, string> = {
-  livre: 'Livre', memoire: 'Mémoire', these: 'Thèse',
-  article: 'Article', revue: 'Revue', rapport: 'Rapport',
-  guide: 'Guide', autre: 'Autre',
-}
 const languageLabels: Record<string, string> = { fr: 'Français', en: 'Anglais', autre: 'Autre' }
 
 async function load() {
@@ -82,7 +77,7 @@ onMounted(load)
           </div>
           <div class="info-item">
             <span class="info-label">Type</span>
-            <Tag :value="documentTypeLabels[request.document_type ?? ''] || request.document_type" />
+            <Tag :value="request.document_type?.label ?? request.document_type?.name ?? '-'" />
           </div>
           <div class="info-item">
             <span class="info-label">Langue</span>
