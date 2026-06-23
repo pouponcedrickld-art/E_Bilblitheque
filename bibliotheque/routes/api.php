@@ -75,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // --- Admin uniquement ---
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () {
 
     // Gestion du catalogue (CRUD catégories, auteurs, éditeurs)
     Route::post('/categories', [CategoryController::class, 'store']);

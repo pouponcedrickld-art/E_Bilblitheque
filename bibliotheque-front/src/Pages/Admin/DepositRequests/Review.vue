@@ -9,8 +9,16 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Message from 'primevue/message'
 import Card from 'primevue/card'
+import Tag from 'primevue/tag'
 import Divider from 'primevue/divider'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
+
+const documentTypeLabels: Record<string, string> = {
+  livre: 'Livre', memoire: 'Mémoire', these: 'Thèse',
+  article: 'Article', revue: 'Revue', rapport: 'Rapport',
+  guide: 'Guide', autre: 'Autre',
+}
+const languageLabels: Record<string, string> = { fr: 'Français', en: 'Anglais', autre: 'Autre' }
 
 const route = useRoute()
 const router = useRouter()
@@ -185,12 +193,52 @@ onMounted(load)
               <span>{{ request.assigned_manager?.full_name ?? request.assigned_manager?.name ?? '-' }}</span>
             </div>
             <div class="info-item">
+              <span class="info-label">Type</span>
+              <Tag :value="documentTypeLabels[request.document_type ?? ''] || request.document_type || '-'" />
+            </div>
+            <div class="info-item">
+              <span class="info-label">Langue</span>
+              <span>{{ languageLabels[request.language ?? ''] || request.language || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Catégorie</span>
+              <span>{{ request.category?.name ?? '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Éditeur</span>
+              <span>{{ request.publisher?.name ?? '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">ISBN</span>
+              <span>{{ request.isbn || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Année</span>
+              <span>{{ request.publication_year || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Pages</span>
+              <span>{{ request.pages || '-' }}</span>
+            </div>
+            <div class="info-item">
               <span class="info-label">Date</span>
               <span>{{ new Date(request.created_at).toLocaleDateString() }}</span>
+            </div>
+            <div v-if="request.subtitle" class="info-item full">
+              <span class="info-label">Sous-titre</span>
+              <span>{{ request.subtitle }}</span>
+            </div>
+            <div v-if="request.abstract" class="info-item full">
+              <span class="info-label">Résumé</span>
+              <p>{{ request.abstract }}</p>
             </div>
             <div v-if="request.description" class="info-item full">
               <span class="info-label">Description</span>
               <p>{{ request.description }}</p>
+            </div>
+            <div v-if="request.cover_url || request.cover_image" class="info-item full">
+              <span class="info-label">Couverture</span>
+              <img :src="request.cover_url || `/storage/${request.cover_image}`" alt="Couverture" class="cover-thumb" />
             </div>
           </div>
         </template>
@@ -330,6 +378,7 @@ onMounted(load)
 .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
 .info-item.full { grid-column: 1 / -1; }
 .info-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
+.cover-thumb { width: 100px; height: 140px; object-fit: cover; border-radius: 0.5rem; border: 1px solid var(--border); }
 @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }

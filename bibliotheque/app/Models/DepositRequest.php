@@ -13,8 +13,18 @@ class DepositRequest extends Model
         'applicant_id',
         'assigned_manager_id',
         'title',
+        'subtitle',
+        'abstract',
         'description',
+        'isbn',
+        'publication_year',
+        'language',
+        'document_type',
+        'category_id',
+        'publisher_id',
+        'pages',
         'proposed_file',
+        'cover_image',
         'status',
     ];
 
@@ -34,5 +44,15 @@ class DepositRequest extends Model
     public function reviews()
     {
         return $this->hasMany(DepositRequestReview::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function publisher()
+    {
+        return $this->belongsTo(Publisher::class);
     }
 }

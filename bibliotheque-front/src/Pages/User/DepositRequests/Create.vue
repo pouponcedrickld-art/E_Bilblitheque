@@ -19,24 +19,17 @@ const createdTitle = ref('')
 const canCreate = computed(() => authStore.user?.status === 'active')
 
 // Soumet une nouvelle demande de dépôt
-async function handleSubmit(data: { title: string; description: string; file: File | null }) {
+async function handleSubmit(formData: FormData) {
   loading.value = true
   error.value = ''
   submitted.value = false
 
   try {
-    const formData = new FormData()
-    formData.append('title', data.title)
-    formData.append('description', data.description)
-    if (data.file) {
-      formData.append('proposed_file', data.file)
-    }
-
-    await http.post('/deposit-requests', formData, {
+    const res = await http.post('/deposit-requests', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
 
-    createdTitle.value = data.title
+    createdTitle.value = res.data?.title ?? res.data?.data?.title ?? ''
     submitted.value = true
 
     setTimeout(() => {

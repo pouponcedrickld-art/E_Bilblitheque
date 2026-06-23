@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDepositRequestRequest;
 use App\Models\DepositRequest;
 use App\Models\DepositRequestReview;
 use App\Models\Notification;
@@ -34,31 +35,41 @@ class DepositRequestController extends Controller
     }
 
     // Crée une demande de dépôt et assigne un responsable au hasard
-    public function store(Request $request)
+    public function store(StoreDepositRequestRequest $request)
     {
         $this->authorize('create', DepositRequest::class);
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'proposed_file' => 'nullable|file|mimes:pdf,doc,docx,odt,txt|max:10240',
-        ]);
 
         $data = [
             'applicant_id' => $request->user()->id,
             'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'abstract' => $request->abstract,
             'description' => $request->description,
+            'isbn' => $request->isbn,
+            'publication_year' => $request->filled('publication_year') ? $request->publication_year : null,
+            'language' => $request->language ?? 'fr',
+            'document_type' => $request->document_type ?? 'autre',
+            'category_id' => $request->filled('category_id') ? $request->category_id : null,
+            'publisher_id' => $request->filled('publisher_id') ? $request->publisher_id : null,
+            'pages' => $request->filled('pages') ? $request->pages : null,
             'status' => 'pending',
         ];
+
+        if ($request->hasFile('cover_image')) {
+            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+        }
 
         if ($request->hasFile('proposed_file')) {
             $data['proposed_file'] = $request->file('proposed_file')->store('deposits', 'public');
         }
 
-        // Assigne un responsable disponible aléatoirement
+        // Assigne le responsable le moins chargé
         $manager = \App\Models\User::where('role', 'responsable_demande')
             ->where('status', 'active')
-            ->inRandomOrder()
+            ->withCount(['assignedDepositRequests' => function ($q) {
+                $q->whereIn('status', ['pending', 'second_review']);
+            }])
+            ->orderBy('assigned_deposit_requests_count')
             ->first();
 
         if ($manager) {
@@ -207,13 +218,7 @@ class DepositRequestController extends Controller
         }
 
         DB::transaction(function () use ($depositRequest) {
-            $reference = Reference::create([
-                'title' => $depositRequest->title,
-                'abstract' => $depositRequest->description,
-                'file_path' => $depositRequest->proposed_file,
-                'uploaded_by' => $depositRequest->applicant_id,
-                'status' => 'published',
-            ]);
+            $reference = Reference::create($this->buildReferenceData($depositRequest));
 
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
@@ -290,13 +295,7 @@ class DepositRequestController extends Controller
                 'justification' => $request->justification,
             ]);
 
-            $reference = Reference::create([
-                'title' => $depositRequest->title,
-                'abstract' => $depositRequest->description,
-                'file_path' => $depositRequest->proposed_file,
-                'uploaded_by' => $depositRequest->applicant_id,
-                'status' => 'published',
-            ]);
+            $reference = Reference::create($this->buildReferenceData($depositRequest));
 
             $depositRequest->update(['status' => 'published']);
 
@@ -388,5 +387,25 @@ class DepositRequestController extends Controller
         ]);
 
         return response()->json($depositRequest->load('assignedManager', 'reviews'));
+    }
+
+    private function buildReferenceData(DepositRequest $depositRequest): array
+    {
+        return [
+            'title' => $depositRequest->title,
+            'subtitle' => $depositRequest->subtitle,
+            'abstract' => $depositRequest->abstract ?? $depositRequest->description,
+            'isbn' => $depositRequest->isbn,
+            'publication_year' => $depositRequest->publication_year,
+            'language' => $depositRequest->language,
+            'document_type' => $depositRequest->document_type,
+            'category_id' => $depositRequest->category_id,
+            'publisher_id' => $depositRequest->publisher_id,
+            'pages' => $depositRequest->pages,
+            'cover_image' => $depositRequest->cover_image,
+            'file_path' => $depositRequest->proposed_file,
+            'uploaded_by' => $depositRequest->applicant_id,
+            'status' => 'published',
+        ];
     }
 }

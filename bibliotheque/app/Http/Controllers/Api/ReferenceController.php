@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReferenceRequest;
 use App\Http\Resources\ReferenceResource;
 use App\Models\Reference;
 use Illuminate\Http\Request;
@@ -75,28 +76,8 @@ class ReferenceController extends Controller
     }
 
     // Crée une référence avec upload possible de couverture et fichier
-    public function store(Request $request)
+    public function store(StoreReferenceRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:255',
-            'abstract' => 'nullable|string',
-            'isbn' => 'nullable|string|unique:references',
-            'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
-            'language' => 'in:fr,en,autre',
-            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
-            'category_id' => 'required|exists:categories,id',
-            'publisher_id' => 'nullable|exists:publishers,id',
-            'cover_image' => 'nullable|image|max:2048',
-            'file_path' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'pages' => 'nullable|integer|min:1',
-            'author_ids' => 'nullable|array',
-            'author_ids.*' => 'exists:authors,id',
-            'keyword_ids' => 'nullable|array',
-            'keyword_ids.*' => 'exists:keywords,id',
-            'is_featured' => 'boolean',
-        ]);
-
         $data = $request->except(['cover_image', 'file_path', 'author_ids', 'keyword_ids']);
 
         // Upload de l'image de couverture
@@ -156,7 +137,7 @@ class ReferenceController extends Controller
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'in:draft,published,archived',
             'pages' => 'nullable|integer|min:1',
-            'cover_image' => 'nullable|image|max:2048',
+            'cover_image' => 'nullable|image|max:5120',
             'keyword_ids' => 'nullable|array',
             'keyword_ids.*' => 'exists:keywords,id',
             'is_featured' => 'boolean',

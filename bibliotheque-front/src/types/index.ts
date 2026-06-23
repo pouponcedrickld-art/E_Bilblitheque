@@ -42,7 +42,9 @@ export interface Author {
 export interface Publisher {
   id: number
   name: string
+  description: string | null
   country: string | null
+  website: string | null
   references_count?: number
 }
 
@@ -76,10 +78,28 @@ export interface Reference {
 export interface DepositRequest {
   id: number
   title: string
+  subtitle: string | null
+  abstract: string | null
   description: string | null
+  isbn: string | null
+  publication_year: number | null
+  language: string | null
+  document_type: string | null
+  category_id: number | null
+  category?: Category
+  publisher_id: number | null
+  publisher?: Publisher
+  pages: number | null
+  proposed_file: string | null
+  proposed_file_url?: string
+  cover_image: string | null
+  cover_url?: string
   status: string
   applicant?: User
+  assigned_manager?: User
+  reviews?: any[]
   created_at: string
+  updated_at: string
 }
 
 // Mot-clé associé à une référence
