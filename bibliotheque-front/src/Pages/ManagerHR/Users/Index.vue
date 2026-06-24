@@ -174,7 +174,8 @@ onMounted(fetchUsers)
       <Column header="Actions" style="min-width: 14rem">
         <template #body="{ data }">
           <div class="actions">
-            <Button icon="pi pi-pencil" severity="info" rounded text @click="router.push(`/rh/users/${data.id}/edit`)" v-tooltip.left="'Modifier'" />
+            <span v-tooltip.left="'Modifier'"><Button icon="pi pi-pencil" severity="info" rounded text @click="router.push(`/rh/users/${data.id}/edit`)" /></span>
+            <span v-tooltip.left="data.has_pending_suspension ? 'Demande déjà envoyée' : 'Demander la suspension'">
             <Button
               v-if="data.status === 'active'"
               icon="pi pi-ban"
@@ -182,17 +183,18 @@ onMounted(fetchUsers)
               rounded text
               :disabled="data.has_pending_suspension"
               @click="openSuspendDialog(data)"
-              v-tooltip.left="data.has_pending_suspension ? 'Demande déjà envoyée' : 'Demander la suspension'"
             />
+            </span>
+            <span v-tooltip.left="'Activer'">
             <Button
               v-if="data.status === 'suspended'"
               icon="pi pi-check-circle"
               severity="success"
               rounded text
               @click="activateUser(data)"
-              v-tooltip.left="'Activer'"
             />
-            <Button icon="pi pi-key" severity="warn" rounded text @click="resetPassword(data)" v-tooltip.left="'Réinitialiser mot de passe'" />
+            </span>
+            <span v-tooltip.left="'Réinitialiser mot de passe'"><Button icon="pi pi-key" severity="warn" rounded text @click="resetPassword(data)" /></span>
           </div>
         </template>
       </Column>
@@ -203,6 +205,7 @@ onMounted(fetchUsers)
       header="Demander la suspension"
       :modal="true"
       :closable="!suspending"
+      appendTo="body"
       style="max-width: 480px"
     >
       <div class="dialog-body">

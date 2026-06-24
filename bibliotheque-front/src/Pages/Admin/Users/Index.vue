@@ -11,10 +11,10 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
-import ConfirmDialog from 'primevue/confirmdialog'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import { useConfirm } from 'primevue/useconfirm'
+
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import type { User, SuspensionRequest } from '@/types'
 
@@ -76,8 +76,9 @@ async function approveSuspension(user: User) {
   const req = pendingRequests.value.find(r => r.user_id === user.id)
   if (!req) return
 
+  const reason = getPendingReason(user)
   confirm.require({
-    message: `Approuver la suspension de "${user.full_name}" ?`,
+    message: `Approuver la suspension de "${user.full_name}" ?\n\n${reason ? `Motif : ${reason}` : ''}`,
     header: 'Confirmation',
     icon: 'pi pi-exclamation-triangle',
     acceptClass: 'p-button-danger',
@@ -92,6 +93,12 @@ async function approveSuspension(user: User) {
       }
     },
   })
+}
+
+// Retourne le motif de la demande de suspension en attente pour un utilisateur
+function getPendingReason(user: User): string | null {
+  const req = pendingRequests.value.find(r => r.user_id === user.id)
+  return req?.reason ?? null
 }
 
 // Ouvre le dialogue de rejet
@@ -208,7 +215,10 @@ onMounted(fetchUsers)
         <template #body="{ data }">
           <div class="status-cell">
             <StatusBadge :status="data.status" />
-            <Tag v-if="data.has_pending_suspension" value="Demande de suspension" severity="warn" class="pending-tag" />
+            <template v-if="data.has_pending_suspension">
+              <Tag value="Demande de suspension" severity="warn" class="pending-tag" />
+              <Button icon="pi pi-info-circle" severity="warn" text size="small" v-tooltip.left="getPendingReason(data)" @click.stop />
+            </template>
           </div>
         </template>
       </Column>
@@ -221,51 +231,56 @@ onMounted(fetchUsers)
         <template #body="{ data }">
           <div class="actions">
             <template v-if="data.has_pending_suspension">
-              <Button icon="pi pi-check" severity="danger" text v-tooltip.left="'Approuver la suspension'" @click="approveSuspension(data)" />
-              <Button icon="pi pi-times" severity="warn" text v-tooltip.left="'Rejeter la demande'" @click="openRejectDialog(data)" />
+              <span v-tooltip.left="'Approuver la suspension'"><Button icon="pi pi-check" severity="danger" text @click="approveSuspension(data)" /></span>
+              <span v-tooltip.left="'Rejeter la demande'"><Button icon="pi pi-times" severity="warn" text @click="openRejectDialog(data)" /></span>
             </template>
             <template v-else>
+              <span v-tooltip.left="'Modifier'">
               <Button
                 icon="pi pi-pencil"
                 severity="info"
                 text
                 @click="router.push(`/admin/users/${data.id}/edit`)"
-                v-tooltip.left="'Modifier'"
               />
+              </span>
+              <span v-tooltip.left="data.status === 'active' ? 'Suspendre' : 'Activer'">
               <Button
                 :icon="data.status === 'active' ? 'pi pi-ban' : 'pi pi-check'"
                 :severity="data.status === 'active' ? 'danger' : 'success'"
                 text
                 @click="toggleStatus(data)"
-                v-tooltip.left="data.status === 'active' ? 'Suspendre' : 'Activer'"
               />
+              </span>
+              <span v-tooltip.left="'Réinitialiser mot de passe'">
               <Button
                 icon="pi pi-key"
                 severity="warn"
                 text
                 @click="resetPassword(data)"
-                v-tooltip.left="'Réinitialiser mot de passe'"
               />
+              </span>
             </template>
           </div>
         </template>
       </Column>
     </DataTable>
 
-    <ConfirmDialog />
-
     <Dialog
       v-model:visible="rejectDialog"
       header="Rejeter la demande de suspension"
       :modal="true"
       :closable="!rejecting"
+      appendTo="body"
       style="max-width: 480px"
     >
       <div class="dialog-body">
         <p class="dialog-desc">
           Vous allez rejeter la demande de suspension de <strong>{{ rejectTarget?.user?.full_name }}</strong>.
-          Veuillez indiquer le motif du rejet.
         </p>
+        <div class="field" v-if="rejectTarget?.reason">
+          <label>Motif de la demande</label>
+          <p class="reason-text">{{ rejectTarget.reason }}</p>
+        </div>
         <div class="field">
           <label for="rejection-reason">Motif du rejet</label>
           <Textarea
@@ -300,12 +315,13 @@ onMounted(fetchUsers)
 .actions { display: flex; gap: 0.25rem; }
 .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .search-input { min-width: 260px; }
-.status-cell { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.status-cell { display: flex; align-items: flex-start; gap: 0.25rem 0.5rem; flex-wrap: wrap; }
 .pending-tag { font-size: 0.65rem; }
 .dialog-body { display: flex; flex-direction: column; gap: 1rem; }
 .dialog-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.reason-text { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin: 0; padding: 0.5rem; background: var(--surface-section); border-radius: 6px; white-space: pre-wrap; }
 @media (max-width: 640px) {
   .page { padding: 1rem; }
   .page-header { flex-wrap: wrap; gap: 0.5rem; }

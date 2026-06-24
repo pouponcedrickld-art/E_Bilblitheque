@@ -18,7 +18,10 @@ class LogActivity
                 'user_id' => $request->user()->id,
                 'action' => $request->method(),
                 'target_table' => $this->getTargetTable($request),
-                'target_id' => $request->route()?->parameter('id'),
+                'target_id' => (function () use ($request) {
+                    $first = collect($request->route()->parameters())->first();
+                    return $first instanceof \Illuminate\Database\Eloquent\Model ? $first->getKey() : $first;
+                })(),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
@@ -37,6 +40,7 @@ class LogActivity
             str_contains($path, 'publishers') => 'publishers',
             str_contains($path, 'references') => 'references',
             str_contains($path, 'users') => 'users',
+            str_contains($path, 'suspension-requests') => 'suspension_requests',
             str_contains($path, 'deposit-requests') => 'deposit_requests',
             default => null,
         };

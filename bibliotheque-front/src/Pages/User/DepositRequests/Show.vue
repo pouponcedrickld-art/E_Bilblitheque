@@ -85,8 +85,6 @@ onMounted(fetchRequest)
       <div><h1>Détail du dépôt</h1></div>
       <Button v-if="canDelete" label="Supprimer" icon="pi pi-trash" severity="danger" class="p-button-sm" @click="confirmDelete" />
     </div>
-    <ConfirmDialog />
-
     <div v-if="loading" class="loading">Chargement...</div>
     <div v-else-if="error" class="alert alert-error">{{ error }}</div>
 

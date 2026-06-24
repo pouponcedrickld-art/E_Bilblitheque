@@ -23,7 +23,7 @@ const layout = computed(() => {
 <!-- Template racine avec Toast, ConfirmDialog et layout dynamique -->
 <template>
   <Toast position="top-right" />
-  <ConfirmDialog />
+  <ConfirmDialog appendTo="body" />
   <component :is="layout">
     <router-view />
   </component>

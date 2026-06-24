@@ -50,13 +50,14 @@ function toggle() {
 </script>
 
 <template>
+<span v-tooltip.left="currentStatus === 'active' ? 'Suspendre' : 'Activer'">
   <Button
     :icon="currentStatus === 'active' ? 'pi pi-ban' : 'pi pi-check-circle'"
     :severity="currentStatus === 'active' ? 'danger' : 'success'"
     :loading="loading"
     rounded
     text
-    v-tooltip.left="currentStatus === 'active' ? 'Suspendre' : 'Activer'"
     @click="toggle"
   />
+</span>
 </template>

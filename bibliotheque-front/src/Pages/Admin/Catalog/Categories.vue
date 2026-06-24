@@ -9,7 +9,6 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Dialog from 'primevue/dialog'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 
 // Interface représentant une catégorie
@@ -153,7 +152,6 @@ onMounted(fetch)
       </template>
     </Dialog>
 
-    <ConfirmDialog />
   </div>
 </template>
 

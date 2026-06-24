@@ -9,7 +9,6 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import Dialog from 'primevue/dialog'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 
 // Interface représentant un éditeur
@@ -190,7 +189,6 @@ onMounted(fetch)
       </template>
     </Dialog>
 
-    <ConfirmDialog />
   </div>
 </template>
 

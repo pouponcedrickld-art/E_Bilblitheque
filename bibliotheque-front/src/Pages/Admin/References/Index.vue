@@ -13,7 +13,6 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
@@ -178,7 +177,6 @@ onMounted(fetchReferences)
       </Column>
     </DataTable>
 
-    <ConfirmDialog />
   </div>
 </template>
 
