@@ -336,7 +336,8 @@ onMounted(fetchData)
 }
 
 .hero-badge-text {
-  color: var(--muted-foreground);
+  /* color: var(--muted-foreground); */
+  color:aliceblue;
   font-size: 0.75rem;
   font-weight: 500;
 }
