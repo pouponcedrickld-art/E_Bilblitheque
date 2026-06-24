@@ -11,6 +11,24 @@ export interface User {
   email_verified_at: string | null
   last_login_at: string | null
   references_count?: number
+  has_pending_suspension?: boolean
+  created_at: string
+  updated_at: string
+}
+
+// Demande de suspension d'un utilisateur (RH → Admin)
+export interface SuspensionRequest {
+  id: number
+  user_id: number
+  user?: User
+  requested_by: number
+  requester?: User
+  reason: string
+  status: 'pending' | 'approved' | 'rejected'
+  reviewed_by?: number | null
+  reviewer?: User | null
+  reviewed_at?: string | null
+  rejection_reason?: string | null
   created_at: string
   updated_at: string
 }

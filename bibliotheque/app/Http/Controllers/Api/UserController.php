@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\SuspensionRequest;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
 use Illuminate\Http\Request;
@@ -37,7 +38,19 @@ class UserController extends Controller
             });
         }
 
-        return response()->json($query->paginate(20));
+        $users = $query->paginate(20);
+
+        // Ajoute has_pending_suspension à chaque utilisateur
+        $pendingIds = SuspensionRequest::where('status', 'pending')
+            ->pluck('user_id')
+            ->toArray();
+
+        $users->getCollection()->transform(function ($user) use ($pendingIds) {
+            $user->has_pending_suspension = in_array($user->id, $pendingIds);
+            return $user;
+        });
+
+        return response()->json($users);
     }
 
     // Crée un utilisateur avec rôle (admin/RH uniquement)

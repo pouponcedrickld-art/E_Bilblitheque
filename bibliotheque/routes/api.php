@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\KeywordController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\DocumentTypeController;
+use App\Http\Controllers\Api\SuspensionRequestController;
 
 // Routes publiques (accessibles sans authentification)
 Route::post('/register', [AuthController::class, 'register']);
@@ -77,13 +78,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('responsable.rh')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::post('/users/{user}/activate', [UserController::class, 'activate']);
-        Route::post('/users/{user}/suspend', [UserController::class, 'suspend']);
         Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
+        Route::get('/suspension-requests', [SuspensionRequestController::class, 'index']);
+        Route::post('/suspension-requests', [SuspensionRequestController::class, 'store']);
     });
 });
 
 // --- Admin uniquement ---
 Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () {
+    // Suspension directe et gestion des demandes de suspension
+    Route::post('/users/{user}/suspend', [UserController::class, 'suspend']);
+    Route::post('/suspension-requests/{suspensionRequest}/approve', [SuspensionRequestController::class, 'approve']);
+    Route::post('/suspension-requests/{suspensionRequest}/reject', [SuspensionRequestController::class, 'reject']);
 
     // Gestion du catalogue (CRUD catégories, auteurs, éditeurs)
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
