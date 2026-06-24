@@ -10,6 +10,8 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Message from 'primevue/message'
+import DocTypeIcon from '@/Components/Shared/DocTypeIcon.vue'
+import { Crosshair } from '@lucide/vue'
 
 // Routeur et état de recherche via le composable useSearch
 const router = useRouter()
@@ -61,14 +63,7 @@ function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
-// Retourne l'icône correspondant au type de document
-function getTypeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    livre: '📖', memoire: '📄', these: '🎓', article: '📰',
-    revue: '📓', rapport: '📑', guide: '📋',
-  }
-  return icons[type] || '📄'
-}
+
 
 // Charge les catégories au montage
 onMounted(() => { fetchCategories(); fetchDocumentTypes() })
@@ -139,7 +134,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
             <img :src="ref.cover_url" :alt="ref.title" />
           </div>
           <div v-else class="card-icon-wrapper">
-            <span class="card-icon-lg">{{ getTypeIcon(ref.document_type?.name ?? '') }}</span>
+            <DocTypeIcon :type="ref.document_type?.name" :size="40" />
           </div>
           <div class="card-body">
             <div class="card-header">
@@ -162,7 +157,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
     </template>
 
     <div v-else class="empty-state">
-      <div class="empty-icon">🎯</div>
+      <div class="empty-icon"><Crosshair :size="48" /></div>
       <p>Utilisez les filtres ci-dessus pour affiner votre recherche dans le catalogue.</p>
     </div>
   </div>
@@ -296,9 +291,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
   background: var(--muted);
 }
 
-.card-icon-lg {
-  font-size: 2.5rem;
-}
+
 
 .card-body {
   flex: 1;
@@ -382,8 +375,8 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
 }
 
 .empty-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--text-secondary);
 }
 
 .empty-state p {

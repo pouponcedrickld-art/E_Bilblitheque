@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
 import DepositRequestForm from '@/Components/User/DepositRequestForm.vue'
 import Message from 'primevue/message'
+import { CheckCircle } from '@lucide/vue'
 
 // Routeur et état du formulaire
 const router = useRouter()
@@ -69,7 +70,7 @@ function goToDeposits() {
 
     <Transition name="fade">
       <div v-if="submitted" class="success-card">
-        <div class="success-icon">✅</div>
+        <div class="success-icon"><CheckCircle :size="48" /></div>
         <h2>Dépôt soumis avec succès !</h2>
         <p>Votre demande <strong>"{{ createdTitle }}"</strong> a été envoyée et sera examinée par un responsable.</p>
         <p class="success-hint">Vous serez redirigé vers la liste de vos dépôts dans un instant...</p>
@@ -158,7 +159,7 @@ function goToDeposits() {
 }
 
 .success-icon {
-  font-size: 3rem;
+  color: #16a34a;
 }
 
 .success-card h2 {

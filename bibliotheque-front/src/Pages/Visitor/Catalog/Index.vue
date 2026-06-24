@@ -6,6 +6,7 @@ import type { Reference, Category } from '@/types'
 import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
 import CatalogFilters from '@/Components/Visitor/CatalogFilters.vue'
+import DocTypeIcon from '@/Components/Shared/DocTypeIcon.vue'
 
 interface FilterState {
   category_id?: number | null
@@ -82,14 +83,6 @@ function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
-function getTypeIcon(type?: string): string {
-  const icons: Record<string, string> = {
-    livre: '📖', memoire: '📄', these: '🎓', article: '📰',
-    revue: '📓', rapport: '📑', guide: '📋',
-  }
-  return icons[type ?? ''] || '📄'
-}
-
 onMounted(() => {
   if (route.query.search) {
     search.value = route.query.search as string
@@ -131,7 +124,7 @@ onMounted(() => {
             class="card"
             @click="viewDetail(ref.id)"
           >
-            <div class="card-icon">{{ getTypeIcon(ref.document_type?.name) }}</div>
+            <div class="card-icon"><DocTypeIcon :type="ref.document_type?.name" :size="32" /></div>
             <div class="card-body">
               <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? '-' }}</span>
               <h3 class="card-title">{{ ref.title }}</h3>
@@ -172,7 +165,7 @@ onMounted(() => {
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
 .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; gap: 1rem; cursor: pointer; transition: all 0.15s; }
 .card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(27, 67, 50, 0.1); transform: translateY(-1px); }
-.card-icon { font-size: 2rem; flex-shrink: 0; }
+.card-icon { flex-shrink: 0; display: flex; align-items: center; color: var(--primary); }
 .card-body { flex: 1; min-width: 0; }
 .card-badge { display: inline-block; padding: 0.15rem 0.5rem; background: rgba(27, 67, 50, 0.08); color: var(--primary); border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.35rem; }
 .card-title { font-size: 0.95rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

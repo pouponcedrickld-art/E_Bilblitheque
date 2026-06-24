@@ -9,6 +9,8 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
+import DocTypeIcon from '@/Components/Shared/DocTypeIcon.vue'
+import { Search } from '@lucide/vue'
 
 // Routeur et état de recherche via le composable useSearch
 const router = useRouter()
@@ -36,14 +38,7 @@ async function fetchDocumentTypes() {
   }
 }
 
-// Retourne l'icône correspondant au type de document
-function getTypeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    livre: '📖', memoire: '📄', these: '🎓', article: '📰',
-    revue: '📓', rapport: '📑', guide: '📋',
-  }
-  return icons[type] || '📄'
-}
+
 
 // Navigue vers le détail d'une référence
 function viewDetail(id: number) {
@@ -91,7 +86,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
             <img :src="ref.cover_url" :alt="ref.title" />
           </div>
           <div v-else class="card-icon-wrapper">
-            <span class="card-icon">{{ getTypeIcon(ref.document_type?.name ?? '') }}</span>
+            <DocTypeIcon :type="ref.document_type?.name" :size="40" />
           </div>
           <div class="card-body">
             <div class="card-header">
@@ -114,7 +109,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
     </template>
 
     <div v-else-if="!query" class="empty-state">
-      <div class="empty-icon">🔍</div>
+      <div class="empty-icon"><Search :size="48" /></div>
       <p>Utilisez la barre de recherche ci-dessus pour trouver des références dans notre catalogue.</p>
     </div>
   </div>
@@ -261,9 +256,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
   background: var(--muted);
 }
 
-.card-icon {
-  font-size: 2.5rem;
-}
+
 
 .card-body {
   flex: 1;
@@ -347,8 +340,8 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
 }
 
 .empty-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--text-secondary);
 }
 
 .empty-state p {
