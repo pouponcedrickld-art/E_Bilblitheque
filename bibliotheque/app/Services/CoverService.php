@@ -12,6 +12,16 @@ class CoverService
     protected int $width = 400;
     protected int $height = 600;
 
+    protected array $unsplashCovers = [
+        'Droit' => 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73',
+        'Économie' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f',
+        'Histoire' => 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e',
+        'Sciences' => 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb',
+        'Littérature' => 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570',
+        'Médecine' => 'https://images.unsplash.com/photo-1576091160550-2173dba999ef',
+        'Philosophie' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794',
+    ];
+
     /**
      * Point d'entrée principal : récupère une vraie image de couverture
      * pour une référence.
@@ -19,8 +29,9 @@ class CoverService
      * Ordre :
      * 1. Open Library par ISBN (gratuit, 0 clé)
      * 2. Open Library par titre + auteur (gratuit, 0 clé)
-     * 3. Pexels par catégorie (si PEXELS_API_KEY configurée dans .env)
-     * 4. Retourne null → le frontend affiche un placeholder
+     * 3. Unsplash par catégorie (images du prototype)
+     * 4. Pexels par catégorie (si PEXELS_API_KEY configurée dans .env)
+     * 5. Retourne null → le frontend affiche un placeholder
      */
     public function fetchCover(Reference $reference): ?string
     {
@@ -37,7 +48,14 @@ class CoverService
         $result = $this->openLibraryByTitle($reference);
         if ($result) return $result;
 
-        // 3 — Pexels (si clé configurée)
+        // 3 — Unsplash (images du prototype, par catégorie)
+        $categoryName = $reference->category?->name;
+        if ($categoryName && isset($this->unsplashCovers[$categoryName])) {
+            $result = $this->downloadUnsplash($this->unsplashCovers[$categoryName]);
+            if ($result) return $result;
+        }
+
+        // 4 — Pexels (si clé configurée)
         $pexelsKey = config('services.pexels.key');
         if ($pexelsKey) {
             $result = $this->pexelsByCategory($reference, $pexelsKey);
@@ -112,6 +130,22 @@ class CoverService
         }
 
         return null;
+    }
+
+    // ─── Unsplash ─────────────────────────────────────────────────────
+
+    protected function downloadUnsplash(string $photoId): ?string
+    {
+        $url = $photoId . '?w=800&h=1200&fit=crop&auto=format';
+
+        try {
+            $imageContent = @file_get_contents($url);
+            if (!$imageContent || strlen($imageContent) < 1000) return null;
+
+            return $this->saveImage($imageContent, 'us');
+        } catch (\Exception) {
+            return null;
+        }
     }
 
     // ─── Pexels ───────────────────────────────────────────────────────

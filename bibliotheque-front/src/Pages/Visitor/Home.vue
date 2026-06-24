@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Importations Vue, routeur, services et types
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import type { Reference } from '@/types'
@@ -14,6 +14,8 @@ const stats = ref({ total_references: 0, total_categories: 0, total_authors: 0, 
 const loading = ref(true)
 const query = ref('')
 const category = ref('Tout')
+const animatingCount = ref(0)
+const isFiltering = ref(false)
 
 // Charge les données de la page d'accueil
 async function fetchData() {
@@ -58,6 +60,42 @@ const filtered = computed(() => {
   }
   return list
 })
+
+// Animation du compteur à chaque changement de filtre
+watch(filtered, (val) => {
+  animateCounter(val.length)
+})
+
+function animateCounter(target: number) {
+  const start = animatingCount.value
+  const duration = 400
+  const startTime = performance.now()
+
+  function tick(now: number) {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    animatingCount.value = Math.round(start + (target - start) * eased)
+    if (progress < 1) requestAnimationFrame(tick)
+  }
+
+  requestAnimationFrame(tick)
+}
+
+// Sélectionne une catégorie : filtre + scroll fluide vers le catalogue
+function selectCategory(cat: string) {
+  if (cat === category.value) return
+  isFiltering.value = true
+  category.value = cat
+
+  nextTick(() => {
+    const el = document.getElementById('catalog-section')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    setTimeout(() => { isFiltering.value = false }, 600)
+  })
+}
 
 // Navigue vers une route donnée
 function go(path: string) {
@@ -133,7 +171,7 @@ onMounted(fetchData)
         <div class="category-bar-inner">
           <button
             :class="['category-pill', { 'category-pill-active': category === 'Tout' }]"
-            @click="category = 'Tout'"
+            @click="selectCategory('Tout')"
           >
             Tout
           </button>
@@ -141,10 +179,19 @@ onMounted(fetchData)
             v-for="cat in categories"
             :key="cat"
             :class="['category-pill', { 'category-pill-active': category === cat }]"
-            @click="category = cat"
+            @click="selectCategory(cat)"
           >
             {{ cat }}
           </button>
+          <Transition name="pill-fade">
+            <span
+              v-if="category !== 'Tout'"
+              class="category-active-badge"
+            >
+              <span class="category-active-count">{{ animatingCount }}</span>
+              résultat{{ animatingCount !== 1 ? 's' : '' }}
+            </span>
+          </Transition>
         </div>
       </div>
 
@@ -217,9 +264,20 @@ onMounted(fetchData)
       </div>
 
       <!-- Catalog -->
-      <div class="content-section">
+      <div id="catalog-section" class="content-section">
         <div class="section-header">
-          <h2 class="section-title">Toutes les références</h2>
+          <h2 class="section-title">
+            Toutes les références
+            <Transition name="count-pop">
+              <span
+                v-if="category !== 'Tout'"
+                :key="category"
+                class="catalog-section-count"
+              >
+                {{ animatingCount }}
+              </span>
+            </Transition>
+          </h2>
           <button @click="go('/catalogue')" class="section-action">Voir tout</button>
         </div>
         <p class="catalog-count">
@@ -232,7 +290,12 @@ onMounted(fetchData)
           <p style="color: var(--muted-foreground); font-size: 0.875rem; margin-top: 0.75rem">Aucune référence trouvée.</p>
         </div>
 
-        <div v-else class="catalog-grid">
+        <TransitionGroup
+          v-else
+          name="card"
+          tag="div"
+          class="catalog-grid"
+        >
           <div
             v-for="ref in filtered"
             :key="ref.id"
@@ -266,7 +329,7 @@ onMounted(fetchData)
               </div>
             </div>
           </div>
-        </div>
+        </TransitionGroup>
       </div>
 
       <!-- CTA -->
@@ -716,6 +779,7 @@ onMounted(fetchData)
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
+  position: relative;
 }
 
 @media (min-width: 640px) {
@@ -881,6 +945,77 @@ onMounted(fetchData)
 .cta-btn:hover {
   opacity: 0.9;
 }
+
+/* ─── Badge de catégorie active ─── */
+.category-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.category-active-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ─── Badge animé compteur ─── */
+.count-pop-enter-active { animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.count-pop-leave-active { animation: popIn 0.2s ease-in reverse; }
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Animations TransitionGroup cartes ─── */
+.card-enter-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.card-leave-active {
+  transition: all 0.25s ease-in;
+  position: absolute;
+}
+.card-enter-from {
+  opacity: 0;
+  transform: translateY(24px) scale(0.95);
+}
+.card-leave-to {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.95);
+}
+.card-move {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Section header count badge ─── */
+.catalog-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: white;
+  vertical-align: middle;
+}
+
+/* ─── Pill fade transition ─── */
+.pill-fade-enter-active { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.pill-fade-leave-active { transition: all 0.2s ease; }
+.pill-fade-enter-from { opacity: 0; transform: scale(0.8) translateX(-10px); }
+.pill-fade-leave-to { opacity: 0; transform: scale(0.8); }
 
 /* ─── Utilities ─── */
 .flex { display: flex; }

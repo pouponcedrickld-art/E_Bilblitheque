@@ -39,7 +39,7 @@ class GenerateReferenceCovers extends Command
         $this->info("Traitement de {$total} référence(s)...");
         $this->newLine();
 
-        $stats = ['openlibrary' => 0, 'pexels' => 0, 'skipped' => 0, 'notfound' => 0];
+        $stats = ['openlibrary' => 0, 'unsplash' => 0, 'pexels' => 0, 'notfound' => 0];
 
         $bar = $this->output->createProgressBar($total);
         $bar->setFormat("  %current%/%max% [%bar%] %percent:3s%% %message%\n");
@@ -64,6 +64,8 @@ class GenerateReferenceCovers extends Command
                     $sourcePrefix = explode('_', basename($coverPath))[0];
                     if ($sourcePrefix === 'ol') {
                         $stats['openlibrary']++;
+                    } elseif ($sourcePrefix === 'us') {
+                        $stats['unsplash']++;
                     } else {
                         $stats['pexels']++;
                     }
@@ -88,6 +90,7 @@ class GenerateReferenceCovers extends Command
             ['Source', 'Nombre'],
             [
                 ['Open Library (vraies couvertures)', $stats['openlibrary']],
+                ['Unsplash (photos du prototype)', $stats['unsplash']],
                 ['Pexels (photos thématiques)', $stats['pexels']],
                 ['Aucune trouvée', $stats['notfound']],
             ]
