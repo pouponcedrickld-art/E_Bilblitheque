@@ -142,6 +142,7 @@ class ReferenceController extends Controller
             'keyword_ids' => 'nullable|array',
             'keyword_ids.*' => 'exists:keywords,id',
             'is_featured' => 'boolean',
+            'allow_download' => 'boolean',
         ]);
 
         $data = $request->except(['keyword_ids', 'cover_image']);

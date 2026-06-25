@@ -1,9 +1,12 @@
 <script setup lang="ts">
 // Importations Vue, routeur, services et types
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
+import { useAuthStore } from '@/stores/auth'
 import type { Reference } from '@/types'
+
+const authStore = useAuthStore()
 
 // Route actuelle et routeur
 const route = useRoute()
@@ -32,6 +35,22 @@ async function fetchReference() {
   } finally {
     loading.value = false
   }
+}
+
+const canDownload = computed(() => {
+  if (!reference.value) return false
+  return authStore.isAdmin
+    || authStore.user?.id === reference.value.uploaded_by
+    || reference.value.allow_download === true
+})
+
+function download() {
+  if (!reference.value) return
+  router.push(`/user/references/${reference.value.id}/download`)
+}
+
+function goToLogin() {
+  router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
 }
 
 // Charge la référence au montage du composant
@@ -110,6 +129,18 @@ onMounted(fetchReference)
         <div class="keywords">
           <span v-for="kw in reference.keywords" :key="kw.id" class="keyword">{{ kw.name }}</span>
         </div>
+      </div>
+
+      <div v-if="reference.file_path" class="detail-actions">
+        <button v-if="authStore.isAuthenticated && canDownload" class="download-btn" @click="download">
+          <i class="pi pi-download" /> Télécharger
+        </button>
+        <button v-else-if="authStore.isAuthenticated" class="download-btn blocked" disabled>
+          <i class="pi pi-lock" /> Téléchargement bloqué
+        </button>
+        <button v-else class="download-btn login" @click="goToLogin">
+          <i class="pi pi-sign-in" /> Connectez-vous pour télécharger
+        </button>
       </div>
     </div>
   </div>
@@ -268,5 +299,48 @@ onMounted(fetchReference)
   color: var(--primary);
   border-radius: 999px;
   font-size: 0.75rem;
+}
+
+.detail-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.download-btn:hover {
+  opacity: 0.85;
+}
+
+.download-btn.blocked {
+  background: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.download-btn.login {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.download-btn.login:hover {
+  background: var(--primary);
+  color: #fff;
+  opacity: 1;
 }
 </style>

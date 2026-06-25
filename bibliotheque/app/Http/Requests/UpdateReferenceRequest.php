@@ -28,6 +28,7 @@ class UpdateReferenceRequest extends FormRequest
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'nullable|in:draft,published,archived',
             'pages' => 'nullable|integer|min:1',
+            'allow_download' => 'boolean',
         ];
     }
 }
