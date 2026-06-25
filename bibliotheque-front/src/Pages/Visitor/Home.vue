@@ -15,6 +15,20 @@ const category = ref('Tout')
 const animatingCount = ref(0)
 const isFiltering = ref(false)
 
+const videos = [
+  '/videos/12732893_1080_1920_60fps.mp4',
+  '/videos/19231459-hd_1080_1920_30fps.mp4',
+  '/videos/6132484-hd_1920_1080_30fps.mp4',
+  '/videos/6334247-uhd_4096_2160_25fps.mp4',
+  '/videos/6550662-uhd_4096_2160_25fps.mp4',
+  '/videos/8567036-uhd_2160_4096_25fps.mp4',
+]
+const currentIdx = ref(0)
+
+function onVideoEnded() {
+  currentIdx.value = (currentIdx.value + 1) % videos.length
+}
+
 async function fetchData() {
   loading.value = true
   try {
@@ -72,6 +86,8 @@ function animateCounter(target: number) {
   requestAnimationFrame(tick)
 }
 
+
+
 function selectCategory(cat: string) {
   if (cat === category.value) return
   isFiltering.value = true
@@ -84,7 +100,6 @@ function selectCategory(cat: string) {
 }
 
 function go(path: string) { router.push(path) }
-function viewDetail(id: number) { router.push(`/references/${id}`) }
 
 onMounted(fetchData)
 </script>
@@ -93,6 +108,18 @@ onMounted(fetchData)
   <div class="home">
     <!-- ─── Hero ─── -->
     <section class="hero">
+      <Transition name="video-fade" mode="in-out">
+        <video
+          :key="currentIdx"
+          class="hero-video hero-video--active"
+          :src="videos[currentIdx]"
+          muted
+          playsinline
+          preload="auto"
+          autoplay
+          @ended="onVideoEnded"
+        />
+      </Transition>
       <div class="hero-pattern" />
       <div class="hero-overlay" />
       <div class="hero-content">
@@ -227,11 +254,11 @@ onMounted(fetchData)
         </div>
         <hr class="gold-rule-left" />
         <div class="featured-grid">
-          <div
+          <router-link
             v-for="ref in featured"
             :key="ref.id"
+            :to="`/references/${ref.id}`"
             class="featured-card"
-            @click="viewDetail(ref.id)"
           >
             <div class="featured-card-img">
               <img v-if="ref.cover_url" :src="ref.cover_url" :alt="ref.title" class="featured-card-cover" />
@@ -254,7 +281,7 @@ onMounted(fetchData)
                 </span>
               </div>
             </div>
-          </div>
+          </router-link>
         </div>
       </section>
 
@@ -282,11 +309,11 @@ onMounted(fetchData)
         </div>
 
         <TransitionGroup v-else name="card" tag="div" class="catalog-grid">
-          <div
+          <router-link
             v-for="ref in filtered"
             :key="ref.id"
+            :to="`/references/${ref.id}`"
             class="catalog-card"
-            @click="viewDetail(ref.id)"
           >
             <div class="catalog-card-img">
               <img v-if="ref.cover_url" :src="ref.cover_url" :alt="ref.title" class="catalog-card-cover" />
@@ -303,7 +330,7 @@ onMounted(fetchData)
                 <span><i class="pi pi-download" /> {{ ref.download_count || 0 }}</span>
               </div>
             </div>
-          </div>
+          </router-link>
         </TransitionGroup>
       </section>
 
@@ -340,9 +367,25 @@ onMounted(fetchData)
   background: linear-gradient(150deg, #0F2419 0%, #1A3A32 45%, #3D2B1F 100%);
 }
 
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+}
+.video-fade-enter-active,
+.video-fade-leave-active {
+  transition: opacity 1.5s ease;
+}
+.video-fade-enter-from { opacity: 0; }
+.video-fade-leave-to { opacity: 0; }
 .hero-pattern {
   position: absolute;
   inset: 0;
+  z-index: 3;
   opacity: 0.04;
   background-image:
     repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(200,164,92,0.3) 40px, rgba(200,164,92,0.3) 41px),
@@ -353,6 +396,7 @@ onMounted(fetchData)
 .hero-overlay {
   position: absolute;
   inset: 0;
+  z-index: 3;
   background:
     radial-gradient(ellipse at 20% 50%, rgba(200,164,92,0.08) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 50%, rgba(26,58,50,0.4) 0%, transparent 60%);
@@ -361,6 +405,7 @@ onMounted(fetchData)
 
 .hero-content {
   position: relative;
+  z-index: 4;
   max-width: 1024px;
   margin: 0 auto;
   padding: 4rem 1.5rem;

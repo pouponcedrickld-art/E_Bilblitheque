@@ -9,6 +9,12 @@ import type { Reference } from '@/types'
 const route = useRoute()
 const router = useRouter()
 
+const languageLabels: Record<string, string> = {
+  fr: 'Français', en: 'Anglais', ar: 'Arabe', es: 'Espagnol',
+  de: 'Allemand', pt: 'Portugais', it: 'Italien', ru: 'Russe',
+  zh: 'Chinois', ja: 'Japonais', autre: 'Autre',
+}
+
 // Référence chargée depuis l'API
 const reference = ref<Reference | null>(null)
 const loading = ref(true)
@@ -83,7 +89,7 @@ onMounted(fetchReference)
         </div>
         <div v-if="reference.language" class="detail-item">
           <span class="label">Langue</span>
-          <span>{{ reference.language }}</span>
+          <span>{{ languageLabels[reference.language] ?? reference.language }}</span>
         </div>
         <div v-if="reference.pages" class="detail-item">
           <span class="label">Pages</span>

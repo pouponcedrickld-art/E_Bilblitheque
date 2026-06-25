@@ -13,6 +13,12 @@ import Message from 'primevue/message'
 import DocTypeIcon from '@/Components/Shared/DocTypeIcon.vue'
 import { Crosshair } from '@lucide/vue'
 
+const languageLabels: Record<string, string> = {
+  fr: 'Français', en: 'Anglais', ar: 'Arabe', es: 'Espagnol',
+  de: 'Allemand', pt: 'Portugais', it: 'Italien', ru: 'Russe',
+  zh: 'Chinois', ja: 'Japonais', autre: 'Autre',
+}
+
 // Routeur et état de recherche via le composable useSearch
 const router = useRouter()
 const { query, results, loading, filters, search, reset } = useSearch()
@@ -148,7 +154,7 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
             </p>
             <div class="card-meta">
               <span v-if="ref.publication_year" class="meta-item"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
-              <span v-if="ref.language" class="meta-item"><i class="pi pi-globe" /> {{ ref.language }}</span>
+              <span v-if="ref.language" class="meta-item"><i class="pi pi-globe" /> {{ languageLabels[ref.language] ?? ref.language }}</span>
               <span v-if="ref.keywords?.length" class="meta-item"><i class="pi pi-tag" /> {{ ref.keywords.map(k => k.name).slice(0, 3).join(', ') }}{{ ref.keywords.length > 3 ? '...' : '' }}</span>
             </div>
           </div>

@@ -20,7 +20,18 @@ const emit = defineEmits<{
   'update:modelValue': [value: Filters]
 }>()
 
-const languages = ['fr', 'en', 'ar', 'es', 'de', 'pt', 'it', 'ru', 'zh', 'ja']
+const languages = [
+  { label: 'Français', value: 'fr' },
+  { label: 'Anglais', value: 'en' },
+  { label: 'Arabe', value: 'ar' },
+  { label: 'Espagnol', value: 'es' },
+  { label: 'Allemand', value: 'de' },
+  { label: 'Portugais', value: 'pt' },
+  { label: 'Italien', value: 'it' },
+  { label: 'Russe', value: 'ru' },
+  { label: 'Chinois', value: 'zh' },
+  { label: 'Japonais', value: 'ja' },
+]
 
 function update(key: keyof Filters, value: any) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
@@ -69,6 +80,8 @@ function update(key: keyof Filters, value: any) {
         :modelValue="modelValue.language"
         @update:modelValue="update('language', $event)"
         :options="languages"
+        optionLabel="label"
+        optionValue="value"
         placeholder="Toutes les langues"
         clearable
         class="filter-control"

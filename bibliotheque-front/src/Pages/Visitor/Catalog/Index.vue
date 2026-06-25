@@ -19,6 +19,11 @@ const router = useRouter()
 const route = useRoute()
 const references = ref<Reference[]>([])
 const categories = ref<Category[]>([])
+const languageLabels: Record<string, string> = {
+  fr: 'Français', en: 'Anglais', ar: 'Arabe', es: 'Espagnol',
+  de: 'Allemand', pt: 'Portugais', it: 'Italien', ru: 'Russe',
+  zh: 'Chinois', ja: 'Japonais', autre: 'Autre',
+}
 const documentTypes = ref<{ id: number; name: string; label: string }[]>([])
 const loading = ref(false)
 const search = ref('')
@@ -143,7 +148,7 @@ onMounted(() => {
               </p>
               <div class="card-meta">
                 <span v-if="ref.publication_year"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
-                <span v-if="ref.language">{{ ref.language }}</span>
+                <span v-if="ref.language">{{ languageLabels[ref.language] ?? ref.language }}</span>
               </div>
             </div>
           </div>
