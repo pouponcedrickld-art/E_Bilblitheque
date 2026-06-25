@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReferenceRequest;
 use App\Http\Resources\ReferenceResource;
+use App\Models\Notification;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -207,6 +208,8 @@ class ReferenceController extends Controller
     // Télécharge le fichier PDF/DOC avec compteur
     public function download(Request $request, Reference $reference)
     {
+        $this->authorize('download', $reference);
+
         if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
             return response()->json(['message' => 'Fichier non disponible.'], 404);
         }
@@ -220,5 +223,31 @@ class ReferenceController extends Controller
         $reference->increment('download_count');
 
         return Storage::disk('public')->download($reference->file_path);
+    }
+
+    // Admin : force le téléchargement sur une référence (outrepasse le refus du propriétaire)
+    public function forceDownload(Request $request, Reference $reference)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        if ($reference->allow_download === true) {
+            return response()->json(['message' => 'Le téléchargement est déjà autorisé.'], 422);
+        }
+
+        $reference->update(['allow_download' => true]);
+
+        Notification::create([
+            'user_id' => $reference->uploaded_by,
+            'title' => 'Téléchargement autorisé',
+            'message' => "L'administrateur a autorisé le téléchargement de votre publication \"{$reference->title}\" malgré votre refus.",
+            'type' => 'information',
+        ]);
+
+        return response()->json([
+            'message' => 'Téléchargement autorisé. Le propriétaire a été notifié.',
+            'allow_download' => true,
+        ]);
     }
 }

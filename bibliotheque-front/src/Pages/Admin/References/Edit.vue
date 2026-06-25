@@ -8,6 +8,7 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import InputNumber from 'primevue/inputnumber'
+import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
@@ -29,6 +30,7 @@ const form = ref({
   pages: null as number | null,
   status: 'draft',
   keyword_ids: [] as number[],
+  allow_download: true,
 })
 
 const categories = ref<{ id: number; name: string }[]>([])
@@ -91,6 +93,7 @@ async function load() {
       pages: refData.pages ?? null,
       status: refData.status ?? 'draft',
       keyword_ids: (refData.keywords ?? []).map((k: any) => k.id),
+      allow_download: refData.allow_download ?? true,
     }
     if (refData.cover_url) {
       coverPreview.value = refData.cover_url
@@ -214,6 +217,7 @@ async function submit() {
     if (form.value.pages) fd.append('pages', String(form.value.pages))
     fd.append('status', form.value.status)
     form.value.keyword_ids.forEach(id => fd.append('keyword_ids[]', String(id)))
+    fd.append('allow_download', form.value.allow_download ? '1' : '0')
     if (coverFile.value) fd.append('cover_image', coverFile.value)
     fd.append('_method', 'PUT')
 
@@ -295,6 +299,13 @@ onMounted(load)
         <div class="field">
           <label for="status">Statut</label>
           <Select id="status" v-model="form.status" :options="[{ label: 'Brouillon', value: 'draft' }, { label: 'Publié', value: 'published' }, { label: 'Archivé', value: 'archived' }]" option-label="label" option-value="value" />
+        </div>
+        <div class="field">
+          <label>Téléchargement</label>
+          <div class="toggle-field">
+            <ToggleSwitch v-model="form.allow_download" />
+            <span class="toggle-label">{{ form.allow_download ? 'Autorisé' : 'Bloqué' }}</span>
+          </div>
         </div>
         <div class="field full">
           <label for="keywords">Mots-clés</label>
@@ -400,6 +411,8 @@ onMounted(load)
 .cover-preview { margin-top: 0.5rem; width: 120px; height: 160px; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border); }
 .cover-preview img { width: 100%; height: 100%; object-fit: cover; }
 .flex-1 { flex: 1; }
+.toggle-field { display: flex; align-items: center; gap: 0.75rem; }
+.toggle-label { font-size: 0.85rem; color: var(--text-primary); }
 .select-with-create { display: flex; gap: 0.35rem; align-items: center; }
 .add-btn { flex-shrink: 0; }
 .dialog-form { display: flex; flex-direction: column; gap: 1rem; }

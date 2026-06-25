@@ -27,6 +27,7 @@ class StoreDepositRequestRequest extends FormRequest
             'pages' => 'nullable|integer|min:1',
             'cover_image' => 'nullable|image|max:5120',
             'proposed_file' => 'nullable|file|mimes:pdf,doc,docx,odt,txt|max:10240',
+            'allow_download' => 'boolean',
         ];
     }
 }

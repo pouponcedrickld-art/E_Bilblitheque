@@ -96,6 +96,25 @@ async function publish(id: number) {
   router.push(`/admin/references/${id}/publish`)
 }
 
+// Force le téléchargement sur une référence
+async function forceDownload(id: number) {
+  confirm.require({
+    message: 'Autoriser le téléchargement de cette référence même si le propriétaire a bloqué ? Le propriétaire sera notifié.',
+    header: 'Forcer le téléchargement',
+    icon: 'pi pi-lock-open',
+    acceptClass: 'p-button-warning',
+    accept: async () => {
+      try {
+        await http.post(`/references/${id}/force-download`)
+        toastStore.success('Téléchargement autorisé. Le propriétaire a été notifié.')
+        await fetchReferences()
+      } catch {
+        toastStore.error('Erreur lors de l\'opération.')
+      }
+    },
+  })
+}
+
 // Charge les références au montage
 onMounted(fetchReferences)
 </script>
@@ -137,6 +156,12 @@ onMounted(fetchReferences)
           <StatusBadge :status="data.status" />
         </template>
       </Column>
+      <Column header="Téléchargement">
+        <template #body="{ data }">
+          <Tag v-if="data.allow_download" value="Autorisé" severity="success" />
+          <Tag v-else value="Bloqué" severity="danger" />
+        </template>
+      </Column>
       <Column field="created_at" header="Date" sortable>
         <template #body="{ data }">
           {{ new Date(data.created_at).toLocaleDateString() }}
@@ -165,6 +190,14 @@ onMounted(fetchReferences)
               severity="success"
               text
               @click="publish(data.id)"
+            />
+            <Button
+              v-if="!data.allow_download"
+              icon="pi pi-lock-open"
+              severity="warning"
+              text
+              v-tooltip.top="'Forcer le téléchargement'"
+              @click="forceDownload(data.id)"
             />
             <Button
               icon="pi pi-trash"

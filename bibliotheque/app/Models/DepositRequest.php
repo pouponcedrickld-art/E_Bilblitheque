@@ -26,7 +26,15 @@ class DepositRequest extends Model
         'proposed_file',
         'cover_image',
         'status',
+        'allow_download',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'allow_download' => 'boolean',
+        ];
+    }
 
     // Utilisateur ayant soumis la demande
     public function applicant()

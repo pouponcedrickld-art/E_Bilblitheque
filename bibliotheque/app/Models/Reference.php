@@ -27,6 +27,8 @@ class Reference extends Model
         'view_count',
         'status',
         'is_featured',
+        'allow_download',
+        'file_size',
     ];
 
     protected function casts(): array
@@ -37,6 +39,8 @@ class Reference extends Model
             'download_count' => 'integer',
             'view_count' => 'integer',
             'is_featured' => 'boolean',
+            'allow_download' => 'boolean',
+            'file_size' => 'integer',
         ];
     }
 

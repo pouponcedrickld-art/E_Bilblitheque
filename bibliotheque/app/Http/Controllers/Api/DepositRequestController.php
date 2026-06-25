@@ -54,6 +54,7 @@ class DepositRequestController extends Controller
             'publisher_id' => $request->filled('publisher_id') ? $request->publisher_id : null,
             'pages' => $request->filled('pages') ? $request->pages : null,
             'status' => 'pending',
+            'allow_download' => $request->boolean('allow_download', true),
         ];
 
         if ($request->hasFile('cover_image')) {
@@ -222,8 +223,14 @@ class DepositRequestController extends Controller
             return response()->json(['message' => 'La demande doit être validée par un responsable avant publication.'], 422);
         }
 
-        DB::transaction(function () use ($depositRequest) {
-            $reference = Reference::create($this->buildReferenceData($depositRequest));
+        $forceDownload = $request->boolean('force_allow_download', false);
+
+        DB::transaction(function () use ($depositRequest, $forceDownload) {
+            $referenceData = $this->buildReferenceData($depositRequest);
+            if ($forceDownload) {
+                $referenceData['allow_download'] = true;
+            }
+            $reference = Reference::create($referenceData);
 
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
@@ -243,6 +250,16 @@ class DepositRequestController extends Controller
                 'type' => 'publication',
             ]);
         });
+
+        // Notification si l'admin force le téléchargement malgré le refus du demandeur
+        if ($forceDownload && !$depositRequest->allow_download) {
+            Notification::create([
+                'user_id' => $depositRequest->applicant_id,
+                'title' => 'Téléchargement autorisé',
+                'message' => "L'administrateur a autorisé le téléchargement de votre publication \"{$depositRequest->title}\" malgré votre refus.",
+                'type' => 'information',
+            ]);
+        }
 
         return response()->json($depositRequest->load('reviews'));
     }
@@ -291,7 +308,9 @@ class DepositRequestController extends Controller
 
         $request->validate(['justification' => 'required|string|min:10']);
 
-        DB::transaction(function () use ($request, $depositRequest) {
+        $forceDownload = $request->boolean('force_allow_download', false);
+
+        DB::transaction(function () use ($request, $depositRequest, $forceDownload) {
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
                 'reviewer_id' => $request->user()->id,
@@ -300,7 +319,11 @@ class DepositRequestController extends Controller
                 'justification' => $request->justification,
             ]);
 
-            $reference = Reference::create($this->buildReferenceData($depositRequest));
+            $referenceData = $this->buildReferenceData($depositRequest);
+            if ($forceDownload) {
+                $referenceData['allow_download'] = true;
+            }
+            $reference = Reference::create($referenceData);
 
             $depositRequest->update(['status' => 'published']);
 
@@ -321,6 +344,16 @@ class DepositRequestController extends Controller
                 ]);
             }
         });
+
+        // Notification si l'admin force le téléchargement malgré le refus du demandeur
+        if ($forceDownload && !$depositRequest->allow_download) {
+            Notification::create([
+                'user_id' => $depositRequest->applicant_id,
+                'title' => 'Téléchargement autorisé',
+                'message' => "L'administrateur a autorisé le téléchargement de votre publication \"{$depositRequest->title}\" malgré votre refus.",
+                'type' => 'information',
+            ]);
+        }
 
         return response()->json($depositRequest->load('reviews'));
     }
@@ -411,6 +444,10 @@ class DepositRequestController extends Controller
             'file_path' => $depositRequest->proposed_file,
             'uploaded_by' => $depositRequest->applicant_id,
             'status' => 'published',
+            'allow_download' => $depositRequest->allow_download,
+            'file_size' => $depositRequest->proposed_file
+                ? Storage::disk('public')->size($depositRequest->proposed_file)
+                : null,
         ];
     }
 }

@@ -111,6 +111,11 @@ onMounted(fetchRequest)
           <StatusBadge :status="request.status" />
         </div>
         <div class="detail-row">
+          <span class="detail-label">Téléchargement</span>
+          <Tag v-if="request.allow_download" value="Autorisé" severity="success" />
+          <Tag v-else value="Bloqué" severity="danger" />
+        </div>
+        <div class="detail-row">
           <span class="detail-label">Type</span>
           <Tag :value="request.document_type?.label ?? request.document_type?.name ?? '-'" />
         </div>

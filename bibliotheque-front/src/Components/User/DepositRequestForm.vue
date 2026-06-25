@@ -7,6 +7,7 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import InputNumber from 'primevue/inputnumber'
 import FileUpload from 'primevue/fileupload'
+import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 
@@ -27,6 +28,7 @@ const form = ref({
   category_id: null as number | null,
   publisher_id: null as number | null,
   pages: null as number | null,
+  allow_download: true,
 })
 
 const categories = ref<{ id: number; name: string }[]>([])
@@ -170,6 +172,7 @@ function handleSubmit() {
   if (form.value.pages) fd.append('pages', String(form.value.pages))
   if (coverFile.value) fd.append('cover_image', coverFile.value)
   if (documentFile.value) fd.append('proposed_file', documentFile.value)
+  fd.append('allow_download', form.value.allow_download ? '1' : '0')
 
   emit('submit', fd)
 }
@@ -300,6 +303,24 @@ onMounted(loadFormData)
           <label>Fichier PDF/DOC</label>
           <FileUpload mode="basic" name="proposed_file" accept=".pdf,.doc,.docx,.odt,.txt" :auto="false" @select="onDocumentChange" choose-label="Choisir un fichier" class="file-upload" />
           <small v-if="documentFile" class="file-name">{{ documentFile.name }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- V. Téléchargement -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <span class="form-section-number">V</span>
+        <div>
+          <h3 class="form-section-title">Téléchargement</h3>
+          <p class="form-section-desc">Autoriser ou non le téléchargement du fichier</p>
+        </div>
+      </div>
+      <div class="toggle-field">
+        <ToggleSwitch v-model="form.allow_download" />
+        <div class="toggle-text">
+          <span class="toggle-label">Autoriser le téléchargement du fichier</span>
+          <span class="toggle-hint">Si désactivé, le document sera uniquement consultable en ligne.</span>
         </div>
       </div>
     </div>
@@ -513,6 +534,30 @@ onMounted(loadFormData)
 
 .file-upload {
   --p-fileupload-border-color: var(--border-gold);
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.toggle-hint {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
 }
 
 @media (max-width: 640px) {

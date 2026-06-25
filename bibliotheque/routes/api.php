@@ -133,4 +133,7 @@ Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () 
     // Modification/suppression des références (admin uniquement)
     Route::put('/references/{reference}', [ReferenceController::class, 'update']);
     Route::delete('/references/{reference}', [ReferenceController::class, 'destroy']);
+
+    // Forcer le téléchargement (admin uniquement)
+    Route::post('/references/{reference}/force-download', [ReferenceController::class, 'forceDownload']);
 });

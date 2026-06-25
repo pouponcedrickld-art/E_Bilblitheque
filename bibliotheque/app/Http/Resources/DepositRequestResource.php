@@ -28,6 +28,7 @@ class DepositRequestResource extends JsonResource
             'cover_url' => $this->cover_image ? Storage::disk('public')->url($this->cover_image) : null,
             'proposed_file' => $this->proposed_file,
             'proposed_file_url' => $this->proposed_file ? Storage::disk('public')->url($this->proposed_file) : null,
+            'allow_download' => $this->allow_download,
             'status' => $this->status,
             'applicant' => new UserResource($this->whenLoaded('applicant')),
             'assigned_manager' => new UserResource($this->whenLoaded('assignedManager')),

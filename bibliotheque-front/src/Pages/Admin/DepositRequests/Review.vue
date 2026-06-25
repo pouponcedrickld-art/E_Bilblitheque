@@ -34,6 +34,7 @@ const showOverrideForm = ref(false)
 const overrideJustification = ref('')
 const showSecondReviewForm = ref(false)
 const secondReviewManagerId = ref<number | null>(null)
+const forceDownload = ref(false)
 
 // Charge la demande et les utilisateurs
 async function load() {
@@ -61,7 +62,9 @@ async function publishRequest() {
   submitting.value = true
   try {
     const id = route.params.id as string
-    await http.post(`/deposit-requests/${id}/publish`)
+    await http.post(`/deposit-requests/${id}/publish`, {
+      force_allow_download: forceDownload.value ? '1' : '0',
+    })
     toastStore.success('Demande publiée.')
     await load()
   } catch (err: any) {
@@ -123,6 +126,7 @@ async function overrideRequest() {
     const id = route.params.id as string
     await http.post(`/deposit-requests/${id}/override`, {
       justification: overrideJustification.value,
+      force_allow_download: forceDownload.value ? '1' : '0',
     })
     toastStore.success('Décision annulée.')
     showOverrideForm.value = false
@@ -216,6 +220,11 @@ onMounted(load)
               <span>{{ request.pages || '-' }}</span>
             </div>
             <div class="info-item">
+              <span class="info-label">Téléchargement</span>
+              <Tag v-if="request.allow_download" value="Autorisé" severity="success" />
+              <Tag v-else value="Bloqué" severity="danger" />
+            </div>
+            <div class="info-item">
               <span class="info-label">Date</span>
               <span>{{ new Date(request.created_at).toLocaleDateString() }}</span>
             </div>
@@ -240,14 +249,19 @@ onMounted(load)
       </Card>
 
       <div class="actions-section">
-        <Button
-          v-if="request.status === 'approved_by_manager'"
-          icon="pi pi-check"
-          label="Publier"
-          severity="success"
-          :loading="submitting"
-          @click="publishRequest"
-        />
+        <div v-if="request.status === 'approved_by_manager'" class="action-block">
+          <Button
+            icon="pi pi-check"
+            label="Publier"
+            severity="success"
+            :loading="submitting"
+            @click="publishRequest"
+          />
+          <div v-if="!request.allow_download" class="checkbox-field">
+            <input id="force-publish" type="checkbox" v-model="forceDownload" />
+            <label for="force-publish">Forcer le téléchargement (outrepasser le choix du demandeur)</label>
+          </div>
+        </div>
 
         <Button
           v-if="request.status === 'rejected_by_manager'"
@@ -309,9 +323,13 @@ onMounted(load)
             <label for="override-justification">Justification</label>
             <Textarea id="override-justification" v-model="overrideJustification" rows="4" :auto-resize="true" placeholder="Expliquez pourquoi vous annulez la décision..." />
           </div>
+          <div v-if="!request.allow_download" class="checkbox-field">
+            <input id="force-override" type="checkbox" v-model="forceDownload" />
+            <label for="force-override">Forcer le téléchargement (outrepasser le choix du demandeur)</label>
+          </div>
           <div class="form-actions">
             <Button icon="pi pi-undo" label="Confirmer l'annulation" severity="warn" :loading="submitting" :disabled="!overrideJustification.trim()" @click="overrideRequest" />
-            <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="showOverrideForm = false; overrideJustification = ''" />
+            <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="showOverrideForm = false; overrideJustification = ''; forceDownload = false" />
           </div>
         </template>
       </Card>
@@ -384,4 +402,7 @@ onMounted(load)
 .review-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; }
 .review-date { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; }
 .review-justification { font-size: 0.9rem; color: var(--text-primary); margin: 0; }
+.action-block { display: flex; flex-direction: column; gap: 0.75rem; }
+.checkbox-field { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+.checkbox-field input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
 </style>

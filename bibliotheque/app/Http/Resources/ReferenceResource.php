@@ -35,6 +35,8 @@ class ReferenceResource extends JsonResource
             'download_count' => $this->download_count,
             'view_count' => $this->view_count,
             'is_featured' => $this->is_featured,
+            'allow_download' => $this->allow_download,
+            'file_size' => $this->file_size,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

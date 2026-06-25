@@ -92,11 +92,13 @@ export interface Reference {
   cover_image: string | null
   cover_url: string | null
   file_path: string | null
+  file_size: number | null
   pages: number | null
   download_count: number
   view_count: number
   status: 'draft' | 'published' | 'archived'
   is_featured?: boolean
+  allow_download: boolean
   created_at: string
   updated_at: string
 }
@@ -120,6 +122,7 @@ export interface DepositRequest {
   pages: number | null
   proposed_file: string | null
   proposed_file_url?: string
+  allow_download: boolean
   cover_image: string | null
   cover_url?: string
   status: string
