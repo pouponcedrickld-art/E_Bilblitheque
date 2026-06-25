@@ -39,7 +39,7 @@ onMounted(async () => {
     } else if (err.response?.status === 429) {
       error.value = 'Trop de téléchargements. Veuillez réessayer plus tard.'
     } else {
-      error.value = 'Erreur lors du téléchargement.'
+      error.value = 'Erreur lors du téléchargement de la fiche.'
     }
   }
 })
@@ -47,7 +47,7 @@ onMounted(async () => {
 
 <template>
   <div class="page">
-    <p v-if="!error">Téléchargement en cours...</p>
+    <p v-if="!error">Téléchargement de la fiche en cours...</p>
     <p v-else class="error-msg">{{ error }}</p>
     <button v-if="error" class="back-btn" @click="router.push('/user/dashboard')">Retour au tableau de bord</button>
   </div>

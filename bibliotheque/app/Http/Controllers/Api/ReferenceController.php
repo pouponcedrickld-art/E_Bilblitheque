@@ -7,8 +7,10 @@ use App\Http\Requests\StoreReferenceRequest;
 use App\Http\Resources\ReferenceResource;
 use App\Models\Notification;
 use App\Models\Reference;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ReferenceController extends Controller
 {
@@ -206,13 +208,13 @@ class ReferenceController extends Controller
         return response()->file($path, ['Content-Type' => $mime]);
     }
 
-    // Télécharge le fichier PDF/DOC avec compteur
+    // Télécharge la fiche PDF de la référence (métadonnées, pas le fichier brut)
     public function download(Request $request, Reference $reference)
     {
         $this->authorize('download', $reference);
 
         if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
-            return response()->json(['message' => 'Fichier non disponible.'], 404);
+            return response()->json(['message' => 'Document non disponible.'], 404);
         }
 
         // Enregistre le téléchargement
@@ -223,7 +225,16 @@ class ReferenceController extends Controller
 
         $reference->increment('download_count');
 
-        return Storage::disk('public')->download($reference->file_path);
+        // Charge les relations nécessaires à la fiche PDF
+        $reference->load(['authors', 'category', 'publisher', 'documentType', 'keywords']);
+
+        $pdf = Pdf::loadView('pdf.reference-fiche', [
+            'reference' => $reference,
+        ]);
+
+        $filename = Str::slug($reference->title) . '-fiche.pdf';
+
+        return $pdf->download($filename);
     }
 
     // Admin : force le téléchargement sur une référence (outrepasse le refus du propriétaire)

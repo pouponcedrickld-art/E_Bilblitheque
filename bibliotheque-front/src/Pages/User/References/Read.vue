@@ -64,7 +64,7 @@ onMounted(fetchReference)
       <h1 v-if="reference">{{ reference.title }}</h1>
       <div v-if="reference" class="header-actions">
         <button v-if="canDownload" class="download-btn" @click="download">
-          <i class="pi pi-download" /> Télécharger
+          <i class="pi pi-download" /> Télécharger la fiche
         </button>
         <span v-else class="download-blocked">
           <i class="pi pi-lock" /> Téléchargement bloqué

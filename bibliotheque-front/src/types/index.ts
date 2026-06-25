@@ -89,6 +89,8 @@ export interface Reference {
   publisher?: Publisher
   authors?: Author[]
   keywords?: Keyword[]
+  uploaded_by: number
+  uploader?: User
   cover_image: string | null
   cover_url: string | null
   file_path: string | null
