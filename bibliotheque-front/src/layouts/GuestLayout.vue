@@ -1,4 +1,3 @@
-// Layout public pour les visiteurs non connectés
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
@@ -14,7 +13,6 @@ const navLinks = [
   { label: 'À propos', route: '/help' },
 ]
 
-// Navigue vers une route et ferme le menu mobile
 function go(path: string) {
   mobileMenuOpen.value = false
   router.push(path)
@@ -22,18 +20,19 @@ function go(path: string) {
 </script>
 
 <template>
-  <div style="min-height: 100vh; background: var(--background);">
-    <!-- Public Navbar -->
-    <nav
-      class="guest-nav"
-    >
+  <div class="guest-shell">
+    <nav class="guest-nav">
       <div class="guest-nav-inner">
         <router-link to="/" class="guest-logo">
-          <i class="pi pi-book" style="font-size: 1.1rem"></i>
-          <span class="guest-logo-text">BibliNum</span>
+          <div class="guest-logo-icon">
+            <i class="pi pi-book" />
+          </div>
+          <div>
+            <span class="guest-logo-text">BibliNum</span>
+            <span class="guest-logo-sub">Bibliothèque Nationale</span>
+          </div>
         </router-link>
 
-        <!-- Desktop nav links -->
         <div class="guest-nav-links">
           <button
             v-for="link in navLinks"
@@ -47,62 +46,51 @@ function go(path: string) {
 
         <div class="guest-btn-group">
           <template v-if="authStore.isAuthenticated">
-            <button
-              @click="go(authStore.getDashboardPath())"
-              class="guest-btn-primary"
-            >
-              <i class="pi pi-user" style="font-size: 0.8rem"></i>
+            <button @click="go(authStore.getDashboardPath())" class="btn btn-primary">
+              <i class="pi pi-user" />
               Mon espace
             </button>
           </template>
           <template v-else>
-            <button
-              @click="go('/login')"
-              class="guest-btn-outline"
-            >
+            <button @click="go('/login')" class="btn btn-outline">
               Connexion
             </button>
-            <button
-              @click="go('/register')"
-              class="guest-btn-primary"
-            >
+            <button @click="go('/register')" class="btn btn-primary">
               S'inscrire
             </button>
           </template>
-          <!-- Mobile hamburger -->
-          <button
-            @click="mobileMenuOpen = !mobileMenuOpen"
-            class="guest-hamburger"
-          >
-            <i :class="mobileMenuOpen ? 'pi pi-times' : 'pi pi-bars'" style="font-size: 1.2rem"></i>
+          <button @click="mobileMenuOpen = !mobileMenuOpen" class="guest-hamburger">
+            <i :class="mobileMenuOpen ? 'pi pi-times' : 'pi pi-bars'" />
           </button>
         </div>
       </div>
-      <!-- Mobile menu -->
-      <div v-if="mobileMenuOpen" class="guest-mobile-menu">
-        <button
-          v-for="link in navLinks"
-          :key="link.label"
-          @click="go(link.route)"
-          class="guest-mobile-link"
-        >
-          {{ link.label }}
-        </button>
-        <template v-if="!authStore.isAuthenticated">
-          <button @click="go('/login')" class="guest-mobile-link" style="margin-top: 0.25rem">
-            Connexion
-          </button>
-        </template>
-        <template v-else>
+
+      <Transition name="slide-down">
+        <div v-if="mobileMenuOpen" class="guest-mobile-menu">
           <button
-            @click="go(authStore.getDashboardPath())"
-            class="guest-mobile-link-primary"
+            v-for="link in navLinks"
+            :key="link.label"
+            @click="go(link.route)"
+            class="guest-mobile-link"
           >
-            <i class="pi pi-user" style="font-size: 0.85rem"></i>
-            Mon espace
+            {{ link.label }}
           </button>
-        </template>
-      </div>
+          <hr class="gold-rule" />
+          <template v-if="!authStore.isAuthenticated">
+            <button @click="go('/login')" class="btn btn-outline" style="width:100%;justify-content:center">
+              Connexion
+            </button>
+            <button @click="go('/register')" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:0.5rem">
+              S'inscrire
+            </button>
+          </template>
+          <template v-else>
+            <button @click="go(authStore.getDashboardPath())" class="guest-mobile-link-primary">
+              <i class="pi pi-user" /> Mon espace
+            </button>
+          </template>
+        </div>
+      </Transition>
     </nav>
 
     <main class="guest-content">
@@ -112,12 +100,17 @@ function go(path: string) {
 </template>
 
 <style scoped>
+.guest-shell {
+  min-height: 100vh;
+  background: var(--background);
+}
+
 .guest-nav {
   position: sticky;
   top: 0;
   z-index: 30;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(250, 247, 242, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
@@ -136,12 +129,22 @@ function go(path: string) {
 .guest-logo {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   flex-shrink: 0;
 }
 
-.guest-logo i {
-  color: var(--primary);
+.guest-logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.guest-logo-icon i {
+  font-size: 0.9rem;
+  color: var(--gold-light);
 }
 
 .guest-logo-text {
@@ -149,6 +152,17 @@ function go(path: string) {
   font-weight: 700;
   font-family: var(--font-serif);
   color: var(--primary);
+  display: block;
+  line-height: 1.2;
+}
+
+.guest-logo-sub {
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+  display: none;
+}
+@media (min-width: 480px) {
+  .guest-logo-sub { display: block; }
 }
 
 .guest-nav-links {
@@ -156,26 +170,36 @@ function go(path: string) {
   align-items: center;
   gap: 1.5rem;
 }
-
 @media (min-width: 768px) {
-  .guest-nav-links {
-    display: flex;
-  }
+  .guest-nav-links { display: flex; }
 }
 
 .guest-nav-link {
   background: none;
   border: none;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--muted-foreground);
   cursor: pointer;
   transition: color 0.2s;
   padding: 0.25rem 0;
+  position: relative;
 }
-
+.guest-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: width 0.25s ease;
+}
 .guest-nav-link:hover {
   color: var(--foreground);
+}
+.guest-nav-link:hover::after {
+  width: 100%;
 }
 
 .guest-btn-group {
@@ -185,62 +209,19 @@ function go(path: string) {
   flex-shrink: 0;
 }
 
-.guest-btn-outline {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--primary);
-  background: transparent;
-  color: var(--primary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
-}
-
-.guest-btn-outline:hover {
-  background: rgba(27, 67, 50, 0.06);
-}
-
-.guest-btn-primary {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: var(--radius-xl);
-  border: none;
-  background: var(--primary);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.guest-btn-primary:hover {
-  opacity: 0.9;
-}
-
 .guest-hamburger {
   display: flex;
   padding: 0.5rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
-  transition: color 0.2s, background 0.2s;
+  transition: all 0.2s;
 }
-
 @media (min-width: 768px) {
-  .guest-hamburger {
-    display: none;
-  }
+  .guest-hamburger { display: none; }
 }
-
 .guest-hamburger:hover {
   color: var(--foreground);
   background: var(--muted);
@@ -249,14 +230,14 @@ function go(path: string) {
 .guest-mobile-menu {
   display: block;
   border-top: 1px solid var(--border);
-  padding: 0.75rem 1rem;
-  background: white;
+  padding: 0.75rem 1.25rem 1.25rem;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
-
 @media (min-width: 768px) {
-  .guest-mobile-menu {
-    display: none;
-  }
+  .guest-mobile-menu { display: none !important; }
 }
 
 .guest-mobile-link {
@@ -265,14 +246,13 @@ function go(path: string) {
   text-align: left;
   padding: 0.65rem 0.75rem;
   font-size: 0.875rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: transparent;
   color: var(--foreground);
   cursor: pointer;
   transition: background 0.2s;
 }
-
 .guest-mobile-link:hover {
   background: var(--muted);
 }
@@ -286,18 +266,19 @@ function go(path: string) {
   padding: 0.65rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: var(--primary);
   color: white;
   cursor: pointer;
   margin-top: 0.25rem;
+  justify-content: center;
 }
 
 @media (max-width: 400px) {
-  .guest-btn-outline,
-  .guest-btn-primary {
-    padding: 0.45rem 0.65rem;
+  .btn-outline,
+  .btn-primary {
+    padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
   }
 }
@@ -305,5 +286,21 @@ function go(path: string) {
 .guest-content {
   flex: 1;
   min-height: calc(100vh - 56px);
+}
+
+/* slide-down transition */
+.slide-down-enter-active {
+  transition: all 0.25s ease-out;
+}
+.slide-down-leave-active {
+  transition: all 0.2s ease-in;
+}
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

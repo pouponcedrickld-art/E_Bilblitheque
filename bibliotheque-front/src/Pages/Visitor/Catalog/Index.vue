@@ -96,26 +96,34 @@ onMounted(() => {
 <template>
   <div class="catalogue">
     <aside class="filters-sidebar">
-      <CatalogFilters v-model="filters" :categories="categories" :document-types="documentTypes" />
-      <Button label="Appliquer les filtres" @click="fetchReferences(1)" class="filter-btn" />
+      <div class="filters-card">
+        <CatalogFilters v-model="filters" :categories="categories" :document-types="documentTypes" />
+        <hr class="gold-rule" />
+        <Button label="Appliquer les filtres" @click="fetchReferences(1)" class="filter-btn" />
+      </div>
     </aside>
 
     <div class="main-content">
       <div class="search-bar">
+        <i class="pi pi-search search-icon" />
         <input v-model="search" type="text" class="search-input" placeholder="Rechercher un titre, un auteur..." @input="onSearchInput" />
       </div>
 
-      <div v-if="loading && !references.length" class="loading">
+      <div v-if="loading && !references.length" class="loading-spinner">
+        <i class="pi pi-spin pi-spinner" />
         <p>Chargement des références...</p>
       </div>
 
-      <div v-else-if="!loading && references.length === 0" class="empty">
+      <div v-else-if="!loading && references.length === 0" class="empty-state">
+        <i class="pi pi-book-open" />
         <p v-if="search">Aucun résultat pour "{{ search }}".</p>
         <p v-else>Aucune référence trouvée.</p>
       </div>
 
       <div v-else class="results">
-        <p v-if="search" class="result-count">{{ totalRecords }} résultat(s) pour "{{ search }}"</p>
+        <p v-if="search" class="result-count">
+          <span class="count-num">{{ totalRecords }}</span> résultat(s) pour "{{ search }}"
+        </p>
 
         <div class="grid">
           <div
@@ -126,13 +134,15 @@ onMounted(() => {
           >
             <div class="card-icon"><DocTypeIcon :type="ref.document_type?.name" :size="32" /></div>
             <div class="card-body">
-              <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? '-' }}</span>
+              <div class="card-top">
+                <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? '-' }}</span>
+              </div>
               <h3 class="card-title">{{ ref.title }}</h3>
               <p v-if="ref.authors?.length" class="card-authors">
                 {{ ref.authors.map(a => a.full_name).join(', ') }}
               </p>
               <div class="card-meta">
-                <span v-if="ref.publication_year">{{ ref.publication_year }}</span>
+                <span v-if="ref.publication_year"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
                 <span v-if="ref.language">{{ ref.language }}</span>
               </div>
             </div>
@@ -153,27 +163,181 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.catalogue { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-.filters-sidebar { position: sticky; top: 1.5rem; align-self: start; display: flex; flex-direction: column; gap: 1rem; }
-.filter-btn { width: 100%; }
+.catalogue {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.filters-sidebar {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
+}
+
+.filters-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-btn {
+  width: 100%;
+  background: var(--primary) !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 0.65rem !important;
+}
+.filter-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 0 0 3px var(--gold-glow) !important;
+}
+
 .main-content { min-width: 0; }
-.search-bar { margin-bottom: 1.5rem; }
-.search-input { width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; background: #fff; transition: border-color 0.15s; }
-.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.15); }
-.loading, .empty { text-align: center; padding: 3rem; color: var(--text-secondary); }
-.result-count { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
-.card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; gap: 1rem; cursor: pointer; transition: all 0.15s; }
-.card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(27, 67, 50, 0.1); transform: translateY(-1px); }
-.card-icon { flex-shrink: 0; display: flex; align-items: center; color: var(--primary); }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s;
+}
+.search-bar:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+
+.search-icon {
+  color: var(--gold-dark);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem 0.75rem;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  outline: none;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+.search-input::placeholder {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.result-count {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.count-num { font-weight: 700; color: var(--foreground); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.15rem;
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: 0 4px 16px rgba(200,164,92,0.1);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--gold-dark);
+}
+
 .card-body { flex: 1; min-width: 0; }
-.card-badge { display: inline-block; padding: 0.15rem 0.5rem; background: rgba(27, 67, 50, 0.08); color: var(--primary); border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.35rem; }
-.card-title { font-size: 0.95rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card-authors { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+
+.card-top { margin-bottom: 0.25rem; }
+
+.card-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: rgba(200, 164, 92, 0.12);
+  color: var(--gold-dark);
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 0.3rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--foreground);
+}
+
+.card-authors {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.card-meta i { font-size: 0.65rem; margin-right: 0.15rem; }
+
 .paginator { margin-top: 1.5rem; }
+
+:deep(.p-paginator) {
+  background: transparent;
+  border: none;
+}
+:deep(.p-paginator .p-paginator-page.p-highlight) {
+  background: var(--primary);
+  color: var(--gold-light);
+  border-radius: var(--radius-lg);
+}
+:deep(.p-paginator .p-paginator-page:hover) {
+  border-radius: var(--radius-lg);
+}
+
 @media (max-width: 768px) {
   .catalogue { grid-template-columns: 1fr; }
   .filters-sidebar { position: static; }
+  .grid { grid-template-columns: 1fr; }
 }
 </style>

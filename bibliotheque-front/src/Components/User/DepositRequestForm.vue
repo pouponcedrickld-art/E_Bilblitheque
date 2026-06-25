@@ -178,78 +178,137 @@ onMounted(loadFormData)
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="form">
-    <div class="form-grid">
-      <div class="field">
-        <label for="title">Titre <span class="required">*</span></label>
-        <InputText id="title" v-model="form.title" :class="['input', { 'input-invalid': submitted && !form.title.trim() }]" />
-        <small v-if="submitted && !form.title.trim()" class="error">Le titre est requis.</small>
-      </div>
-      <div class="field">
-        <label for="subtitle">Sous-titre</label>
-        <InputText id="subtitle" v-model="form.subtitle" class="input" />
-      </div>
-      <div class="field full">
-        <label for="abstract">Résumé</label>
-        <Textarea id="abstract" v-model="form.abstract" rows="4" :auto-resize="true" class="input" />
-      </div>
-      <div class="field full">
-        <label for="description">Description</label>
-        <Textarea id="description" v-model="form.description" rows="3" :auto-resize="true" class="input" />
-      </div>
-      <div class="field">
-        <label for="isbn">ISBN</label>
-        <InputText id="isbn" v-model="form.isbn" class="input" />
-      </div>
-      <div class="field">
-        <label for="publication_year">Année de publication</label>
-        <InputNumber id="publication_year" v-model="form.publication_year" :min="1000" :max="2100" class="input" />
-      </div>
-      <div class="field">
-        <label for="language">Langue</label>
-        <Select id="language" v-model="form.language" :options="languages" option-label="label" option-value="value" class="input" />
-      </div>
-      <div class="field">
-        <label for="document_type_id">Type de document</label>
-        <div class="select-with-create">
-          <Select id="document_type_id" v-model="form.document_type_id" :options="documentTypes" option-label="label" option-value="id" show-clear placeholder="Sélectionner un type" class="input" />
-          <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showDocTypeDialog = true" v-tooltip.top="'Ajouter un type de document'" />
+  <form @submit.prevent="handleSubmit" class="deposit-form">
+    <!-- I. Informations générales -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <span class="form-section-number">I</span>
+        <div>
+          <h3 class="form-section-title">Informations générales</h3>
+          <p class="form-section-desc">Titre, sous-titre et description de l'ouvrage</p>
         </div>
       </div>
-      <div class="field">
-        <label for="category_id">Catégorie</label>
-        <div class="select-with-create">
-          <Select id="category_id" v-model="form.category_id" :options="categories" option-label="name" option-value="id" show-clear placeholder="Sélectionner une catégorie" class="input" />
-          <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showCategoryDialog = true" v-tooltip.top="'Ajouter une catégorie'" />
+
+      <div class="form-grid">
+        <div class="field full">
+          <label for="title">Titre <span class="required">*</span></label>
+          <div class="input-icon">
+            <i class="pi pi-book" />
+            <InputText id="title" v-model="form.title" :class="['input', { 'input-invalid': submitted && !form.title.trim() }]" placeholder="Titre complet de l'ouvrage" />
+          </div>
+          <small v-if="submitted && !form.title.trim()" class="error">Le titre est requis.</small>
         </div>
-      </div>
-      <div class="field">
-        <label for="publisher_id">Éditeur</label>
-        <div class="select-with-create">
-          <Select id="publisher_id" v-model="form.publisher_id" :options="publishers" option-label="name" option-value="id" show-clear placeholder="Sélectionner un éditeur" class="input" />
-          <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showPublisherDialog = true" v-tooltip.top="'Ajouter un éditeur'" />
+        <div class="field full">
+          <label for="subtitle">Sous-titre</label>
+          <InputText id="subtitle" v-model="form.subtitle" class="input" placeholder="Sous-titre (optionnel)" />
         </div>
-      </div>
-      <div class="field">
-        <label for="pages">Nombre de pages</label>
-        <InputNumber id="pages" v-model="form.pages" :min="1" class="input" />
-      </div>
-      <div class="field full">
-        <label>Image de couverture</label>
-        <FileUpload mode="basic" accept="image/*" :auto="false" @select="onCoverChange" choose-label="Choisir une image" />
-        <div v-if="coverPreview" class="cover-preview">
-          <img :src="coverPreview" alt="Aperçu" />
+        <div class="field full">
+          <label for="abstract">Résumé</label>
+          <Textarea id="abstract" v-model="form.abstract" rows="3" :auto-resize="true" class="input" placeholder="Brève présentation du contenu..." />
         </div>
-      </div>
-      <div class="field full">
-        <label>Fichier PDF/DOC</label>
-        <FileUpload mode="basic" name="proposed_file" accept=".pdf,.doc,.docx,.odt,.txt" :auto="false" @select="onDocumentChange" choose-label="Choisir un fichier" />
-        <small v-if="documentFile" class="file-name">{{ documentFile.name }}</small>
+        <div class="field full">
+          <label for="description">Description</label>
+          <Textarea id="description" v-model="form.description" rows="2" :auto-resize="true" class="input" placeholder="Description détaillée (optionnelle)" />
+        </div>
       </div>
     </div>
 
-    <Button type="submit" label="Soumettre la demande" icon="pi pi-send" class="submit-btn" />
+    <!-- II. Identification -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <span class="form-section-number">II</span>
+        <div>
+          <h3 class="form-section-title">Identification</h3>
+          <p class="form-section-desc">ISBN, année, langue et classification</p>
+        </div>
+      </div>
 
+      <div class="form-grid">
+        <div class="field">
+          <label for="isbn">ISBN</label>
+          <InputText id="isbn" v-model="form.isbn" class="input" placeholder="978-2-234-56789-0" />
+        </div>
+        <div class="field">
+          <label for="publication_year">Année de publication</label>
+          <InputNumber id="publication_year" v-model="form.publication_year" :min="1000" :max="2100" class="input" placeholder="2024" />
+        </div>
+        <div class="field">
+          <label for="language">Langue</label>
+          <Select id="language" v-model="form.language" :options="languages" option-label="label" option-value="value" class="input" />
+        </div>
+        <div class="field">
+          <label for="pages">Nombre de pages</label>
+          <InputNumber id="pages" v-model="form.pages" :min="1" class="input" placeholder="Ex: 250" />
+        </div>
+      </div>
+    </div>
+
+    <!-- III. Classification -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <span class="form-section-number">III</span>
+        <div>
+          <h3 class="form-section-title">Classification</h3>
+          <p class="form-section-desc">Type, catégorie et éditeur</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="document_type_id">Type de document</label>
+          <div class="select-with-create">
+            <Select id="document_type_id" v-model="form.document_type_id" :options="documentTypes" option-label="label" option-value="id" show-clear placeholder="Sélectionner" class="input" />
+            <Button icon="pi pi-plus" class="add-btn" @click="showDocTypeDialog = true" v-tooltip.top="'Ajouter un type'" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="category_id">Catégorie</label>
+          <div class="select-with-create">
+            <Select id="category_id" v-model="form.category_id" :options="categories" option-label="name" option-value="id" show-clear placeholder="Sélectionner" class="input" />
+            <Button icon="pi pi-plus" class="add-btn" @click="showCategoryDialog = true" v-tooltip.top="'Ajouter une catégorie'" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="publisher_id">Éditeur</label>
+          <div class="select-with-create">
+            <Select id="publisher_id" v-model="form.publisher_id" :options="publishers" option-label="name" option-value="id" show-clear placeholder="Sélectionner" class="input" />
+            <Button icon="pi pi-plus" class="add-btn" @click="showPublisherDialog = true" v-tooltip.top="'Ajouter un éditeur'" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IV. Fichiers -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <span class="form-section-number">IV</span>
+        <div>
+          <h3 class="form-section-title">Fichiers</h3>
+          <p class="form-section-desc">Couverture et document PDF</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field full">
+          <label>Image de couverture</label>
+          <FileUpload mode="basic" accept="image/*" :auto="false" @select="onCoverChange" choose-label="Choisir une image" class="file-upload" />
+          <div v-if="coverPreview" class="cover-preview">
+            <img :src="coverPreview" alt="Aperçu" />
+          </div>
+        </div>
+        <div class="field full">
+          <label>Fichier PDF/DOC</label>
+          <FileUpload mode="basic" name="proposed_file" accept=".pdf,.doc,.docx,.odt,.txt" :auto="false" @select="onDocumentChange" choose-label="Choisir un fichier" class="file-upload" />
+          <small v-if="documentFile" class="file-name">{{ documentFile.name }}</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <Button type="submit" label="Soumettre la demande" icon="pi pi-send" class="submit-btn" />
+    </div>
+
+    <!-- Dialogs -->
     <Dialog v-model:visible="showCategoryDialog" header="Nouvelle catégorie" :modal="true" class="create-dialog">
       <div class="dialog-form">
         <div class="field">
@@ -258,7 +317,7 @@ onMounted(loadFormData)
         </div>
         <div class="field">
           <label for="new-category-desc">Description</label>
-          <Textarea id="new-category-desc" v-model="newCategoryDescription" rows="3" class="input" placeholder="Optionnelle" />
+          <Textarea id="new-category-desc" v-model="newCategoryDescription" rows="2" class="input" placeholder="Optionnelle" />
         </div>
       </div>
       <template #footer>
@@ -292,7 +351,7 @@ onMounted(loadFormData)
         </div>
         <div class="field">
           <label for="new-doctype-label">Libellé</label>
-          <InputText id="new-doctype-label" v-model="newDocTypeLabel" class="input" placeholder="Optionnel (sinon reprend le nom)" />
+          <InputText id="new-doctype-label" v-model="newDocTypeLabel" class="input" placeholder="Optionnel" />
         </div>
       </div>
       <template #footer>
@@ -304,75 +363,158 @@ onMounted(loadFormData)
 </template>
 
 <style scoped>
+.deposit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  transition: all 0.25s ease;
+}
+.form-section:hover {
+  border-color: var(--border-gold);
+  box-shadow: 0 2px 12px rgba(200,164,92,0.06);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-section-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  flex-shrink: 0;
+  border: 1.5px solid var(--gold-dark);
+}
+
+.form-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.form-section-desc {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-top: 0.15rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
-.field.full {
-  grid-column: 1 / -1;
-}
+.field.full { grid-column: 1 / -1; }
+
 .field label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.required {
-  color: var(--destructive);
-}
-.input {
-  width: 100%;
-}
-.input-invalid {
-  border-color: var(--destructive) !important;
-}
-.error {
   font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.required { color: var(--burgundy); }
+
+.error {
+  font-size: 0.75rem;
   color: var(--destructive);
 }
+
 .select-with-create {
   display: flex;
   gap: 0.35rem;
   align-items: center;
 }
-.select-with-create .input {
-  flex: 1;
-}
+.select-with-create .input { flex: 1; }
+
 .add-btn {
   flex-shrink: 0;
+  background: var(--primary) !important;
+  color: var(--gold-light) !important;
+  border: none !important;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg) !important;
 }
+.add-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 0 0 3px rgba(200,164,92,0.2) !important;
+}
+
 .cover-preview {
   margin-top: 0.5rem;
-  width: 120px;
-  height: 160px;
-  border-radius: 0.5rem;
+  width: 100px;
+  height: 130px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-gold);
 }
 .cover-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .file-name {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   margin-top: 0.15rem;
 }
-.submit-btn {
-  margin-top: 1rem;
-  align-self: flex-start;
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
 }
+
+.submit-btn {
+  background: var(--primary) !important;
+  border: none !important;
+  padding: 0.75rem 1.75rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-lg) !important;
+}
+.submit-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 4px 16px rgba(26,58,50,0.3) !important;
+  transform: translateY(-1px);
+}
+
 .dialog-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
+
+.file-upload {
+  --p-fileupload-border-color: var(--border-gold);
+}
+
 @media (max-width: 640px) {
   .form-grid { grid-template-columns: 1fr; }
 }

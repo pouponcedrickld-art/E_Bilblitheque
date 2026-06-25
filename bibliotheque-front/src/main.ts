@@ -1,4 +1,3 @@
-// Point d'entrée de l'application Vue
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
@@ -12,10 +11,8 @@ import router from './router'
 
 import 'primeicons/primeicons.css'
 
-// Création et configuration de l'instance Vue
 const app = createApp(App)
 
-// Enregistrement des plugins
 app.use(createPinia())
 app.use(router)
 app.use(PrimeVue, {
@@ -30,5 +27,4 @@ app.use(ToastService)
 app.use(ConfirmationService)
 app.directive('tooltip', Tooltip)
 
-// Montage de l'application dans le DOM
 app.mount('#app')

@@ -29,7 +29,11 @@ function update(key: keyof Filters, value: any) {
 
 <template>
   <div class="catalog-filters">
-    <h3 class="filter-title">Filtres</h3>
+    <div class="filters-header">
+      <i class="pi pi-filter" />
+      <span>Filtres</span>
+    </div>
+    <hr class="gold-rule" />
 
     <div class="filter-group">
       <label>Catégorie</label>
@@ -73,12 +77,15 @@ function update(key: keyof Filters, value: any) {
 
     <div class="filter-group">
       <label>Mot-clé</label>
-      <InputText
-        :modelValue="modelValue.keyword"
-        @update:modelValue="update('keyword', $event)"
-        placeholder="Rechercher par mot-clé"
-        class="filter-control"
-      />
+      <div class="input-icon">
+        <i class="pi pi-search" />
+        <InputText
+          :modelValue="modelValue.keyword"
+          @update:modelValue="update('keyword', $event)"
+          placeholder="Rechercher par mot-clé"
+          class="filter-control input"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -87,27 +94,49 @@ function update(key: keyof Filters, value: any) {
 .catalog-filters {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
-.filter-title {
+
+.filters-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-serif);
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
+  color: var(--foreground);
 }
+.filters-header i {
+  color: var(--gold-dark);
+  font-size: 0.9rem;
+}
+
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
+
 .filter-group label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
+
 .filter-control {
   width: 100%;
+}
+
+:deep(.p-select) {
+  border-radius: var(--radius-lg);
+  border-color: var(--border);
+  background: var(--input-background);
+}
+
+:deep(.p-select:focus-within) {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow);
 }
 </style>

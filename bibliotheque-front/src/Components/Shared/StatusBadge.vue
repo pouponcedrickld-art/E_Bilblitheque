@@ -1,4 +1,3 @@
-// Badge de statut avec label et couleur dynamiques selon la valeur
 <script setup lang="ts">
 import { computed } from 'vue'
 
@@ -19,46 +18,54 @@ const labels: Record<string, string> = {
   inactive: 'Inactif',
 }
 
-// Couleur du badge selon le statut
-const severity = computed(() => {
-  const map: Record<string, string> = {
-    published: 'success',
-    active: 'success',
-    pending: 'warn',
-    pending_validation: 'warn',
-    approved_by_manager: 'info',
-    second_review: 'info',
-    rejected: 'danger',
-    rejected_by_manager: 'danger',
-    suspended: 'danger',
-    inactive: 'danger',
-    draft: 'contrast',
-    archived: 'secondary',
+const config = computed(() => {
+  const map: Record<string, { bg: string; text: string; dot: string }> = {
+    published:       { bg: '#F0FDF4', text: '#166534', dot: '#16A34A' },
+    active:          { bg: '#F0FDF4', text: '#166534', dot: '#16A34A' },
+    pending:         { bg: '#FFF8ED', text: '#92400E', dot: '#F59E0B' },
+    pending_validation: { bg: '#FFF8ED', text: '#92400E', dot: '#F59E0B' },
+    approved_by_manager: { bg: '#F5F0E8', text: '#8B6F47', dot: '#C8A45C' },
+    second_review:   { bg: '#F5F0E8', text: '#6B2D3E', dot: '#C8A45C' },
+    rejected:        { bg: '#FDF2F2', text: '#A83232', dot: '#DC2626' },
+    rejected_by_manager: { bg: '#FDF2F2', text: '#A83232', dot: '#DC2626' },
+    suspended:       { bg: '#FDF2F2', text: '#A83232', dot: '#DC2626' },
+    inactive:        { bg: '#EDE8DF', text: '#8B8178', dot: '#8B8178' },
+    draft:           { bg: '#EDE8DF', text: '#8B8178', dot: '#8B8178' },
+    archived:        { bg: '#EDE8DF', text: '#8B8178', dot: '#8B8178' },
   }
-  return map[props.status] || 'contrast'
+  return map[props.status] || map.pending
 })
 
-// Libellé traduit du statut
 const label = computed(() => labels[props.status] || props.status)
 </script>
 
 <template>
-  <span :class="'badge badge-' + severity">{{ label }}</span>
+  <span
+    class="seal-badge"
+    :style="{ background: config.bg, color: config.text, borderColor: config.dot + '40' }"
+  >
+    <span class="seal-dot" :style="{ background: config.dot }" />
+    {{ label }}
+  </span>
 </template>
 
 <style scoped>
-.badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
+.seal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  white-space: nowrap;
+  border: 1px solid;
+  position: relative;
 }
-.badge-success { background: #dcfce7; color: #166534; }
-.badge-warn { background: #fef3c7; color: #92400e; }
-.badge-info { background: #e0f2fe; color: #0369a1; }
-.badge-danger { background: #fce4ec; color: #c62828; }
-.badge-contrast { background: var(--muted); color: var(--foreground); }
-.badge-secondary { background: var(--muted); color: var(--muted-foreground); }
+
+.seal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 </style>

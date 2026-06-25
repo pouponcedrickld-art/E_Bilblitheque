@@ -1,11 +1,9 @@
 <script setup lang="ts">
-// Importations Vue, routeur, services et types
 import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import type { Reference } from '@/types'
 
-// Routeur et données réactives
 const router = useRouter()
 const featured = ref<Reference[]>([])
 const references = ref<Reference[]>([])
@@ -17,7 +15,6 @@ const category = ref('Tout')
 const animatingCount = ref(0)
 const isFiltering = ref(false)
 
-// Charge les données de la page d'accueil
 async function fetchData() {
   loading.value = true
   try {
@@ -30,7 +27,6 @@ async function fetchData() {
     references.value = refsRes.data?.data ?? refsRes.data ?? []
     stats.value = statsRes.data ?? stats.value
 
-    // Extract unique categories
     const cats = new Set<string>()
     references.value.forEach(r => {
       if (r.category?.name) cats.add(r.category.name)
@@ -44,7 +40,6 @@ async function fetchData() {
   }
 }
 
-// Filtre les références par catégorie et recherche textuelle
 const filtered = computed(() => {
   let list = references.value
   if (category.value !== 'Tout') {
@@ -61,16 +56,12 @@ const filtered = computed(() => {
   return list
 })
 
-// Animation du compteur à chaque changement de filtre
-watch(filtered, (val) => {
-  animateCounter(val.length)
-})
+watch(filtered, (val) => { animateCounter(val.length) })
 
 function animateCounter(target: number) {
   const start = animatingCount.value
   const duration = 400
   const startTime = performance.now()
-
   function tick(now: number) {
     const elapsed = now - startTime
     const progress = Math.min(elapsed / duration, 1)
@@ -78,59 +69,52 @@ function animateCounter(target: number) {
     animatingCount.value = Math.round(start + (target - start) * eased)
     if (progress < 1) requestAnimationFrame(tick)
   }
-
   requestAnimationFrame(tick)
 }
 
-// Sélectionne une catégorie : filtre + scroll fluide vers le catalogue
 function selectCategory(cat: string) {
   if (cat === category.value) return
   isFiltering.value = true
   category.value = cat
-
   nextTick(() => {
     const el = document.getElementById('catalog-section')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     setTimeout(() => { isFiltering.value = false }, 600)
   })
 }
 
-// Navigue vers une route donnée
-function go(path: string) {
-  router.push(path)
-}
+function go(path: string) { router.push(path) }
+function viewDetail(id: number) { router.push(`/references/${id}`) }
 
-// Navigue vers le détail d'une référence
-function viewDetail(id: number) {
-  router.push(`/references/${id}`)
-}
-
-// Charge les données au montage du composant
 onMounted(fetchData)
 </script>
 
 <template>
-  <div style="background: var(--background); min-height: 100vh">
-    <!-- Hero -->
+  <div class="home">
+    <!-- ─── Hero ─── -->
     <section class="hero">
-      <div class="hero-bg" />
+      <div class="hero-pattern" />
+      <div class="hero-overlay" />
       <div class="hero-content">
-        <div class="hero-badge">
-          <span class="hero-badge-dot" />
-          <span class="hero-badge-text">{{ loading ? 'Chargement...' : `${stats.total_references} références disponibles` }}</span>
+        <div class="hero-seal">
+          <span class="hero-seal-dot" />
+          <span class="hero-seal-text">
+            {{ loading ? 'Chargement...' : `${stats.total_references} références disponibles` }}
+          </span>
         </div>
+
         <h1 class="hero-title">
-          La connaissance,<br />accessible à tous
+          La connaissance,<br />
+          <span class="hero-title-accent">accessible à tous</span>
         </h1>
+
         <p class="hero-desc">
-          Explorez des milliers d'ouvrages académiques, thèses, manuels et articles scientifiques depuis n'importe quel appareil.
+          Explorez des milliers d'ouvrages académiques, thèses, manuels et articles scientifiques
+          depuis n'importe quel appareil.
         </p>
 
-        <!-- Search -->
         <div class="hero-search">
-          <i class="pi pi-search" style="font-size: 1rem; color: var(--muted-foreground); flex-shrink: 0; margin-left: 1.25rem"></i>
+          <i class="pi pi-search search-icon" />
           <input
             v-model="query"
             placeholder="Titre, auteur, mots-clés..."
@@ -141,36 +125,35 @@ onMounted(fetchData)
           </button>
         </div>
 
-        <!-- Key numbers -->
         <div class="hero-numbers">
           <div class="hero-number-item">
-            <p class="hero-number-value">{{ stats.total_references || '0' }}</p>
-            <p class="hero-number-label">Références</p>
+            <span class="hero-number-value">{{ stats.total_references || '0' }}</span>
+            <span class="hero-number-label">Références</span>
           </div>
           <div class="hero-number-item">
-            <p class="hero-number-value">{{ stats.total_categories || '0' }}</p>
-            <p class="hero-number-label">Catégories</p>
+            <span class="hero-number-value">{{ stats.total_categories || '0' }}</span>
+            <span class="hero-number-label">Catégories</span>
           </div>
           <div class="hero-number-item">
-            <p class="hero-number-value">{{ (stats.total_authors) || '0' }}</p>
-            <p class="hero-number-label">Auteurs</p>
+            <span class="hero-number-value">{{ stats.total_authors || '0' }}</span>
+            <span class="hero-number-label">Auteurs</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--muted-foreground)"></i>
-      <p style="margin-top: 0.75rem; color: var(--muted-foreground); font-size: 0.875rem;">Chargement des références...</p>
+    <!-- ─── Loading ─── -->
+    <div v-if="loading" class="loading-spinner">
+      <i class="pi pi-spin pi-spinner" />
+      <p>Chargement des références...</p>
     </div>
 
     <template v-else>
-      <!-- Category pills -->
+      <!-- ─── Category pills ─── -->
       <div class="category-bar">
         <div class="category-bar-inner">
           <button
-            :class="['category-pill', { 'category-pill-active': category === 'Tout' }]"
+            :class="['pill', { 'pill-active': category === 'Tout' }]"
             @click="selectCategory('Tout')"
           >
             Tout
@@ -178,58 +161,71 @@ onMounted(fetchData)
           <button
             v-for="cat in categories"
             :key="cat"
-            :class="['category-pill', { 'category-pill-active': category === cat }]"
+            :class="['pill', { 'pill-active': category === cat }]"
             @click="selectCategory(cat)"
           >
             {{ cat }}
           </button>
           <Transition name="pill-fade">
-            <span
-              v-if="category !== 'Tout'"
-              class="category-active-badge"
-            >
-              <span class="category-active-count">{{ animatingCount }}</span>
-              résultat{{ animatingCount !== 1 ? 's' : '' }}
+            <span v-if="category !== 'Tout'" class="pill-badge">
+              {{ animatingCount }} résultat{{ animatingCount !== 1 ? 's' : '' }}
             </span>
           </Transition>
         </div>
       </div>
 
-      <!-- Stats section -->
-      <div class="content-section">
+      <!-- ─── Stats section ─── -->
+      <section class="section">
         <div class="section-header">
           <h2 class="section-title">La bibliothèque en chiffres</h2>
+          <hr class="gold-rule-left" />
         </div>
         <div class="stats-grid">
           <div class="stat-card">
-            <p class="stat-card-label">Références</p>
-            <p class="stat-card-value">{{ stats.total_references }}</p>
+            <div class="stat-icon" style="background: rgba(200,164,92,0.12)">
+              <i class="pi pi-book" style="color:var(--gold-dark)" />
+            </div>
+            <span class="stat-value">{{ stats.total_references }}</span>
+            <span class="stat-label">Références</span>
           </div>
           <div class="stat-card">
-            <p class="stat-card-label">Catégories</p>
-            <p class="stat-card-value">{{ stats.total_categories }}</p>
+            <div class="stat-icon" style="background: rgba(200,164,92,0.12)">
+              <i class="pi pi-tags" style="color:var(--gold-dark)" />
+            </div>
+            <span class="stat-value">{{ stats.total_categories }}</span>
+            <span class="stat-label">Catégories</span>
           </div>
           <div class="stat-card">
-            <p class="stat-card-label">Auteurs</p>
-            <p class="stat-card-value">{{ stats.total_authors }}</p>
+            <div class="stat-icon" style="background: rgba(200,164,92,0.12)">
+              <i class="pi pi-pencil" style="color:var(--gold-dark)" />
+            </div>
+            <span class="stat-value">{{ stats.total_authors }}</span>
+            <span class="stat-label">Auteurs</span>
           </div>
           <div class="stat-card">
-            <p class="stat-card-label">Téléchargements</p>
-            <p class="stat-card-value">{{ stats.total_downloads }}</p>
+            <div class="stat-icon" style="background: rgba(200,164,92,0.12)">
+              <i class="pi pi-download" style="color:var(--gold-dark)" />
+            </div>
+            <span class="stat-value">{{ stats.total_downloads }}</span>
+            <span class="stat-label">Téléchargements</span>
           </div>
           <div class="stat-card">
-            <p class="stat-card-label">Consultations</p>
-            <p class="stat-card-value">{{ stats.total_views }}</p>
+            <div class="stat-icon" style="background: rgba(200,164,92,0.12)">
+              <i class="pi pi-eye" style="color:var(--gold-dark)" />
+            </div>
+            <span class="stat-value">{{ stats.total_views }}</span>
+            <span class="stat-label">Consultations</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Featured -->
-      <div v-if="featured.length" class="content-section" style="padding-bottom: 0">
+      <!-- ─── Featured ─── -->
+      <section v-if="featured.length" class="section" style="padding-bottom:0">
         <div class="section-header">
           <h2 class="section-title">À la une</h2>
-          <button @click="go('/catalogue')" class="section-action">Voir tout</button>
+          <button @click="go('/catalogue')" class="section-action">Voir tout →</button>
         </div>
+        <hr class="gold-rule-left" />
         <div class="featured-grid">
           <div
             v-for="ref in featured"
@@ -238,64 +234,54 @@ onMounted(fetchData)
             @click="viewDetail(ref.id)"
           >
             <div class="featured-card-img">
-              <img
-                v-if="ref.cover_url"
-                :src="ref.cover_url"
-                :alt="ref.title"
-                class="featured-card-cover"
-              />
+              <img v-if="ref.cover_url" :src="ref.cover_url" :alt="ref.title" class="featured-card-cover" />
               <div v-else class="featured-card-placeholder">
-                <i class="pi pi-book" style="font-size: 1.5rem; color: var(--primary)"></i>
+                <i class="pi pi-book" />
               </div>
+              <span class="featured-card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? 'Document' }}</span>
             </div>
             <div class="featured-card-body">
-              <span class="featured-card-type">{{ ref.document_type?.label ?? ref.document_type?.name ?? ref.document_type }}</span>
               <h3 class="featured-card-title">{{ ref.title }}</h3>
               <p v-if="ref.authors?.length" class="featured-card-author">
                 {{ ref.authors.map(a => a.full_name).join(', ') }}
               </p>
               <div class="featured-card-meta">
-                <span v-if="ref.publication_year">{{ ref.publication_year }}</span>
-                <span v-if="ref.download_count !== undefined">{{ ref.download_count }} téléchargements</span>
+                <span v-if="ref.publication_year">
+                  <i class="pi pi-calendar" /> {{ ref.publication_year }}
+                </span>
+                <span v-if="ref.download_count !== undefined">
+                  <i class="pi pi-download" /> {{ ref.download_count }}
+                </span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Catalog -->
-      <div id="catalog-section" class="content-section">
+      <!-- ─── Catalog ─── -->
+      <section id="catalog-section" class="section">
         <div class="section-header">
           <h2 class="section-title">
             Toutes les références
             <Transition name="count-pop">
-              <span
-                v-if="category !== 'Tout'"
-                :key="category"
-                class="catalog-section-count"
-              >
-                {{ animatingCount }}
-              </span>
+              <span v-if="category !== 'Tout'" :key="category" class="count-badge">{{ animatingCount }}</span>
             </Transition>
           </h2>
-          <button @click="go('/catalogue')" class="section-action">Voir tout</button>
+          <button @click="go('/catalogue')" class="section-action">Voir tout →</button>
         </div>
-        <p class="catalog-count">
-          <span class="font-semibold" style="color: var(--foreground)">{{ filtered.length }}</span>
+        <hr class="gold-rule-left" />
+
+        <div class="catalog-count">
+          <span class="count-num">{{ filtered.length }}</span>
           référence{{ filtered.length !== 1 ? 's' : '' }}
-        </p>
+        </div>
 
         <div v-if="filtered.length === 0" class="empty-state">
-          <i class="pi pi-book" style="font-size: 2.5rem; color: var(--muted-foreground); opacity: 0.4"></i>
-          <p style="color: var(--muted-foreground); font-size: 0.875rem; margin-top: 0.75rem">Aucune référence trouvée.</p>
+          <i class="pi pi-book-open" />
+          <p>Aucune référence trouvée.</p>
         </div>
 
-        <TransitionGroup
-          v-else
-          name="card"
-          tag="div"
-          class="catalog-grid"
-        >
+        <TransitionGroup v-else name="card" tag="div" class="catalog-grid">
           <div
             v-for="ref in filtered"
             :key="ref.id"
@@ -303,14 +289,9 @@ onMounted(fetchData)
             @click="viewDetail(ref.id)"
           >
             <div class="catalog-card-img">
-              <img
-                v-if="ref.cover_url"
-                :src="ref.cover_url"
-                :alt="ref.title"
-                class="catalog-card-cover"
-              />
+              <img v-if="ref.cover_url" :src="ref.cover_url" :alt="ref.title" class="catalog-card-cover" />
               <div v-else class="catalog-card-placeholder">
-                <i class="pi pi-book" style="font-size: 1.5rem; color: var(--primary)"></i>
+                <i class="pi pi-book" />
               </div>
             </div>
             <div class="catalog-card-body">
@@ -318,54 +299,66 @@ onMounted(fetchData)
               <h3 class="catalog-card-title">{{ ref.title }}</h3>
               <p class="catalog-card-author">{{ ref.authors?.length ? ref.authors[0].full_name : '' }}</p>
               <div class="catalog-card-stats">
-                <span class="flex items-center gap-1">
-                  <i class="pi pi-eye" style="font-size: 0.65rem"></i>
-                  {{ ref.view_count || 0 }}
-                </span>
-                <span class="flex items-center gap-1">
-                  <i class="pi pi-download" style="font-size: 0.65rem"></i>
-                  {{ ref.download_count || 0 }}
-                </span>
+                <span><i class="pi pi-eye" /> {{ ref.view_count || 0 }}</span>
+                <span><i class="pi pi-download" /> {{ ref.download_count || 0 }}</span>
               </div>
             </div>
           </div>
         </TransitionGroup>
-      </div>
+      </section>
 
-      <!-- CTA -->
-      <div class="cta-section">
+      <!-- ─── CTA ─── -->
+      <section class="cta-section">
         <div class="cta-card">
-          <i class="pi pi-book" style="font-size: 2rem; color: rgba(255,255,255,0.6)"></i>
+          <div class="cta-icon">
+            <i class="pi pi-book" />
+          </div>
           <h3 class="cta-title">Accédez à l'intégralité des ressources</h3>
           <p class="cta-desc">
-            Créez un compte gratuit pour lire en ligne, télécharger et soumettre vos propres références documentaires.
+            Créez un compte gratuit pour lire en ligne, télécharger et soumettre
+            vos propres références documentaires.
           </p>
           <button @click="go('/register')" class="cta-btn">
             Créer un compte gratuit
           </button>
         </div>
-      </div>
+      </section>
     </template>
   </div>
 </template>
 
 <style scoped>
+.home {
+  background: var(--bg);
+  min-height: 100vh;
+}
+
 /* ─── Hero ─── */
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(20, 48, 38, 0.6) 100%),
-    url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1600&h=700&fit=crop&auto=format');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background: linear-gradient(150deg, #0F2419 0%, #1A3A32 45%, #3D2B1F 100%);
 }
 
-.hero-bg {
+.hero-pattern {
   position: absolute;
   inset: 0;
-  opacity: 0; /* Désactiver le bg secondaire */
+  opacity: 0.04;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(200,164,92,0.3) 40px, rgba(200,164,92,0.3) 41px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(200,164,92,0.3) 40px, rgba(200,164,92,0.3) 41px);
+  pointer-events: none;
 }
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(200,164,92,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 50%, rgba(26,58,50,0.4) 0%, transparent 60%);
+  pointer-events: none;
+}
+
 .hero-content {
   position: relative;
   max-width: 1024px;
@@ -373,36 +366,34 @@ onMounted(fetchData)
   padding: 4rem 1.5rem;
   text-align: center;
 }
-
 @media (min-width: 640px) {
-  .hero-content {
-    padding: 6rem 1.5rem;
-  }
+  .hero-content { padding: 6rem 1.5rem; }
 }
 
-.hero-badge {
+.hero-seal {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--surface, rgba(0,0,0,0.02));
-  border: 1px solid var(--border, rgba(0,0,0,0.08));
+  background: rgba(200, 164, 92, 0.12);
+  border: 1px solid rgba(200, 164, 92, 0.25);
   border-radius: 999px;
   padding: 0.375rem 1rem;
   margin-bottom: 1.5rem;
 }
 
-.hero-badge-dot {
-  width: 8px;
-  height: 8px;
-  background: #4ade80;
+.hero-seal-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--gold-light);
   border-radius: 50%;
+  box-shadow: 0 0 6px rgba(200,164,92,0.5);
 }
 
-.hero-badge-text {
-  /* color: var(--muted-foreground); */
-  color:aliceblue;
+.hero-seal-text {
+  color: var(--gold-light);
   font-size: 0.75rem;
   font-weight: 500;
+  opacity: 0.9;
 }
 
 .hero-title {
@@ -412,8 +403,12 @@ onMounted(fetchData)
   font-size: clamp(2rem, 6vw, 4rem);
 }
 
+.hero-title-accent {
+  color: var(--gold-light);
+}
+
 .hero-desc {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 2rem;
   max-width: 560px;
   margin-left: auto;
@@ -422,22 +417,27 @@ onMounted(fetchData)
   font-size: 0.875rem;
   padding: 0 1rem;
 }
-
 @media (min-width: 640px) {
-  .hero-desc {
-    font-size: 1rem;
-  }
+  .hero-desc { font-size: 1rem; }
 }
 
 .hero-search {
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--bg-elevated);
   border-radius: var(--radius-xl);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   max-width: 560px;
   margin: 0 auto;
+  border: 1px solid rgba(200, 164, 92, 0.2);
+}
+
+.search-icon {
+  font-size: 1rem;
+  color: var(--gold-dark);
+  flex-shrink: 0;
+  margin-left: 1.25rem;
 }
 
 .hero-search-input {
@@ -450,22 +450,19 @@ onMounted(fetchData)
   color: var(--foreground);
   font-family: var(--font-sans);
 }
-
-@media (min-width: 640px) {
-  .hero-search-input {
-    padding: 1rem 0.75rem;
-    font-size: 1rem;
-  }
-}
-
 .hero-search-input::placeholder {
   color: var(--muted-foreground);
+  opacity: 0.6;
+  font-style: italic;
+}
+@media (min-width: 640px) {
+  .hero-search-input { padding: 1rem 0.75rem; font-size: 1rem; }
 }
 
 .hero-search-btn {
   padding: 0.75rem 1.25rem;
   margin: 0.25rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: var(--primary);
   color: white;
@@ -473,17 +470,14 @@ onMounted(fetchData)
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
-
-@media (min-width: 640px) {
-  .hero-search-btn {
-    padding: 0.875rem 1.5rem;
-  }
-}
-
 .hero-search-btn:hover {
-  opacity: 0.9;
+  background: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(200,164,92,0.2);
+}
+@media (min-width: 640px) {
+  .hero-search-btn { padding: 0.875rem 1.5rem; }
 }
 
 .hero-numbers {
@@ -493,11 +487,8 @@ onMounted(fetchData)
   gap: 2rem;
   margin-top: 2.5rem;
 }
-
 @media (min-width: 640px) {
-  .hero-numbers {
-    gap: 4rem;
-  }
+  .hero-numbers { gap: 4rem; }
 }
 
 .hero-number-item {
@@ -505,10 +496,11 @@ onMounted(fetchData)
 }
 
 .hero-number-value {
-  color: white;
+  color: var(--gold-light);
   font-weight: 700;
   font-family: var(--font-serif);
   font-size: clamp(1.5rem, 4vw, 2rem);
+  display: block;
 }
 
 .hero-number-label {
@@ -516,20 +508,8 @@ onMounted(fetchData)
   font-size: 0.75rem;
   margin-top: 0.125rem;
 }
-
 @media (min-width: 640px) {
-  .hero-number-label {
-    font-size: 0.875rem;
-  }
-}
-
-/* ─── Loading ─── */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 1rem;
+  .hero-number-label { font-size: 0.875rem; }
 }
 
 /* ─── Category pills ─── */
@@ -545,41 +525,49 @@ onMounted(fetchData)
   gap: 0.5rem;
   overflow-x: auto;
   padding-bottom: 0.25rem;
-}
-
-.category-bar-inner {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .category-bar-inner::-webkit-scrollbar { display: none; }
 
-.category-pill {
+.pill {
   padding: 0.5rem 1rem;
   border-radius: 999px;
   font-size: 0.8125rem;
   font-weight: 500;
   white-space: nowrap;
   border: 1px solid var(--border);
-  background: white;
+  background: var(--bg-card);
   color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
 }
+.pill:hover { color: var(--foreground); border-color: var(--gold); }
 
-.category-pill:hover {
-  color: var(--foreground);
-}
-
-.category-pill-active {
+.pill-active {
   background: var(--primary);
-  color: white;
+  color: var(--gold-light);
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.25);
+  box-shadow: 0 2px 8px rgba(26, 58, 50, 0.3);
 }
 
-/* ─── Content sections ─── */
-.content-section {
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--gold);
+  color: var(--primary-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── Sections ─── */
+.section {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
@@ -587,15 +575,14 @@ onMounted(fetchData)
 
 .section-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .section-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--foreground);
 }
 
 .section-action {
@@ -603,99 +590,97 @@ onMounted(fetchData)
   border: none;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--primary);
+  color: var(--gold-dark);
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: color 0.2s;
   padding: 0;
+  font-family: var(--font-sans);
 }
+.section-action:hover { color: var(--gold); }
 
-.section-action:hover {
-  opacity: 0.8;
-}
-
-/* ─── Stats grid ─── */
+/* ─── Stats ─── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
+  margin-top: 1rem;
 }
-
-@media (min-width: 640px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
+@media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(5, 1fr); } }
 
 .stat-card {
-  background: white;
+  background: var(--bg-card);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   padding: 1.25rem;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+.stat-card:hover {
+  border-color: var(--border-gold);
+  box-shadow: 0 4px 16px rgba(200,164,92,0.1);
+  transform: translateY(-2px);
 }
 
-.stat-card-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.375rem;
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
 }
+.stat-icon i { font-size: 1.1rem; }
 
-.stat-card-value {
+.stat-value {
+  display: block;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--foreground);
   font-family: var(--font-serif);
 }
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+  display: block;
+}
 
-/* ─── Featured grid ─── */
+/* ─── Featured ─── */
 .featured-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.75rem;
+  margin-top: 0.5rem;
 }
-
-@media (min-width: 640px) {
-  .featured-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .featured-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+@media (min-width: 640px) { .featured-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .featured-grid { grid-template-columns: repeat(3, 1fr); } }
 
 .featured-card {
-  background: white;
+  background: var(--bg-card);
   border-radius: var(--radius-xl);
-  border: 2px solid var(--primary);
+  border: 1.5px solid var(--border-gold);
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
 }
-
 .featured-card:hover {
-  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(200, 164, 92, 0.15);
+  transform: translateY(-3px);
+  border-color: var(--gold);
 }
 
 .featured-card-img {
   aspect-ratio: 16/9;
   background: var(--muted);
   overflow: hidden;
+  position: relative;
 }
 
 .featured-card-cover {
@@ -704,10 +689,7 @@ onMounted(fetchData)
   object-fit: cover;
   transition: transform 0.3s;
 }
-
-.featured-card:hover .featured-card-cover {
-  transform: scale(1.05);
-}
+.featured-card:hover .featured-card-cover { transform: scale(1.05); }
 
 .featured-card-placeholder {
   width: 100%;
@@ -717,25 +699,32 @@ onMounted(fetchData)
   justify-content: center;
   background: var(--muted);
 }
-
-.featured-card-body {
-  padding: 1rem;
-  flex: 1;
+.featured-card-placeholder i {
+  font-size: 2rem;
+  color: var(--gold-dark);
+  opacity: 0.4;
 }
 
-.featured-card-type {
-  font-size: 0.6875rem;
+.featured-card-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  font-size: 0.625rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--gold-light);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
+
+.featured-card-body { padding: 1rem; flex: 1; }
 
 .featured-card-title {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
-  margin-top: 0.25rem;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -759,21 +748,15 @@ onMounted(fetchData)
   color: var(--muted-foreground);
   margin-top: 0.5rem;
 }
+.featured-card-meta i { font-size: 0.65rem; margin-right: 0.2rem; }
 
 /* ─── Catalog grid ─── */
 .catalog-count {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--muted-foreground);
-  margin-bottom: 0.75rem;
+  margin: 0.75rem 0;
 }
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-}
+.count-num { font-weight: 700; color: var(--foreground); }
 
 .catalog-grid {
   display: grid;
@@ -781,43 +764,23 @@ onMounted(fetchData)
   gap: 0.75rem;
   position: relative;
 }
-
-@media (min-width: 640px) {
-  .catalog-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 768px) {
-  .catalog-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .catalog-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-@media (min-width: 1280px) {
-  .catalog-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
+@media (min-width: 640px) { .catalog-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) { .catalog-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1024px) { .catalog-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 1280px) { .catalog-grid { grid-template-columns: repeat(6, 1fr); } }
 
 .catalog-card {
-  background: white;
+  background: var(--bg-card);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: all 0.25s ease;
 }
-
 .catalog-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(44, 36, 32, 0.08);
+  transform: translateY(-3px);
+  border-color: var(--border-gold);
 }
 
 .catalog-card-img {
@@ -832,10 +795,7 @@ onMounted(fetchData)
   object-fit: cover;
   transition: transform 0.3s;
 }
-
-.catalog-card:hover .catalog-card-cover {
-  transform: scale(1.05);
-}
+.catalog-card:hover .catalog-card-cover { transform: scale(1.05); }
 
 .catalog-card-placeholder {
   width: 100%;
@@ -845,10 +805,13 @@ onMounted(fetchData)
   justify-content: center;
   background: var(--muted);
 }
-
-.catalog-card-body {
-  padding: 0.75rem;
+.catalog-card-placeholder i {
+  font-size: 1.5rem;
+  color: var(--gold-dark);
+  opacity: 0.3;
 }
+
+.catalog-card-body { padding: 0.75rem; }
 
 .catalog-card-type {
   font-size: 0.625rem;
@@ -887,6 +850,7 @@ onMounted(fetchData)
   color: var(--muted-foreground);
   margin-top: 0.5rem;
 }
+.catalog-card-stats i { font-size: 0.6rem; margin-right: 0.15rem; }
 
 /* ─── CTA ─── */
 .cta-section {
@@ -897,33 +861,45 @@ onMounted(fetchData)
 
 .cta-card {
   border-radius: var(--radius-xl);
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem;
   text-align: center;
-  background: linear-gradient(135deg, #143026 0%, #1B4332 100%);
+  background: linear-gradient(135deg, #0F2419 0%, #1A3A32 50%, #3D2B1F 100%);
+  border: 1px solid rgba(200, 164, 92, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+.cta-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+@media (min-width: 640px) {
+  .cta-card { padding: 3.5rem 2rem; }
 }
 
-@media (min-width: 640px) {
-  .cta-card {
-    padding: 3rem 2rem;
-  }
+.cta-icon { margin-bottom: 1rem; }
+.cta-icon i {
+  font-size: 2rem;
+  color: var(--gold-dark);
+  opacity: 0.6;
 }
 
 .cta-title {
-  color: white;
+  color: var(--gold-light);
   font-size: 1.25rem;
   font-weight: 600;
-  margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
-
 @media (min-width: 640px) {
-  .cta-title {
-    font-size: 1.5rem;
-  }
+  .cta-title { font-size: 1.5rem; }
 }
 
 .cta-desc {
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 0.875rem;
   max-width: 480px;
   margin: 0 auto 1.5rem;
@@ -931,71 +907,24 @@ onMounted(fetchData)
 }
 
 .cta-btn {
-  padding: 0.75rem 1.75rem;
-  background: white;
-  color: var(--primary);
+  padding: 0.8rem 2rem;
+  background: var(--gold);
+  color: var(--primary-dark);
   border: none;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
-
 .cta-btn:hover {
-  opacity: 0.9;
+  background: var(--gold-light);
+  box-shadow: 0 4px 16px rgba(200, 164, 92, 0.3);
+  transform: translateY(-1px);
 }
 
-/* ─── Badge de catégorie active ─── */
-.category-active-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--primary);
-  color: white;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.category-active-count {
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-/* ─── Badge animé compteur ─── */
-.count-pop-enter-active { animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.count-pop-leave-active { animation: popIn 0.2s ease-in reverse; }
-@keyframes popIn {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* ─── Animations TransitionGroup cartes ─── */
-.card-enter-active {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.card-leave-active {
-  transition: all 0.25s ease-in;
-  position: absolute;
-}
-.card-enter-from {
-  opacity: 0;
-  transform: translateY(24px) scale(0.95);
-}
-.card-leave-to {
-  opacity: 0;
-  transform: translateY(-12px) scale(0.95);
-}
-.card-move {
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* ─── Section header count badge ─── */
-.catalog-section-count {
+/* ─── Count badge ─── */
+.count-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1006,20 +935,28 @@ onMounted(fetchData)
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
-  background: var(--primary);
-  color: white;
+  font-family: var(--font-sans);
+  background: var(--gold);
+  color: var(--primary-dark);
   vertical-align: middle;
 }
 
-/* ─── Pill fade transition ─── */
+/* ─── Animations ─── */
+.card-enter-active { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.card-leave-active { transition: all 0.25s ease-in; position: absolute; }
+.card-enter-from { opacity: 0; transform: translateY(24px) scale(0.95); }
+.card-leave-to { opacity: 0; transform: translateY(-12px) scale(0.95); }
+.card-move { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.count-pop-enter-active { animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.count-pop-leave-active { animation: popIn 0.2s ease-in reverse; }
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .pill-fade-enter-active { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .pill-fade-leave-active { transition: all 0.2s ease; }
 .pill-fade-enter-from { opacity: 0; transform: scale(0.8) translateX(-10px); }
 .pill-fade-leave-to { opacity: 0; transform: scale(0.8); }
-
-/* ─── Utilities ─── */
-.flex { display: flex; }
-.items-center { align-items: center; }
-.gap-1 { gap: 0.25rem; }
-.font-semibold { font-weight: 600; }
 </style>

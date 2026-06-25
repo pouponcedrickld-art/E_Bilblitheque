@@ -1,10 +1,4 @@
-// Layout principal de l'application pour utilisateurs authentifiés
 <script setup lang="ts">
-/**
- * AppLayout – Layout principal de l'application pour les utilisateurs connectés.
- * Affiche la barre de navigation supérieure, le tiroir mobile, le menu utilisateur
- * et la barre d'onglets inférieure (mobile).
- */
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -14,31 +8,16 @@ const authStore = useAuthStore()
 const router = useRouter()
 const confirm = useConfirm()
 
-/** État du menu déroulant utilisateur (ouvert/fermé) */
 const userMenuOpen = ref(false)
-
-/** État du tiroir de navigation mobile (ouvert/fermé) */
 const drawerOpen = ref(false)
-
-/** État de la barre de recherche extensible */
 const searchOpen = ref(false)
-
-/** Référence au menu utilisateur pour la détection de clic à l'extérieur */
 const userMenuRef = ref<HTMLElement | null>(null)
 
-/**
- * Navigue vers une route et ferme le tiroir mobile.
- */
-// Navigue vers une route et ferme le tiroir mobile
 function go(path: string) {
   drawerOpen.value = false
   router.push(path)
 }
 
-/**
- * Affiche une boîte de dialogue de confirmation avant de déconnecter l'utilisateur.
- */
-// Affiche une confirmation avant déconnexion
 function confirmLogout() {
   confirm.require({
     message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
@@ -54,7 +33,6 @@ function confirmLogout() {
   })
 }
 
-/** Ferme le menu utilisateur lors d'un clic à l'extérieur */
 onMounted(() => {
   function handleClick(e: MouseEvent) {
     if (userMenuRef.value && !userMenuRef.value.contains(e.target as Node)) {
@@ -65,14 +43,12 @@ onMounted(() => {
   onUnmounted(() => document.removeEventListener('mousedown', handleClick))
 })
 
-/** Nom complet de l'utilisateur connecté */
 const fullName = computed(() => {
   const u = authStore.user
   if (!u) return ''
   return `${u.first_name} ${u.last_name}`
 })
 
-/** Initiales de l'utilisateur (première lettre du prénom et du nom) */
 const initials = computed(() => {
   const u = authStore.user
   if (!u) return '?'
@@ -87,11 +63,6 @@ interface NavItem {
   badge?: number
 }
 
-/**
- * Éléments de navigation filtrés selon le rôle de l'utilisateur.
- * Chaque rôle (admin, responsable_rh, responsable_demande, user)
- * dispose de son propre jeu de liens.
- */
 const navItems = computed<NavItem[]>(() => {
   if (!authStore.user) return []
   const role = authStore.user.role
@@ -124,7 +95,6 @@ const navItems = computed<NavItem[]>(() => {
       { id: 'help', label: 'Aide', icon: 'pi pi-question-circle', route: '/help' },
     ]
   }
-  // Utilisateur standard
   return [
     { id: 'dashboard', label: 'Tableau de bord', icon: 'pi pi-home', route: '/user/dashboard' },
     { id: 'catalog', label: 'Catalogue', icon: 'pi pi-book', route: '/catalogue' },
@@ -134,33 +104,27 @@ const navItems = computed<NavItem[]>(() => {
   ]
 })
 
-/** Vérifie si une route donnée correspond à la route active */
-// Vérifie si une route donnée correspond à la route active
 const isActive = (route: string) => router.currentRoute.value.path.startsWith(route)
 
-/** Identifiant de l'élément de navigation actif */
-// Identifiant de l'élément de navigation actif
 const activeNavId = computed(() => {
   const path = router.currentRoute.value.path
   const found = navItems.value.find(i => path.startsWith(i.route))
   return found?.id ?? 'dashboard'
 })
 
-/** Onglets de la barre inférieure mobile (limités aux 5 premiers éléments) */
-// Onglets de la barre inférieure mobile (5 premiers éléments)
 const bottomTabs = computed(() => navItems.value.slice(0, 5))
 </script>
 
 <template>
   <div class="app-shell">
-    <!-- ==================== Tiroir de navigation mobile ==================== -->
+    <!-- Drawer mobile -->
     <teleport to="body">
       <div v-if="drawerOpen" class="drawer-backdrop" @click="drawerOpen = false" />
       <div :class="['drawer', { 'drawer-open': drawerOpen }]">
         <div class="drawer-header">
           <div class="drawer-logo">
             <div class="drawer-logo-icon">
-              <i class="pi pi-book" style="font-size: 1rem; color: white"></i>
+              <i class="pi pi-book" />
             </div>
             <div>
               <p class="drawer-title">BibliNum</p>
@@ -168,7 +132,7 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
             </div>
           </div>
           <button @click="drawerOpen = false" class="drawer-close">
-            <i class="pi pi-times" style="font-size: 1.2rem"></i>
+            <i class="pi pi-times" />
           </button>
         </div>
         <nav class="drawer-nav">
@@ -178,7 +142,7 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
             @click="go(item.route)"
             :class="['drawer-item', { 'drawer-item-active': isActive(item.route) }]"
           >
-            <i :class="item.icon" style="font-size: 1.1rem"></i>
+            <i :class="item.icon" />
             <span class="flex-1 text-left">{{ item.label }}</span>
           </button>
         </nav>
@@ -190,32 +154,29 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
               <p class="drawer-user-role truncate">{{ authStore.roleLabel[authStore.user?.role ?? ''] }}</p>
             </div>
             <button @click="confirmLogout" class="drawer-logout">
-              <i class="pi pi-sign-out" style="font-size: 1rem"></i>
+              <i class="pi pi-sign-out" />
             </button>
           </div>
         </div>
       </div>
     </teleport>
 
-    <!-- ==================== Barre de navigation supérieure ==================== -->
+    <!-- Topnav -->
     <header class="topnav">
       <div class="topnav-inner">
-        <!-- Hamburger (mobile) -->
         <button @click="drawerOpen = true" class="topnav-hamburger">
-          <i class="pi pi-bars" style="font-size: 1.2rem"></i>
+          <i class="pi pi-bars" />
         </button>
 
-        <!-- Logo -->
         <router-link to="/" class="topnav-logo">
           <div class="topnav-logo-icon">
-            <i class="pi pi-book" style="font-size: 0.85rem; color: white"></i>
+            <i class="pi pi-book" />
           </div>
           <span class="topnav-logo-text">BibliNum</span>
         </router-link>
 
         <div class="topnav-divider" />
 
-        <!-- Nav links (desktop) -->
         <nav class="topnav-links">
           <button
             v-for="item in navItems"
@@ -223,61 +184,54 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
             @click="go(item.route)"
             :class="['topnav-link', { 'topnav-link-active': isActive(item.route) }]"
           >
-            <i :class="item.icon" style="font-size: 0.9rem"></i>
+            <i :class="item.icon" />
             <span>{{ item.label }}</span>
           </button>
         </nav>
 
-        <!-- Spacer on mobile -->
         <div class="topnav-spacer" />
 
-        <!-- Right actions -->
         <div class="topnav-actions">
           <button @click="searchOpen = !searchOpen" :class="['topnav-action-btn', { 'topnav-action-active': searchOpen }]">
-            <i class="pi pi-search" style="font-size: 1.05rem"></i>
+            <i class="pi pi-search" />
           </button>
           <button class="topnav-action-btn" style="position: relative">
-            <i class="pi pi-bell" style="font-size: 1.05rem"></i>
+            <i class="pi pi-bell" />
             <span class="topnav-bell-dot" />
           </button>
 
           <div class="topnav-user-divider" />
 
-          <!-- User chip -->
           <div class="topnav-user-chip" ref="userMenuRef">
             <button @click="userMenuOpen = !userMenuOpen" class="topnav-user-btn">
               <div class="topnav-avatar">{{ initials }}</div>
               <span class="topnav-user-name">{{ fullName.split(' ')[0] }}</span>
-              <i class="pi pi-chevron-down" style="font-size: 0.8rem; opacity: 0.4"></i>
+              <i class="pi pi-chevron-down" />
             </button>
 
             <div v-if="userMenuOpen" class="topnav-dropdown">
               <div class="topnav-dropdown-header">
-                <p class="font-semibold text-sm" style="color: var(--foreground)">{{ fullName }}</p>
-                <p class="text-xs" style="color: var(--muted-foreground)">{{ authStore.roleLabel[authStore.user?.role ?? ''] }}</p>
+                <p class="dropdown-user-name">{{ fullName }}</p>
+                <p class="dropdown-user-role">{{ authStore.roleLabel[authStore.user?.role ?? ''] }}</p>
               </div>
               <button @click="go('/user/profile')" class="topnav-dropdown-item">
-                <i class="pi pi-user" style="font-size: 0.9rem"></i>
-                Mon profil
+                <i class="pi pi-user" /> Mon profil
               </button>
               <button class="topnav-dropdown-item">
-                <i class="pi pi-cog" style="font-size: 0.9rem"></i>
-                Paramètres
+                <i class="pi pi-cog" /> Paramètres
               </button>
               <hr class="topnav-dropdown-divider" />
-              <button @click="confirmLogout" class="topnav-dropdown-item" style="color: var(--destructive)">
-                <i class="pi pi-sign-out" style="font-size: 0.9rem"></i>
-                Se déconnecter
+              <button @click="confirmLogout" class="topnav-dropdown-item dropdown-logout">
+                <i class="pi pi-sign-out" /> Se déconnecter
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Expandable search -->
       <div v-if="searchOpen" class="topnav-search-bar">
         <div class="topnav-search-inner">
-          <i class="pi pi-search" style="font-size: 0.9rem; opacity: 0.5; flex-shrink: 0"></i>
+          <i class="pi pi-search" />
           <input
             ref="searchInput"
             autofocus
@@ -286,18 +240,16 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
             @keydown.escape="searchOpen = false"
           />
           <button @click="searchOpen = false" class="topnav-search-close">
-            <i class="pi pi-times" style="font-size: 0.9rem"></i>
+            <i class="pi pi-times" />
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Main content -->
     <main class="app-main">
       <slot />
     </main>
 
-    <!-- Bottom Tab Bar (mobile only) -->
     <nav class="bottom-tabbar">
       <button
         v-for="item in bottomTabs"
@@ -309,16 +261,14 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
           <i
             :class="item.icon"
             :style="{
-              fontSize: '1.3rem',
-              color: activeNavId === item.id ? 'var(--primary)' : 'var(--muted-foreground)',
-              strokeWidth: activeNavId === item.id ? 2.2 : 1.7,
+              color: activeNavId === item.id ? 'var(--gold)' : 'var(--muted-foreground)',
             }"
           />
           <span v-if="item.badge && item.badge > 0" class="bottom-tab-badge">{{ item.badge }}</span>
         </div>
         <span
           class="bottom-tab-label"
-          :style="{ color: activeNavId === item.id ? 'var(--primary)' : 'var(--muted-foreground)' }"
+          :style="{ color: activeNavId === item.id ? 'var(--gold)' : 'var(--muted-foreground)' }"
         >
           {{ item.label.split(' ')[0] }}
         </span>
@@ -333,16 +283,17 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--background);
+  background: var(--bg);
 }
 
-/* ─── Top Navbar ─── */
+/* ─── Topnav ─── */
 .topnav {
   position: sticky;
   top: 0;
   z-index: 30;
   flex-shrink: 0;
   background: var(--primary);
+  border-bottom: 1.5px solid rgba(200, 164, 92, 0.25);
 }
 
 .topnav-inner {
@@ -354,32 +305,25 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
 }
 
 @media (min-width: 640px) {
-  .topnav-inner {
-    padding: 0 1.5rem;
-    gap: 0.75rem;
-  }
+  .topnav-inner { padding: 0 1.5rem; gap: 0.75rem; }
 }
 
 .topnav-hamburger {
   display: flex;
   padding: 0.5rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--gold-light);
   cursor: pointer;
-  transition: color 0.2s, background 0.2s;
+  transition: all 0.2s;
 }
-
 @media (min-width: 768px) {
-  .topnav-hamburger {
-    display: none;
-  }
+  .topnav-hamburger { display: none; }
 }
-
 .topnav-hamburger:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--gold);
+  background: rgba(200, 164, 92, 0.15);
 }
 
 .topnav-logo {
@@ -393,21 +337,21 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   width: 28px;
   height: 28px;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  display: flex;
+  background: rgba(200, 164, 92, 0.2);
+  display: none;
   align-items: center;
   justify-content: center;
-  display: none;
 }
-
+.topnav-logo-icon i {
+  font-size: 0.85rem;
+  color: var(--gold-light);
+}
 @media (min-width: 768px) {
-  .topnav-logo-icon {
-    display: flex;
-  }
+  .topnav-logo-icon { display: flex; }
 }
 
 .topnav-logo-text {
-  color: white;
+  color: var(--gold-light);
   font-weight: 600;
   font-size: 0.875rem;
   font-family: var(--font-serif);
@@ -417,14 +361,11 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   display: none;
   width: 1px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(200, 164, 92, 0.2);
   margin: 0 0.25rem;
 }
-
 @media (min-width: 768px) {
-  .topnav-divider {
-    display: block;
-  }
+  .topnav-divider { display: block; }
 }
 
 .topnav-links {
@@ -434,11 +375,8 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   flex: 1;
   overflow-x: auto;
 }
-
 @media (min-width: 768px) {
-  .topnav-links {
-    display: flex;
-  }
+  .topnav-links { display: flex; }
 }
 
 .topnav-link {
@@ -446,36 +384,29 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(226, 201, 146, 0.55);
   font-size: 0.8125rem;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s;
   flex-shrink: 0;
 }
-
 .topnav-link:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--gold-light);
+  background: rgba(200, 164, 92, 0.1);
 }
-
 .topnav-link-active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(200, 164, 92, 0.18);
+  color: var(--gold-light);
   font-weight: 500;
 }
 
-.topnav-spacer {
-  flex: 1;
-}
-
+.topnav-spacer { flex: 1; }
 @media (min-width: 768px) {
-  .topnav-spacer {
-    display: none;
-  }
+  .topnav-spacer { display: none; }
 }
 
 .topnav-actions {
@@ -486,53 +417,46 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
 
 .topnav-action-btn {
   padding: 0.5rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(226, 201, 146, 0.5);
   cursor: pointer;
-  transition: color 0.2s, background 0.2s;
+  transition: all 0.2s;
   position: relative;
 }
-
 .topnav-action-btn:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--gold-light);
+  background: rgba(200, 164, 92, 0.1);
 }
-
 .topnav-action-active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(200, 164, 92, 0.18);
+  color: var(--gold-light);
 }
 
 .topnav-bell-dot {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 8px;
-  height: 8px;
-  background: #fbbf24;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
   border-radius: 50%;
-  border: 2px solid var(--primary);
+  border: 1.5px solid var(--primary);
 }
 
 .topnav-user-divider {
   display: none;
   width: 1px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(200, 164, 92, 0.2);
   margin: 0 0.25rem;
 }
-
 @media (min-width: 768px) {
-  .topnav-user-divider {
-    display: block;
-  }
+  .topnav-user-divider { display: block; }
 }
 
-.topnav-user-chip {
-  position: relative;
-}
+.topnav-user-chip { position: relative; }
 
 .topnav-user-btn {
   display: flex;
@@ -540,14 +464,14 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   gap: 0.4rem;
   padding: 0.25rem 0.5rem 0.25rem 0.25rem;
   border-radius: var(--radius-xl);
-  border: none;
+  border: 1px solid rgba(200, 164, 92, 0.2);
   background: transparent;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
-
 .topnav-user-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(200, 164, 92, 0.4);
+  background: rgba(200, 164, 92, 0.08);
 }
 
 .topnav-avatar {
@@ -559,22 +483,25 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   justify-content: center;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: white;
+  color: var(--gold-light);
   flex-shrink: 0;
-  background: linear-gradient(135deg, #1B4332 0%, #40916C 100%);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+  border: 1.5px solid var(--gold-dark);
 }
 
 .topnav-user-name {
   display: none;
-  color: white;
+  color: var(--gold-light);
   font-size: 0.8125rem;
   font-weight: 500;
 }
-
 @media (min-width: 1024px) {
-  .topnav-user-name {
-    display: block;
-  }
+  .topnav-user-name { display: block; }
+}
+
+.topnav-user-btn .pi-chevron-down {
+  font-size: 0.7rem;
+  color: rgba(226, 201, 146, 0.4);
 }
 
 .topnav-dropdown {
@@ -582,9 +509,9 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   right: 0;
   top: calc(100% + 0.5rem);
   width: 220px;
-  background: white;
+  background: var(--bg-elevated);
   border-radius: var(--radius-xl);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 48px rgba(44, 36, 32, 0.15);
   border: 1px solid var(--border);
   overflow: hidden;
   z-index: 50;
@@ -595,22 +522,37 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   border-bottom: 1px solid var(--border);
 }
 
+.dropdown-user-name {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.dropdown-user-role {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-top: 0.1rem;
+}
+
 .topnav-dropdown-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   border: none;
   background: transparent;
   color: var(--foreground);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s;
 }
-
 .topnav-dropdown-item:hover {
   background: var(--muted);
+}
+.topnav-dropdown-item i {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
 }
 
 .topnav-dropdown-divider {
@@ -619,17 +561,21 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   margin: 0;
 }
 
-/* Expandable search bar */
-.topnav-search-bar {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.75rem 1rem;
-  background: rgba(10, 28, 18, 0.5);
+.dropdown-logout {
+  color: var(--burgundy) !important;
+}
+.dropdown-logout:hover {
+  background: #FDF2F2 !important;
 }
 
+/* Search bar */
+.topnav-search-bar {
+  border-top: 1px solid rgba(200, 164, 92, 0.12);
+  padding: 0.75rem 1rem;
+  background: rgba(15, 36, 25, 0.6);
+}
 @media (min-width: 640px) {
-  .topnav-search-bar {
-    padding: 0.75rem 1.5rem;
-  }
+  .topnav-search-bar { padding: 0.75rem 1.5rem; }
 }
 
 .topnav-search-inner {
@@ -637,11 +583,16 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(200, 164, 92, 0.2);
   border-radius: var(--radius-xl);
   padding: 0.6rem 1rem;
   color: white;
+}
+.topnav-search-inner i {
+  color: var(--gold-dark);
+  font-size: 0.9rem;
+  flex-shrink: 0;
 }
 
 .topnav-search-input {
@@ -653,9 +604,9 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   font-size: 0.875rem;
   font-family: var(--font-sans);
 }
-
 .topnav-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
+  font-style: italic;
 }
 
 .topnav-search-close {
@@ -666,10 +617,7 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   cursor: pointer;
   transition: color 0.2s;
 }
-
-.topnav-search-close:hover {
-  color: rgba(255, 255, 255, 0.6);
-}
+.topnav-search-close:hover { color: rgba(255, 255, 255, 0.6); }
 
 /* ─── Main Content ─── */
 .app-main {
@@ -678,26 +626,19 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   padding: 1.5rem 1rem;
   padding-bottom: 80px;
 }
-
 @media (min-width: 768px) {
-  .app-main {
-    padding: 1.5rem 1.5rem;
-    padding-bottom: 2rem;
-  }
+  .app-main { padding: 1.5rem 1.5rem; padding-bottom: 2rem; }
 }
-
 @media (min-width: 1024px) {
-  .app-main {
-    padding: 2rem;
-  }
+  .app-main { padding: 2rem; }
 }
 
-/* ─── Drawer (mobile) ─── */
+/* ─── Drawer ─── */
 .drawer-backdrop {
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(44, 36, 32, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
@@ -710,48 +651,45 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   width: 280px;
   display: flex;
   flex-direction: column;
-  background: var(--primary);
+  background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary) 100%);
+  border-right: 1.5px solid rgba(200, 164, 92, 0.2);
   transform: translateX(-100%);
   transition: transform 0.3s ease-out;
 }
-
-.drawer-open {
-  transform: translateX(0);
-}
+.drawer-open { transform: translateX(0); }
 
 .drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 2rem 1.25rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(200, 164, 92, 0.15);
 }
 
-.drawer-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+.drawer-logo { display: flex; align-items: center; gap: 0.75rem; }
 
 .drawer-logo-icon {
   width: 36px;
   height: 36px;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(200, 164, 92, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.drawer-logo-icon i {
+  font-size: 1rem;
+  color: var(--gold-light);
+}
 
 .drawer-title {
-  color: white;
+  color: var(--gold-light);
   font-weight: 600;
   font-size: 1rem;
   font-family: var(--font-serif);
 }
-
 .drawer-subtitle {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(226, 201, 146, 0.4);
   font-size: 0.75rem;
 }
 
@@ -759,14 +697,11 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   padding: 0.25rem;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(226, 201, 146, 0.4);
   cursor: pointer;
   transition: color 0.2s;
 }
-
-.drawer-close:hover {
-  color: white;
-}
+.drawer-close:hover { color: var(--gold-light); }
 
 .drawer-nav {
   flex: 1;
@@ -783,36 +718,30 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   gap: 0.875rem;
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(226, 201, 146, 0.5);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
 }
-
 .drawer-item:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--gold-light);
+  background: rgba(200, 164, 92, 0.1);
 }
-
 .drawer-item-active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(200, 164, 92, 0.18);
+  color: var(--gold-light);
   font-weight: 500;
 }
 
 .drawer-footer {
   padding: 1rem 1.25rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(200, 164, 92, 0.15);
 }
 
-.drawer-user {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+.drawer-user { display: flex; align-items: center; gap: 0.75rem; }
 
 .drawer-avatar {
   width: 32px;
@@ -823,19 +752,19 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  color: white;
+  color: var(--gold-light);
   flex-shrink: 0;
-  background: linear-gradient(135deg, #1B4332 0%, #40916C 100%);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-light) 100%);
+  border: 1.5px solid rgba(200, 164, 92, 0.3);
 }
 
 .drawer-user-name {
-  color: white;
+  color: var(--gold-light);
   font-size: 0.8125rem;
   font-weight: 500;
 }
-
 .drawer-user-role {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(226, 201, 146, 0.4);
   font-size: 0.75rem;
 }
 
@@ -843,17 +772,14 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   padding: 0.5rem;
   border: none;
   background: transparent;
-  color: var(--destructive);
+  color: var(--burgundy);
   cursor: pointer;
   transition: opacity 0.2s;
   font-weight: 600;
 }
+.drawer-logout:hover { opacity: 0.8; }
 
-.drawer-logout:hover {
-  opacity: 0.8;
-}
-
-/* ─── Bottom Tab Bar (mobile only) ─── */
+/* ─── Bottom Tab Bar ─── */
 .bottom-tabbar {
   display: flex;
   position: fixed;
@@ -863,16 +789,13 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   z-index: 30;
   align-items: center;
   border-top: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(250, 247, 242, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-
 @media (min-width: 768px) {
-  .bottom-tabbar {
-    display: none;
-  }
+  .bottom-tabbar { display: none; }
 }
 
 .bottom-tab-item {
@@ -890,15 +813,14 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   transition: all 0.15s;
 }
 
-.bottom-tab-icon-wrap {
-  position: relative;
-}
+.bottom-tab-icon-wrap { position: relative; }
+.bottom-tab-icon-wrap i { font-size: 1.3rem; }
 
 .bottom-tab-badge {
   position: absolute;
   top: -4px;
   right: -6px;
-  background: #ef4444;
+  background: var(--destructive);
   color: white;
   font-size: 0.5625rem;
   font-weight: 700;
@@ -923,6 +845,6 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   width: 32px;
   height: 3px;
   border-radius: 0 0 3px 3px;
-  background: var(--primary);
+  background: var(--gold);
 }
 </style>

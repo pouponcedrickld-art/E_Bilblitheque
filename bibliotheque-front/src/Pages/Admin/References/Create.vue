@@ -8,7 +8,6 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import InputNumber from 'primevue/inputnumber'
-import FileUpload from 'primevue/fileupload'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
@@ -207,75 +206,125 @@ onMounted(loadFormData)
 <template>
   <div class="page">
     <div class="page-header">
-      <h1>Nouvelle référence</h1>
+      <div>
+        <h1>Nouvelle référence</h1>
+        <p>Ajouter une référence au catalogue de la bibliothèque</p>
+      </div>
       <Button icon="pi pi-arrow-left" label="Retour" severity="secondary" text @click="router.push('/admin/references')" />
     </div>
 
     <Message v-if="error" severity="error" :closable="false" class="mb-3">{{ error }}</Message>
 
-    <form @submit.prevent="submit" class="form">
-      <div class="form-grid">
-        <div class="field">
-          <label for="title">Titre</label>
-          <InputText id="title" v-model="form.title" required />
+    <form @submit.prevent="submit" class="admin-form">
+      <!-- Section I -->
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="section-num">I</span>
+          <div>
+            <h3 class="form-section-title">Informations générales</h3>
+            <p class="form-section-desc">Titre, sous-titre et résumé</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="subtitle">Sous-titre</label>
-          <InputText id="subtitle" v-model="form.subtitle" />
+        <div class="form-grid">
+          <div class="field full">
+            <label for="title">Titre</label>
+            <InputText id="title" v-model="form.title" class="input" placeholder="Titre complet de l'ouvrage" />
+          </div>
+          <div class="field full">
+            <label for="subtitle">Sous-titre</label>
+            <InputText id="subtitle" v-model="form.subtitle" class="input" placeholder="Sous-titre (optionnel)" />
+          </div>
+          <div class="field full">
+            <label for="abstract">Résumé</label>
+            <Textarea id="abstract" v-model="form.abstract" rows="3" :auto-resize="true" class="input" placeholder="Brève présentation du contenu..." />
+          </div>
         </div>
-        <div class="field full">
-          <label for="abstract">Résumé</label>
-          <Textarea id="abstract" v-model="form.abstract" rows="4" :auto-resize="true" />
+      </div>
+
+      <!-- Section II -->
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="section-num">II</span>
+          <div>
+            <h3 class="form-section-title">Identification</h3>
+            <p class="form-section-desc">ISBN, année, langue et classification</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="isbn">ISBN</label>
-          <InputText id="isbn" v-model="form.isbn" />
+        <div class="form-grid">
+          <div class="field">
+            <label for="isbn">ISBN</label>
+            <InputText id="isbn" v-model="form.isbn" class="input" placeholder="978-2-234-56789-0" />
+          </div>
+          <div class="field">
+            <label for="publication_year">Année de publication</label>
+            <InputNumber id="publication_year" v-model="form.publication_year" :min="1000" :max="2100" class="input" />
+          </div>
+          <div class="field">
+            <label for="language">Langue</label>
+            <Select id="language" v-model="form.language" :options="languages" option-label="label" option-value="value" class="input" />
+          </div>
+          <div class="field">
+            <label for="pages">Nombre de pages</label>
+            <InputNumber id="pages" v-model="form.pages" :min="1" class="input" placeholder="Ex: 250" />
+          </div>
+          <div class="field">
+            <label for="status">Statut</label>
+            <Select id="status" v-model="form.status" :options="[{ label: 'Brouillon', value: 'draft' }, { label: 'Publié', value: 'published' }, { label: 'Archivé', value: 'archived' }]" option-label="label" option-value="value" class="input" />
+          </div>
         </div>
-        <div class="field">
-          <label for="publication_year">Année de publication</label>
-          <InputNumber id="publication_year" v-model="form.publication_year" :min="1000" :max="2100" />
+      </div>
+
+      <!-- Section III -->
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="section-num">III</span>
+          <div>
+            <h3 class="form-section-title">Classification</h3>
+            <p class="form-section-desc">Type, catégorie, éditeur et mots-clés</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="language">Langue</label>
-          <Select id="language" v-model="form.language" :options="languages" option-label="label" option-value="value" />
+        <div class="form-grid">
+          <div class="field">
+            <label for="document_type_id">Type de document</label>
+            <div class="select-with-create">
+              <Select id="document_type_id" v-model="form.document_type_id" :options="documentTypes" option-label="label" option-value="id" show-clear placeholder="Sélectionner" class="input flex-1" />
+              <Button icon="pi pi-plus" class="add-btn" @click="showDocTypeDialog = true" v-tooltip.top="'Ajouter un type'" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="category_id">Catégorie</label>
+            <div class="select-with-create">
+              <Select id="category_id" v-model="form.category_id" :options="categories" option-label="name" option-value="id" show-clear placeholder="Sélectionner" class="input flex-1" />
+              <Button icon="pi pi-plus" class="add-btn" @click="showCategoryDialog = true" v-tooltip.top="'Ajouter une catégorie'" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="publisher_id">Éditeur</label>
+            <div class="select-with-create">
+              <Select id="publisher_id" v-model="form.publisher_id" :options="publishers" option-label="name" option-value="id" show-clear placeholder="Sélectionner" class="input flex-1" />
+              <Button icon="pi pi-plus" class="add-btn" @click="showPublisherDialog = true" v-tooltip.top="'Ajouter un éditeur'" />
+            </div>
+          </div>
+          <div class="field full">
+            <label for="keywords">Mots-clés</label>
+            <div class="select-with-create">
+              <MultiSelect id="keywords" v-model="form.keyword_ids" :options="keywords" option-label="name" option-value="id" placeholder="Sélectionner des mots-clés" :max-selected-labels="5" class="flex-1" />
+              <Button icon="pi pi-plus" class="add-btn" @click="showKeywordDialog = true" v-tooltip.top="'Ajouter un mot-clé'" />
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label for="document_type_id">Type de document</label>
-          <div class="select-with-create">
-            <Select id="document_type_id" v-model="form.document_type_id" :options="documentTypes" option-label="label" option-value="id" show-clear placeholder="Sélectionner un type" class="flex-1" />
-            <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showDocTypeDialog = true" v-tooltip.top="'Ajouter un type'" />
+      </div>
+
+      <!-- Section IV -->
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="section-num">IV</span>
+          <div>
+            <h3 class="form-section-title">Couverture</h3>
+            <p class="form-section-desc">Image de couverture de l'ouvrage</p>
           </div>
         </div>
         <div class="field">
-          <label for="category_id">Catégorie</label>
-          <div class="select-with-create">
-            <Select id="category_id" v-model="form.category_id" :options="categories" option-label="name" option-value="id" show-clear placeholder="Sélectionner une catégorie" class="flex-1" />
-            <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showCategoryDialog = true" v-tooltip.top="'Ajouter une catégorie'" />
-          </div>
-        </div>
-        <div class="field">
-          <label for="publisher_id">Éditeur</label>
-          <div class="select-with-create">
-            <Select id="publisher_id" v-model="form.publisher_id" :options="publishers" option-label="name" option-value="id" show-clear placeholder="Sélectionner un éditeur" class="flex-1" />
-            <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showPublisherDialog = true" v-tooltip.top="'Ajouter un éditeur'" />
-          </div>
-        </div>
-        <div class="field">
-          <label for="pages">Nombre de pages</label>
-          <InputNumber id="pages" v-model="form.pages" :min="1" />
-        </div>
-        <div class="field">
-          <label for="status">Statut</label>
-          <Select id="status" v-model="form.status" :options="[{ label: 'Brouillon', value: 'draft' }, { label: 'Publié', value: 'published' }, { label: 'Archivé', value: 'archived' }]" option-label="label" option-value="value" />
-        </div>
-        <div class="field full">
-          <label for="keywords">Mots-clés</label>
-          <div class="select-with-create">
-            <MultiSelect id="keywords" v-model="form.keyword_ids" :options="keywords" option-label="name" option-value="id" placeholder="Sélectionner des mots-clés" :max-selected-labels="5" class="flex-1" />
-            <Button icon="pi pi-plus" class="p-button-sm p-button-outlined add-btn" @click="showKeywordDialog = true" v-tooltip.top="'Ajouter un mot-clé'" />
-          </div>
-        </div>
-        <div class="field full">
           <label for="cover_image">Image de couverture</label>
           <input type="file" id="cover_image" accept="image/*" @change="onCoverChange" class="file-input" />
           <div v-if="coverPreview" class="cover-preview">
@@ -285,8 +334,8 @@ onMounted(loadFormData)
       </div>
 
       <div class="form-actions">
-        <Button icon="pi pi-check" label="Créer la référence" type="submit" :loading="submitting" />
-        <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="router.push('/admin/references')" />
+        <Button icon="pi pi-check" label="Créer la référence" type="submit" :loading="submitting" class="submit-btn" />
+        <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="router.push('/admin/references')" class="cancel-btn" />
       </div>
     </form>
 
@@ -298,7 +347,7 @@ onMounted(loadFormData)
         </div>
         <div class="field">
           <label for="new-category-desc">Description</label>
-          <Textarea id="new-category-desc" v-model="newCategoryDescription" rows="3" class="input" placeholder="Optionnelle" />
+          <Textarea id="new-category-desc" v-model="newCategoryDescription" rows="2" class="input" placeholder="Optionnelle" />
         </div>
       </div>
       <template #footer>
@@ -332,7 +381,7 @@ onMounted(loadFormData)
         </div>
         <div class="field">
           <label for="new-doctype-label">Libellé</label>
-          <InputText id="new-doctype-label" v-model="newDocTypeLabel" class="input" placeholder="Optionnel (sinon reprend le nom)" />
+          <InputText id="new-doctype-label" v-model="newDocTypeLabel" class="input" placeholder="Optionnel" />
         </div>
       </div>
       <template #footer>
@@ -357,22 +406,186 @@ onMounted(loadFormData)
 </template>
 
 <style scoped>
-.page { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.4rem; font-weight: 700; }
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.page-header p {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-top: 0.15rem;
+}
+
 .mb-3 { margin-bottom: 1rem; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  transition: all 0.25s ease;
+}
+.form-section:hover {
+  border-color: var(--border-gold);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  flex-shrink: 0;
+  border: 1.5px solid var(--gold-dark);
+}
+
+.form-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.form-section-desc {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-top: 0.15rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
 .field.full { grid-column: 1 / -1; }
-.field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
-.required { color: var(--destructive); }
-.form-actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; }
-.file-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.5rem; background: #fff; font-size: 0.85rem; }
-.cover-preview { margin-top: 0.5rem; width: 120px; height: 160px; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border); }
-.cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.required { color: var(--burgundy); }
+
 .flex-1 { flex: 1; }
-.select-with-create { display: flex; gap: 0.35rem; align-items: center; }
-.add-btn { flex-shrink: 0; }
-.dialog-form { display: flex; flex-direction: column; gap: 1rem; }
-@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+.select-with-create {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.add-btn {
+  flex-shrink: 0;
+  background: var(--primary) !important;
+  color: var(--gold-light) !important;
+  border: none !important;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg) !important;
+}
+.add-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 0 0 3px var(--gold-glow) !important;
+}
+
+.file-input {
+  padding: 0.65rem 1rem;
+  border: 1.5px dashed var(--border-gold);
+  border-radius: var(--radius-lg);
+  background: var(--input-background);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+.file-input:hover {
+  border-color: var(--gold);
+  background: rgba(200, 164, 92, 0.04);
+}
+
+.cover-preview {
+  margin-top: 0.5rem;
+  width: 100px;
+  height: 130px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-gold);
+}
+.cover-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.form-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.submit-btn {
+  background: var(--primary) !important;
+  border: none !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: var(--radius-lg) !important;
+  font-weight: 600 !important;
+}
+.submit-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 4px 16px rgba(26,58,50,0.3) !important;
+}
+
+.cancel-btn {
+  color: var(--muted-foreground) !important;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
 </style>

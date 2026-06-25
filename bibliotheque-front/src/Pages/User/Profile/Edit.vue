@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Importations Vue, services, stores et composants PrimeVue
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
@@ -7,13 +6,10 @@ import { useAuthStore } from '@/stores/auth'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
-import Divider from 'primevue/divider'
 
-// Store d'authentification et routeur
 const authStore = useAuthStore()
 const router = useRouter()
 
-// Formulaire d'informations personnelles
 const form = ref({
   first_name: '',
   last_name: '',
@@ -21,7 +17,6 @@ const form = ref({
   phone: '',
 })
 
-// Formulaire de changement de mot de passe
 const passwordForm = reactive({
   current_password: '',
   new_password: '',
@@ -29,12 +24,10 @@ const passwordForm = reactive({
   show: false,
 })
 
-// État de sauvegarde et messages
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
 
-// Préremplit le formulaire avec les données de l'utilisateur
 onMounted(() => {
   if (authStore.user) {
     form.value.first_name = authStore.user.first_name
@@ -44,7 +37,6 @@ onMounted(() => {
   }
 })
 
-// Règles de validation du mot de passe
 const passwordErrors = {
   minLength: (v: string) => v.length >= 6 || '6 caractères minimum',
   hasUpper: (v: string) => /[A-Z]/.test(v) || 'Une majuscule requise',
@@ -52,7 +44,6 @@ const passwordErrors = {
   match: (v: string) => v === passwordForm.new_password || 'Les mots de passe ne correspondent pas',
 }
 
-// Valide les contraintes du nouveau mot de passe
 function validatePassword(): string[] {
   const errs: string[] = []
   if (!passwordForm.new_password) return errs
@@ -67,7 +58,6 @@ function validatePassword(): string[] {
   return errs
 }
 
-// Soumet les modifications du profil
 async function handleSubmit() {
   saving.value = true
   error.value = ''
@@ -132,87 +122,119 @@ async function handleSubmit() {
       <div v-if="error" class="alert alert-error">{{ error }}</div>
     </Transition>
 
-    <form @submit.prevent="handleSubmit" class="form-card">
-      <h2 class="section-title">Informations personnelles</h2>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="first_name">Prénom</label>
-          <InputText id="first_name" v-model="form.first_name" class="input" required />
+    <form @submit.prevent="handleSubmit" class="profile-card">
+      <div class="profile-header">
+        <div class="avatar-medallion">
+          <svg viewBox="0 0 100 100" class="avatar-svg">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="var(--gold)" stroke-width="2" />
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--gold-dark)" stroke-width="1" />
+            <text x="50" y="62" text-anchor="middle" font-size="36" fill="var(--primary)" font-family="Playfair Display, serif">
+              {{ form.first_name?.charAt(0)?.toUpperCase() }}{{ form.last_name?.charAt(0)?.toUpperCase() }}
+            </text>
+          </svg>
         </div>
-        <div class="field">
-          <label for="last_name">Nom</label>
-          <InputText id="last_name" v-model="form.last_name" class="input" required />
+        <div>
+          <h2 class="profile-name">{{ form.first_name }} {{ form.last_name }}</h2>
+          <p class="profile-role">{{ authStore.user?.role ?? 'Utilisateur' }}</p>
         </div>
       </div>
 
-      <div class="field">
-        <label for="email">Email</label>
-        <InputText id="email" v-model="form.email" type="email" class="input input-disabled" disabled />
-        <small class="field-hint">L'email ne peut pas être modifié.</small>
-      </div>
-
-      <div class="field">
-        <label for="phone">Téléphone</label>
-        <InputText id="phone" v-model="form.phone" type="tel" class="input" placeholder="+221 XX XXX XX XX" />
-      </div>
-
-      <Divider />
-
-      <h2 class="section-title">
-        Mot de passe
-        <Button
-          :icon="passwordForm.show ? 'pi pi-eye-slash' : 'pi pi-eye'"
-          class="p-button-text p-button-sm"
-          @click="passwordForm.show = !passwordForm.show"
-          :label="passwordForm.show ? 'Masquer' : 'Modifier'"
-        />
-      </h2>
-
-      <template v-if="passwordForm.show">
-        <div class="field">
-          <label for="current_password">Mot de passe actuel</label>
-          <Password
-            id="current_password"
-            v-model="passwordForm.current_password"
-            inputClass="input"
-            :feedback="false"
-            toggleMask
-            placeholder="Votre mot de passe actuel"
-          />
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="section-num">I</span>
+          <span class="section-label">Fiche lecteur</span>
         </div>
-
         <div class="field-row">
           <div class="field">
-            <label for="new_password">Nouveau mot de passe</label>
-            <Password
-              id="new_password"
-              v-model="passwordForm.new_password"
-              inputClass="input"
-              :promptLabel="'Choisissez un mot de passe'"
-              :weakLabel="'Trop simple'"
-              :mediumLabel="'Moyen'"
-              :strongLabel="'Fort'"
-              toggleMask
-              placeholder="6+ car., 1 majuscule, 1 chiffre"
-            />
-            <small class="field-hint">Minimum 6 caractères, une majuscule, un chiffre.</small>
+            <label for="first_name">Prénom</label>
+            <div class="input-wrap">
+              <i class="pi pi-user input-icon"></i>
+              <InputText id="first_name" v-model="form.first_name" class="input" required />
+            </div>
           </div>
           <div class="field">
-            <label for="new_password_confirmation">Confirmer le mot de passe</label>
+            <label for="last_name">Nom</label>
+            <div class="input-wrap">
+              <i class="pi pi-user input-icon"></i>
+              <InputText id="last_name" v-model="form.last_name" class="input" required />
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <i class="pi pi-envelope input-icon"></i>
+            <InputText id="email" v-model="form.email" type="email" class="input input-disabled" disabled />
+          </div>
+          <small class="field-hint">L'email ne peut pas être modifié.</small>
+        </div>
+        <div class="field">
+          <label for="phone">Téléphone</label>
+          <div class="input-wrap">
+            <i class="pi pi-phone input-icon"></i>
+            <InputText id="phone" v-model="form.phone" type="tel" class="input" placeholder="+221 XX XXX XX XX" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="section-num">II</span>
+          <div class="section-header-row">
+            <span class="section-label">Sécurité</span>
+            <Button
+              :icon="passwordForm.show ? 'pi pi-eye-slash' : 'pi pi-eye'"
+              severity="secondary"
+              text
+              size="small"
+              @click="passwordForm.show = !passwordForm.show"
+              :label="passwordForm.show ? 'Masquer' : 'Modifier'"
+              class="toggle-btn"
+            />
+          </div>
+        </div>
+        <template v-if="passwordForm.show">
+          <div class="field">
+            <label for="current_password">Mot de passe actuel</label>
             <Password
-              id="new_password_confirmation"
-              v-model="passwordForm.new_password_confirmation"
+              id="current_password"
+              v-model="passwordForm.current_password"
               inputClass="input"
               :feedback="false"
               toggleMask
-              placeholder="Retaper le nouveau mot de passe"
+              placeholder="Votre mot de passe actuel"
             />
           </div>
-        </div>
-      </template>
-
-      <Divider />
+          <div class="field-row">
+            <div class="field">
+              <label for="new_password">Nouveau mot de passe</label>
+              <Password
+                id="new_password"
+                v-model="passwordForm.new_password"
+                inputClass="input"
+                :promptLabel="'Choisissez un mot de passe'"
+                :weakLabel="'Trop simple'"
+                :mediumLabel="'Moyen'"
+                :strongLabel="'Fort'"
+                toggleMask
+                placeholder="6+ car., 1 majuscule, 1 chiffre"
+              />
+              <small class="field-hint">Minimum 6 caractères, une majuscule, un chiffre.</small>
+            </div>
+            <div class="field">
+              <label for="new_password_confirmation">Confirmer</label>
+              <Password
+                id="new_password_confirmation"
+                v-model="passwordForm.new_password_confirmation"
+                inputClass="input"
+                :feedback="false"
+                toggleMask
+                placeholder="Retaper le mot de passe"
+              />
+            </div>
+          </div>
+        </template>
+      </div>
 
       <div class="form-actions">
         <Button type="submit" :loading="saving" :disabled="saving" label="Enregistrer les modifications" icon="pi pi-check" class="submit-btn" />
@@ -225,58 +247,122 @@ async function handleSubmit() {
 .page {
   max-width: 680px;
 }
-
 .page-header {
   margin-bottom: 1.5rem;
 }
-
 .page-header h1 {
   font-size: 1.5rem;
   font-weight: 700;
 }
-
 .page-header p {
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
   font-size: 0.9rem;
   margin-top: 0.25rem;
 }
 
 .alert {
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   font-size: 0.85rem;
   margin-bottom: 1rem;
 }
-
 .alert-success {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background: rgba(26, 58, 50, 0.06);
+  border: 1px solid rgba(26, 58, 50, 0.2);
+  color: var(--primary);
 }
-
 .alert-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
+  background: rgba(107, 45, 62, 0.08);
+  border: 1px solid rgba(107, 45, 62, 0.25);
+  color: var(--burgundy);
 }
 
-.form-card {
-  background: #fff;
+.profile-card {
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-xl);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+}
+.profile-card:hover {
+  border-color: var(--border-gold);
 }
 
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
+.profile-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.avatar-medallion {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+.avatar-svg {
+  width: 100%;
+  height: 100%;
+}
+.profile-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+.profile-role {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-top: 0.15rem;
+  text-transform: capitalize;
+}
+
+.form-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  transition: border-color 0.25s;
+}
+.form-section:hover {
+  border-color: var(--border-gold);
+}
+
+.form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: var(--font-serif);
+  flex-shrink: 0;
+  border: 1.5px solid var(--gold-dark);
+}
+.section-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+}
+.toggle-btn {
+  font-size: 0.8rem !important;
 }
 
 .field-row {
@@ -284,28 +370,38 @@ async function handleSubmit() {
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
-
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
-
 .field label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
-
 .field-hint {
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--muted-foreground);
 }
-
+.input-wrap {
+  position: relative;
+}
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gold);
+  font-size: 0.8rem;
+  z-index: 1;
+}
+.input-wrap .input {
+  padding-left: 2.2rem !important;
+}
 .input {
   width: 100%;
 }
-
 .input-disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -314,10 +410,18 @@ async function handleSubmit() {
 .form-actions {
   display: flex;
   gap: 0.75rem;
+  padding-top: 0.5rem;
 }
-
 .submit-btn {
-  align-self: flex-start;
+  background: var(--primary) !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 0.65rem 1.5rem !important;
+  font-weight: 600 !important;
+}
+.submit-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 4px 16px rgba(26,58,50,0.3) !important;
 }
 
 .fade-enter-active, .fade-leave-active {
