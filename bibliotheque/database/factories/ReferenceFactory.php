@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use Database\Seeders\CoverImageGenerator;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,6 +10,8 @@ class ReferenceFactory extends Factory
     protected $model = \App\Models\Reference::class;
 
     protected static $documents = null;
+
+    protected static $coverImages = null;
 
     protected static function getDocuments(): array
     {
@@ -24,9 +25,29 @@ class ReferenceFactory extends Factory
         return static::$documents;
     }
 
+    protected static function getRealCoverImages(): array
+    {
+        if (static::$coverImages === null) {
+            $all = Storage::disk('public')->files('covers');
+            static::$coverImages = array_values(array_filter($all, function ($file) {
+                $basename = pathinfo($file, PATHINFO_BASENAME);
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if ($ext !== 'jpg' && $ext !== 'jpeg' && $ext !== 'png' && $ext !== 'webp') {
+                    return false;
+                }
+                if (preg_match('/^[a-f0-9]{13}_\d+\.(jpg|jpeg)$/i', $basename)) {
+                    return false;
+                }
+                return true;
+            }));
+        }
+        return static::$coverImages;
+    }
+
     public function definition(): array
     {
         $docs = static::getDocuments();
+        $covers = static::getRealCoverImages();
 
         return [
             'title' => fake()->sentence(4),
@@ -39,14 +60,7 @@ class ReferenceFactory extends Factory
             'category_id' => \App\Models\Category::factory(),
             'publisher_id' => \App\Models\Publisher::factory(),
             'uploaded_by' => \App\Models\User::factory(),
-            'cover_image' => function () {
-                if (rand(1, 100) <= 70) {
-                    $dir = storage_path('app/public/covers');
-                    $file = CoverImageGenerator::generate($dir);
-                    return $file ? 'covers/' . $file : null;
-                }
-                return null;
-            },
+            'cover_image' => $covers ? $covers[array_rand($covers)] : null,
             'file_path' => $docs ? $docs[array_rand($docs)] : null,
             'allow_download' => fake()->boolean(70),
             'pages' => fake()->numberBetween(50, 500),
