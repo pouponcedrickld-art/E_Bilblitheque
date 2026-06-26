@@ -43,7 +43,7 @@ async function fetchReference() {
 // Construit l'URL de lecture du document
 function readUrl() {
   if (!reference.value) return ''
-  return reference.value.file_path || `/api/references/${reference.value.id}/read`
+  return `/api/references/${reference.value.id}/read`
 }
 
 function download() {

@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dépôt (tout utilisateur connecté)
     Route::get('/deposit-requests', [DepositRequestController::class, 'index']);
     Route::get('/deposit-requests/{depositRequest}', [DepositRequestController::class, 'show']);
+    Route::get('/deposit-requests/{depositRequest}/download', [DepositRequestController::class, 'downloadFile']);
     Route::apiResource('deposit-requests', DepositRequestController::class)->except(['index', 'show']);
 
     // Profil utilisateur (tout utilisateur connecté)
