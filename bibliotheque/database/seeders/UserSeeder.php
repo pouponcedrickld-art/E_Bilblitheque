@@ -97,11 +97,4 @@ class UserSeeder extends Seeder
         $this->command->info('Users seeded successfully.');
     }
 }
-////
-// pour la selection des reassigner a un autre responsable les select affiche empty ce qui n'est pas conforme a mon applicatioin et le boutton annulé ne parche pas 
-// 
-// 
-// 
-// /
- 
 

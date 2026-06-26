@@ -2,9 +2,11 @@
 import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
+import { useAuthStore } from '@/stores/auth'
 import type { Reference } from '@/types'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const featured = ref<Reference[]>([])
 const references = ref<Reference[]>([])
 const categories = ref<string[]>([])
@@ -280,6 +282,13 @@ onMounted(fetchData)
                   <i class="pi pi-download" /> {{ ref.download_count }}
                 </span>
               </div>
+              <span
+                v-if="authStore.isAuthenticated && authStore.user?.status === 'active' && ref.file_path"
+                class="featured-card-read"
+                @click.stop="go(`/user/references/${ref.id}/read`)"
+              >
+                Lire en ligne →
+              </span>
             </div>
           </router-link>
         </div>
@@ -329,6 +338,13 @@ onMounted(fetchData)
                 <span><i class="pi pi-eye" /> {{ ref.view_count || 0 }}</span>
                 <span><i class="pi pi-download" /> {{ ref.download_count || 0 }}</span>
               </div>
+              <span
+                v-if="authStore.isAuthenticated && authStore.user?.status === 'active' && ref.file_path"
+                class="catalog-card-read"
+                @click.stop="go(`/user/references/${ref.id}/read`)"
+              >
+                Lire →
+              </span>
             </div>
           </router-link>
         </TransitionGroup>
@@ -896,6 +912,34 @@ onMounted(fetchData)
   margin-top: 0.5rem;
 }
 .catalog-card-stats i { font-size: 0.6rem; margin-right: 0.15rem; }
+
+.catalog-card-read {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.catalog-card-read:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
+.featured-card-read {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.featured-card-read:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
 
 /* ─── CTA ─── */
 .cta-section {

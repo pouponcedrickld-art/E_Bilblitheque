@@ -22,9 +22,7 @@ async function handleSubmit(formData: FormData) {
   submitted.value = false
 
   try {
-    const res = await http.post('/deposit-requests', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const res = await http.post('/deposit-requests', formData)
     createdTitle.value = res.data?.title ?? res.data?.data?.title ?? ''
     submitted.value = true
     setTimeout(() => {

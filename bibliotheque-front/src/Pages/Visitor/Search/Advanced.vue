@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
 import http from '@/services/http'
+import { useAuthStore } from '@/stores/auth'
 import type { Category, DocumentType } from '@/types'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
@@ -21,6 +22,7 @@ const languageLabels: Record<string, string> = {
 
 // Routeur et état de recherche via le composable useSearch
 const router = useRouter()
+const authStore = useAuthStore()
 const { query, results, loading, filters, search, reset } = useSearch()
 
 // Données pour les listes déroulantes
@@ -67,6 +69,10 @@ function clearFilters() {
 // Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
+}
+
+function viewDocument(id: number) {
+  router.push(`/user/references/${id}/read`)
 }
 
 
@@ -157,6 +163,13 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
               <span v-if="ref.language" class="meta-item"><i class="pi pi-globe" /> {{ languageLabels[ref.language] ?? ref.language }}</span>
               <span v-if="ref.keywords?.length" class="meta-item"><i class="pi pi-tag" /> {{ ref.keywords.map(k => k.name).slice(0, 3).join(', ') }}{{ ref.keywords.length > 3 ? '...' : '' }}</span>
             </div>
+            <span
+              v-if="authStore.isAuthenticated && authStore.user?.status === 'active' && ref.file_path"
+              class="card-read"
+              @click.stop="viewDocument(ref.id)"
+            >
+              Lire en ligne →
+            </span>
           </div>
         </div>
       </div>
@@ -372,6 +385,20 @@ onMounted(() => { fetchCategories(); fetchDocumentTypes() })
 
 .meta-item i {
   font-size: 0.65rem;
+}
+
+.card-read {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.card-read:hover {
+  opacity: 0.7;
+  text-decoration: underline;
 }
 
 .empty-state {

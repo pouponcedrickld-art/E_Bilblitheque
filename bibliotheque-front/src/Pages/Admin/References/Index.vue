@@ -25,6 +25,8 @@ interface Reference {
   status: string
   created_at: string
   keywords?: { id: number; name: string }[]
+  allow_download: boolean
+  file_path: string | null
 }
 
 const router = useRouter()
@@ -94,6 +96,11 @@ function confirmDelete(id: number) {
 // Redirige vers la page de publication
 async function publish(id: number) {
   router.push(`/admin/references/${id}/publish`)
+}
+
+// Ouvre le document en lecture
+function viewDocument(id: number) {
+  window.open(`/user/references/${id}/read`, '_blank')
 }
 
 // Force le téléchargement sur une référence
@@ -178,6 +185,14 @@ onMounted(fetchReferences)
       <Column header="Actions" style="min-width: 10rem" class="actions-col">
         <template #body="{ data }">
           <div class="actions">
+            <Button
+              v-if="data.file_path"
+              icon="pi pi-eye"
+              severity="info"
+              text
+              v-tooltip.top="'Voir le document'"
+              @click="viewDocument(data.id)"
+            />
             <Button
               icon="pi pi-pencil"
               severity="info"

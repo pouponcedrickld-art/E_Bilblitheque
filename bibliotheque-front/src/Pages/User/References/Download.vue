@@ -20,15 +20,15 @@ onMounted(async () => {
       ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '') || `document-${id}`
       : `document-${id}`
 
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const anchor = document.createElement('a')
+    const url = window.URL.createObjectURL(new Blob([response.data])) // Crée une URL locale
+    const anchor = document.createElement('a')// Crée un <a> invisible
     anchor.href = url
-    anchor.setAttribute('download', filename)
+    anchor.setAttribute('download', filename)  // Force le téléchargement
     anchor.style.display = 'none'
     document.body.appendChild(anchor)
-    anchor.click()
+    anchor.click()// Déclenche le téléchargement
     anchor.remove()
-    window.URL.revokeObjectURL(url)
+    window.URL.revokeObjectURL(url)// Nettoie la mémoire
 
     router.replace('/user/dashboard')
   } catch (err: any) {

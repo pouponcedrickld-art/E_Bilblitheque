@@ -189,14 +189,14 @@ class ReferenceController extends Controller
             return response()->json(['message' => 'Document non disponible.'], 404);
         }
 
-        // Les visiteurs non connectés ne peuvent lire que les références publiées
-        if (!$request->user() && $reference->status !== 'published') {
-            return response()->json(['message' => 'Document non disponible.'], 404);
+        // Seul un utilisateur connecté avec un compte actif peut lire
+        if (!$request->user() || $request->user()->status !== 'active') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
         // Enregistre la consultation
         $reference->views()->create([
-            'user_id' => $request->user()?->id,
+            'user_id' => $request->user()->id,
             'viewed_at' => now(),
         ]);
 

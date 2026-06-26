@@ -44,9 +44,21 @@ const canDownload = computed(() => {
     || reference.value.allow_download === true
 })
 
+const isAccountActive = computed(() => authStore.user?.status === 'active')
+
+const canRead = computed(() => {
+  if (!reference.value) return false
+  return reference.value.file_path !== null && authStore.isAuthenticated && isAccountActive.value
+})
+
 function download() {
   if (!reference.value) return
   router.push(`/user/references/${reference.value.id}/download`)
+}
+
+function lireDocument() {
+  if (!reference.value) return
+  router.push(`/user/references/${reference.value.id}/read`)
 }
 
 function goToLogin() {
@@ -132,6 +144,15 @@ onMounted(fetchReference)
       </div>
 
       <div v-if="reference.file_path" class="detail-actions">
+        <button v-if="authStore.isAuthenticated && canRead" class="read-btn" @click="lireDocument">
+          <i class="pi pi-book-open" /> Lire la documentation complète
+        </button>
+        <button v-else-if="authStore.isAuthenticated && !isAccountActive" class="read-btn pending" disabled>
+          <i class="pi pi-hourglass" /> Compte en attente de validation
+        </button>
+        <button v-else class="read-btn login" @click="goToLogin">
+          <i class="pi pi-sign-in" /> Connectez-vous pour lire
+        </button>
         <button v-if="authStore.isAuthenticated && canDownload" class="download-btn" @click="download">
           <i class="pi pi-download" /> Télécharger
         </button>
@@ -339,6 +360,47 @@ onMounted(fetchReference)
 }
 
 .download-btn.login:hover {
+  background: var(--primary);
+  color: #fff;
+  opacity: 1;
+}
+
+.read-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.read-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  opacity: 0.9;
+}
+
+.read-btn.pending {
+  background: var(--muted);
+  color: var(--text-secondary);
+  border-color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.read-btn.login {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.read-btn.login:hover {
   background: var(--primary);
   color: #fff;
   opacity: 1;

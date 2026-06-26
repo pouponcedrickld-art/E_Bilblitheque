@@ -51,8 +51,14 @@ function download() {
   router.push(`/user/references/${reference.value.id}/download`)
 }
 
-// Charge la référence au montage
-onMounted(fetchReference)
+// Redirige si le compte n'est pas actif
+onMounted(() => {
+  if (authStore.user?.status !== 'active') {
+    router.push('/forbidden')
+    return
+  }
+  fetchReference()
+})
 </script>
 
 <template>

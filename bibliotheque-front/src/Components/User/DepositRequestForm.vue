@@ -150,8 +150,17 @@ function onCoverChange(event: { files: File[] }) {
   }
 }
 
+function removeCover() {
+  coverFile.value = null
+  coverPreview.value = null
+}
+
 function onDocumentChange(event: { files: File[] }) {
   documentFile.value = event.files[0] || null
+}
+
+function removeDocument() {
+  documentFile.value = null
 }
 
 function handleSubmit() {
@@ -297,12 +306,16 @@ onMounted(loadFormData)
           <FileUpload mode="basic" accept="image/*" :auto="false" @select="onCoverChange" choose-label="Choisir une image" class="file-upload" />
           <div v-if="coverPreview" class="cover-preview">
             <img :src="coverPreview" alt="Aperçu" />
+            <button type="button" class="remove-btn" @click="removeCover" title="Supprimer l'image">&times;</button>
           </div>
         </div>
         <div class="field full">
           <label>Fichier PDF/DOC</label>
           <FileUpload mode="basic" name="proposed_file" accept=".pdf,.doc,.docx,.odt,.txt" :auto="false" @select="onDocumentChange" choose-label="Choisir un fichier" class="file-upload" />
-          <small v-if="documentFile" class="file-name">{{ documentFile.name }}</small>
+          <div v-if="documentFile" class="document-info">
+            <small class="file-name">{{ documentFile.name }}</small>
+            <button type="button" class="remove-btn remove-btn-sm" @click="removeDocument" title="Supprimer le fichier">&times;</button>
+          </div>
         </div>
       </div>
     </div>
@@ -492,13 +505,52 @@ onMounted(loadFormData)
   width: 100px;
   height: 130px;
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--border-gold);
+  position: relative;
 }
 .cover-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
+.remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--destructive, #dc2626);
+  color: #fff;
+  border: 2px solid var(--bg-card, #fff);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+.remove-btn:hover {
+  transform: scale(1.15);
+}
+
+.document-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.remove-btn-sm {
+  position: static;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
 }
 
 .file-name {

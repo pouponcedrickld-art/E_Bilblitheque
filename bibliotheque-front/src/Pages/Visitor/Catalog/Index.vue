@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import { useAuthStore } from '@/stores/auth'
 import type { Reference, Category } from '@/types'
 import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
@@ -17,6 +18,7 @@ interface FilterState {
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const references = ref<Reference[]>([])
 const categories = ref<Category[]>([])
 const languageLabels: Record<string, string> = {
@@ -88,6 +90,10 @@ function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
+function viewDocument(id: number) {
+  router.push(`/user/references/${id}/read`)
+}
+
 onMounted(() => {
   if (route.query.search) {
     search.value = route.query.search as string
@@ -150,6 +156,13 @@ onMounted(() => {
                 <span v-if="ref.publication_year"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
                 <span v-if="ref.language">{{ languageLabels[ref.language] ?? ref.language }}</span>
               </div>
+              <span
+                v-if="authStore.isAuthenticated && authStore.user?.status === 'active' && ref.file_path"
+                class="card-read"
+                @click.stop="viewDocument(ref.id)"
+              >
+                Lire en ligne →
+              </span>
             </div>
           </div>
         </div>
@@ -324,6 +337,20 @@ onMounted(() => {
   color: var(--muted-foreground);
 }
 .card-meta i { font-size: 0.65rem; margin-right: 0.15rem; }
+
+.card-read {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.card-read:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
 
 .paginator { margin-top: 1.5rem; }
 
