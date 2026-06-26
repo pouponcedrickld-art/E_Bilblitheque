@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDepositRequestRequest;
+use App\Http\Resources\DepositRequestResource;
 use App\Models\DepositRequest;
 use App\Models\DepositRequestReview;
 use App\Models\Notification;
@@ -32,7 +33,7 @@ class DepositRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->latest()->paginate(15));
+        return DepositRequestResource::collection($query->latest()->paginate(15));
     }
 
     // Crée une demande de dépôt et assigne un responsable au hasard
@@ -98,7 +99,7 @@ class DepositRequestController extends Controller
     {
         $this->authorize('view', $depositRequest);
 
-        return response()->json($depositRequest->load([
+        return new DepositRequestResource($depositRequest->load([
             'applicant', 'assignedManager', 'reviews.reviewer'
         ]));
     }

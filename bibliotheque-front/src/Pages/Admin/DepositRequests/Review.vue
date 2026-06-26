@@ -103,11 +103,13 @@ async function reassignManager() {
   if (!reassignManagerId.value) return
   submitting.value = true
   try {
+    const manager = users.value.find(u => u.id === reassignManagerId.value)
+    const managerName = manager?.full_name ?? 'le nouveau responsable'
     const id = route.params.id as string
     await http.post(`/deposit-requests/${id}/reassign`, {
       new_manager_id: reassignManagerId.value,
     })
-    toastStore.success('Demande réassignée.')
+    toastStore.success(`Demande réassignée à ${managerName}.`)
     showReassignForm.value = false
     reassignManagerId.value = null
     await load()
@@ -243,6 +245,12 @@ onMounted(load)
             <div v-if="request.cover_url || request.cover_image" class="info-item full">
               <span class="info-label">Couverture</span>
               <img :src="request.cover_url || `/storage/${request.cover_image}`" alt="Couverture" class="cover-thumb" />
+            </div>
+            <div v-if="request.proposed_file_url || request.proposed_file" class="info-item full">
+              <span class="info-label">Fichier</span>
+              <a :href="request.proposed_file_url || undefined" target="_blank" class="file-link">
+                <i class="pi pi-download" /> Télécharger le fichier
+              </a>
             </div>
           </div>
         </template>
@@ -392,6 +400,8 @@ onMounted(load)
 .info-item.full { grid-column: 1 / -1; }
 .info-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
 .cover-thumb { width: 100px; height: 140px; object-fit: cover; border-radius: 0.5rem; border: 1px solid var(--border); }
+.file-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--primary); font-weight: 500; text-decoration: none; }
+.file-link:hover { text-decoration: underline; }
 @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
