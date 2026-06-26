@@ -48,7 +48,7 @@ async function load() {
     request.value = reqRes.data?.data ?? reqRes.data
     reviews.value = request.value.reviews ?? request.value.history ?? []
     users.value = (usersRes.data?.data ?? usersRes.data ?? []).filter(
-      (u: any) => u.role === 'responsable_demande'
+      (u: any) => ['admin', 'responsable_rh', 'responsable_demande'].includes(u.role)
     )
   } catch {
     error.value = 'Impossible de charger la demande.'

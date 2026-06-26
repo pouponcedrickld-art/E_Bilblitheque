@@ -44,8 +44,8 @@ async function fetchStats() {
       http.get('/categories').catch(() => ({ data: { data: [] } })),
       http.get('/authors').catch(() => ({ data: { data: [] } })),
       (authStore.isAdmin || authStore.isResponsableRH) ? http.get('/users').catch(() => ({ data: { data: [] } })) : Promise.resolve({ data: { data: [] } }),
-      http.get('/downloads/stats').catch(() => ({ data: {} })),
-      http.get('/views/stats').catch(() => ({ data: {} })),
+      (authStore.isAdmin || authStore.isResponsableRH) ? http.get('/downloads/stats').catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
+      authStore.isAdmin ? http.get('/views/stats').catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
     ])
 
     stats.value = {
@@ -54,8 +54,8 @@ async function fetchStats() {
       authors: (authors.data?.data ?? authors.data ?? []).length,
       pendingRequests: 0,
       users: (users.data?.data ?? users.data ?? []).length,
-      downloads: downloads.data?.total ?? 0,
-      views: views.data?.total ?? 0,
+      downloads: downloads.data?.total_downloads ?? 0,
+      views: views.data?.total_views ?? 0,
     }
   } catch {
     // silencieux

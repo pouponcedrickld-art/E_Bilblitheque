@@ -69,6 +69,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/publishers', [PublisherController::class, 'store']);
     Route::post('/document-types', [DocumentTypeController::class, 'store']);
 
+    // Statistiques (admin et RH)
+    Route::get('/downloads/stats', [DownloadController::class, 'stats']);
+    Route::get('/views/stats', [ViewController::class, 'stats']);
+
     // --- Admin + Responsable Demande ---
     Route::middleware('responsable.demande')->group(function () {
         Route::post('/deposit-requests/{depositRequest}/approve-manager', [DepositRequestController::class, 'approveByManager']);
@@ -120,11 +124,9 @@ Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () 
 
     // Statistiques téléchargements / consultations
     Route::get('/downloads', [DownloadController::class, 'index']);
-    Route::get('/downloads/stats', [DownloadController::class, 'stats']);
     Route::get('/downloads/{download}', [DownloadController::class, 'show']);
 
     Route::get('/views', [ViewController::class, 'index']);
-    Route::get('/views/stats', [ViewController::class, 'stats']);
     Route::get('/views/{view}', [ViewController::class, 'show']);
 
     // Gestion des mots-clés
