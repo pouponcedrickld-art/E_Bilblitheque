@@ -6,7 +6,6 @@ import { useToastStore } from '@/stores/toast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Chip from 'primevue/chip'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import Message from 'primevue/message'
 
@@ -121,7 +120,6 @@ onMounted(fetchKeywords)
     </div>
   </div>
 
-  <ConfirmDialog />
 </template>
 
 <style scoped>

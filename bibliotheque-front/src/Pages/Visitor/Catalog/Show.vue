@@ -1,13 +1,22 @@
 <script setup lang="ts">
 // Importations Vue, routeur, services et types
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
+import { useAuthStore } from '@/stores/auth'
 import type { Reference } from '@/types'
+
+const authStore = useAuthStore()
 
 // Route actuelle et routeur
 const route = useRoute()
 const router = useRouter()
+
+const languageLabels: Record<string, string> = {
+  fr: 'Français', en: 'Anglais', ar: 'Arabe', es: 'Espagnol',
+  de: 'Allemand', pt: 'Portugais', it: 'Italien', ru: 'Russe',
+  zh: 'Chinois', ja: 'Japonais', autre: 'Autre',
+}
 
 // Référence chargée depuis l'API
 const reference = ref<Reference | null>(null)
@@ -26,6 +35,34 @@ async function fetchReference() {
   } finally {
     loading.value = false
   }
+}
+
+const canDownload = computed(() => {
+  if (!reference.value) return false
+  return authStore.isAdmin
+    || authStore.user?.id === reference.value.uploaded_by
+    || reference.value.allow_download === true
+})
+
+const isAccountActive = computed(() => authStore.user?.status === 'active')
+
+const canRead = computed(() => {
+  if (!reference.value) return false
+  return reference.value.file_path !== null && authStore.isAuthenticated && isAccountActive.value
+})
+
+function download() {
+  if (!reference.value) return
+  router.push(`/user/references/${reference.value.id}/download`)
+}
+
+function lireDocument() {
+  if (!reference.value) return
+  router.push(`/user/references/${reference.value.id}/read`)
+}
+
+function goToLogin() {
+  router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
 }
 
 // Charge la référence au montage du composant
@@ -52,7 +89,7 @@ onMounted(fetchReference)
       </div>
 
       <div class="detail-header">
-        <span class="badge">{{ reference.document_type }}</span>
+        <span class="badge">{{ reference.document_type?.label ?? reference.document_type?.name ?? '-' }}</span>
         <span class="badge" :class="reference.status">{{ reference.status }}</span>
       </div>
 
@@ -83,7 +120,7 @@ onMounted(fetchReference)
         </div>
         <div v-if="reference.language" class="detail-item">
           <span class="label">Langue</span>
-          <span>{{ reference.language }}</span>
+          <span>{{ languageLabels[reference.language] ?? reference.language }}</span>
         </div>
         <div v-if="reference.pages" class="detail-item">
           <span class="label">Pages</span>
@@ -104,6 +141,27 @@ onMounted(fetchReference)
         <div class="keywords">
           <span v-for="kw in reference.keywords" :key="kw.id" class="keyword">{{ kw.name }}</span>
         </div>
+      </div>
+
+      <div v-if="reference.file_path" class="detail-actions">
+        <button v-if="authStore.isAuthenticated && canRead" class="read-btn" @click="lireDocument">
+          <i class="pi pi-book-open" /> Lire la documentation complète
+        </button>
+        <button v-else-if="authStore.isAuthenticated && !isAccountActive" class="read-btn pending" disabled>
+          <i class="pi pi-hourglass" /> Compte en attente de validation
+        </button>
+        <button v-else class="read-btn login" @click="goToLogin">
+          <i class="pi pi-sign-in" /> Connectez-vous pour lire
+        </button>
+        <button v-if="authStore.isAuthenticated && canDownload" class="download-btn" @click="download">
+          <i class="pi pi-download" /> Télécharger
+        </button>
+        <button v-else-if="authStore.isAuthenticated" class="download-btn blocked" disabled>
+          <i class="pi pi-lock" /> Téléchargement bloqué
+        </button>
+        <button v-else class="download-btn login" @click="goToLogin">
+          <i class="pi pi-sign-in" /> Connectez-vous pour télécharger
+        </button>
       </div>
     </div>
   </div>
@@ -262,5 +320,89 @@ onMounted(fetchReference)
   color: var(--primary);
   border-radius: 999px;
   font-size: 0.75rem;
+}
+
+.detail-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.download-btn:hover {
+  opacity: 0.85;
+}
+
+.download-btn.blocked {
+  background: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.download-btn.login {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.download-btn.login:hover {
+  background: var(--primary);
+  color: #fff;
+  opacity: 1;
+}
+
+.read-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.read-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  opacity: 0.9;
+}
+
+.read-btn.pending {
+  background: var(--muted);
+  color: var(--text-secondary);
+  border-color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.read-btn.login {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.read-btn.login:hover {
+  background: var(--primary);
+  color: #fff;
+  opacity: 1;
 }
 </style>

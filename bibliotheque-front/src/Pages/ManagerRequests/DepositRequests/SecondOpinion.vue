@@ -14,8 +14,8 @@ interface DepositRequestDetail {
   title: string
   description: string | null
   status: string
-  file_path: string | null
-  file_url: string | null
+  proposed_file: string | null
+  proposed_file_url: string | null
   applicant: { id: number; first_name: string; last_name: string; full_name: string } | null
   created_at: string
   updated_at: string
@@ -88,9 +88,9 @@ onMounted(fetchRequest)
           <span class="detail-label">Description</span>
           <p class="detail-value">{{ request.description }}</p>
         </div>
-        <div v-if="request.file_url || request.file_path" class="detail-row">
+        <div v-if="request.proposed_file_url || request.proposed_file" class="detail-row">
           <span class="detail-label">Fichier</span>
-          <a :href="(request.file_url ?? request.file_path) || undefined" target="_blank" class="file-link">
+          <a :href="request.proposed_file_url || undefined" target="_blank" class="file-link">
             <i class="pi pi-download" /> Télécharger le fichier
           </a>
         </div>

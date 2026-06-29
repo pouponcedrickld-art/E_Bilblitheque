@@ -4,6 +4,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import http from '@/services/http'
+import { BookOpen, Tags, PenTool, Users, Download, Eye, Hourglass } from '@lucide/vue'
 
 // Store d'authentification et routeur
 const authStore = useAuthStore()
@@ -43,8 +44,8 @@ async function fetchStats() {
       http.get('/categories').catch(() => ({ data: { data: [] } })),
       http.get('/authors').catch(() => ({ data: { data: [] } })),
       (authStore.isAdmin || authStore.isResponsableRH) ? http.get('/users').catch(() => ({ data: { data: [] } })) : Promise.resolve({ data: { data: [] } }),
-      http.get('/downloads/stats').catch(() => ({ data: {} })),
-      http.get('/views/stats').catch(() => ({ data: {} })),
+      (authStore.isAdmin || authStore.isResponsableRH) ? http.get('/downloads/stats').catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
+      authStore.isAdmin ? http.get('/views/stats').catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
     ])
 
     stats.value = {
@@ -53,8 +54,8 @@ async function fetchStats() {
       authors: (authors.data?.data ?? authors.data ?? []).length,
       pendingRequests: 0,
       users: (users.data?.data ?? users.data ?? []).length,
-      downloads: downloads.data?.total ?? 0,
-      views: views.data?.total ?? 0,
+      downloads: downloads.data?.total_downloads ?? 0,
+      views: views.data?.total_views ?? 0,
     }
   } catch {
     // silencieux
@@ -65,32 +66,32 @@ async function fetchStats() {
 
 // Cartes de statistiques selon le rôle
 const roleCards = computed(() => {
-  const cards: { label: string; value: number | string; icon: string }[] = []
+  const cards: { label: string; value: number | string; icon: any }[] = []
   const s = stats.value
 
   if (authStore.isAdmin) {
     cards.push(
-      { label: 'Références', value: s.references, icon: '📚' },
-      { label: 'Catégories', value: s.categories, icon: '🏷️' },
-      { label: 'Auteurs', value: s.authors, icon: '✍️' },
-      { label: 'Utilisateurs', value: s.users, icon: '👥' },
-      { label: 'Téléchargements', value: s.downloads, icon: '⬇️' },
-      { label: 'Consultations', value: s.views, icon: '👁️' },
+      { label: 'Références', value: s.references, icon: BookOpen },
+      { label: 'Catégories', value: s.categories, icon: Tags },
+      { label: 'Auteurs', value: s.authors, icon: PenTool },
+      { label: 'Utilisateurs', value: s.users, icon: Users },
+      { label: 'Téléchargements', value: s.downloads, icon: Download },
+      { label: 'Consultations', value: s.views, icon: Eye },
     )
   } else if (authStore.isResponsableRH) {
     cards.push(
-      { label: 'Références', value: s.references, icon: '📚' },
-      { label: 'Auteurs', value: s.authors, icon: '✍️' },
-      { label: 'Téléchargements', value: s.downloads, icon: '⬇️' },
+      { label: 'Références', value: s.references, icon: BookOpen },
+      { label: 'Auteurs', value: s.authors, icon: PenTool },
+      { label: 'Téléchargements', value: s.downloads, icon: Download },
     )
   } else if (authStore.isResponsableDemande) {
     cards.push(
-      { label: 'Demandes en attente', value: s.pendingRequests || '0', icon: '⏳' },
-      { label: 'Références', value: s.references, icon: '📚' },
+      { label: 'Demandes en attente', value: s.pendingRequests || '0', icon: Hourglass },
+      { label: 'Références', value: s.references, icon: BookOpen },
     )
   } else {
     cards.push(
-      { label: 'Références', value: s.references, icon: '📚' },
+      { label: 'Références', value: s.references, icon: BookOpen },
     )
   }
 
@@ -115,8 +116,8 @@ onMounted(fetchStats)
     <template v-else>
       <div class="stats-grid">
         <div v-for="card in roleCards" :key="card.label" class="stat-card">
-          <div class="stat-icon-box" :class="'icon-' + card.icon.codePointAt(0)">
-            <span class="stat-emoji">{{ card.icon }}</span>
+          <div class="stat-icon-box">
+            <component :is="card.icon" :size="20" class="stat-svg" />
           </div>
           <div class="stat-body">
             <span class="stat-value">{{ card.value }}</span>
@@ -244,9 +245,8 @@ onMounted(fetchStats)
   background: rgba(27, 67, 50, 0.1);
 }
 
-.stat-emoji {
-  font-size: 1.25rem;
-  line-height: 1;
+.stat-svg {
+  color: var(--primary);
 }
 
 .stat-body {

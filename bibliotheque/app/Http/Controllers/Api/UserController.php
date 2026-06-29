@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
+use App\Models\SuspensionRequest;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
 use Illuminate\Http\Request;
@@ -37,7 +39,19 @@ class UserController extends Controller
             });
         }
 
-        return response()->json($query->paginate(20));
+        $users = $query->paginate(20);
+
+        // Ajoute has_pending_suspension à chaque utilisateur
+        $pendingIds = SuspensionRequest::where('status', 'pending')
+            ->pluck('user_id')
+            ->toArray();
+
+        $users->getCollection()->transform(function ($user) use ($pendingIds) {
+            $user->has_pending_suspension = in_array($user->id, $pendingIds);
+            return $user;
+        });
+
+        return UserResource::collection($users);
     }
 
     // Crée un utilisateur avec rôle (admin/RH uniquement)
@@ -67,7 +81,7 @@ class UserController extends Controller
             'status' => $request->status ?? 'active',
         ]);
 
-        return response()->json($user, 201);
+        return (new UserResource($user))->response()->setStatusCode(201);
     }
 
     // Détail d'un utilisateur avec toutes ses relations
@@ -78,7 +92,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        return response()->json($user->load([
+        return new UserResource($user->load([
             'references', 'depositRequests', 'assignedDepositRequests', 
             'notifications', 'activityLogs', 'downloads', 'views'
         ]));
@@ -130,7 +144,7 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return response()->json($user);
+        return new UserResource($user);
     }
 
     // Supprime un utilisateur (admin/RH, pas soi-même, RH ne peut pas supprimer admin)
@@ -162,7 +176,7 @@ class UserController extends Controller
 
         $user->update(['status' => 'active']);
 
-        return response()->json($user);
+        return new UserResource($user);
     }
 
     // Suspend un compte utilisateur (admin/RH, pas soi-même)
@@ -178,7 +192,7 @@ class UserController extends Controller
 
         $user->update(['status' => 'suspended']);
 
-        return response()->json($user);
+        return new UserResource($user);
     }
 
     // Réinitialise le mot de passe et envoie un email avec le nouveau mot de passe

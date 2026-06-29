@@ -1,4 +1,3 @@
-// Bouton de suspension / activation d'un utilisateur (RH)
 <script setup lang="ts">
 import { ref } from 'vue'
 import http from '@/services/http'
@@ -20,7 +19,6 @@ const loading = ref(false)
 const confirm = useConfirm()
 const toast = useToast()
 
-// Bascule le statut avec confirmation
 function toggle() {
   const isActive = props.currentStatus === 'active'
   const action = isActive ? 'suspendre' : 'activer'
@@ -50,13 +48,14 @@ function toggle() {
 </script>
 
 <template>
-  <Button
-    :icon="currentStatus === 'active' ? 'pi pi-ban' : 'pi pi-check-circle'"
-    :severity="currentStatus === 'active' ? 'danger' : 'success'"
-    :loading="loading"
-    rounded
-    text
-    v-tooltip.left="currentStatus === 'active' ? 'Suspendre' : 'Activer'"
-    @click="toggle"
-  />
+  <span v-tooltip.left="currentStatus === 'active' ? 'Suspendre' : 'Activer'">
+    <Button
+      :icon="currentStatus === 'active' ? 'pi pi-ban' : 'pi pi-check-circle'"
+      :severity="currentStatus === 'active' ? 'danger' : 'success'"
+      :loading="loading"
+      rounded
+      text
+      @click="toggle"
+    />
+  </span>
 </template>

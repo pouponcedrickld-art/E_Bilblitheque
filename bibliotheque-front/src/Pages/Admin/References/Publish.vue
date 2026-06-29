@@ -1,25 +1,26 @@
 <script setup lang="ts">
-// Publication d'une référence depuis une demande de dépôt
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
+import type { DepositRequest } from '@/types'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Card from 'primevue/card'
+import Tag from 'primevue/tag'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
 const toastStore = useToastStore()
 
-// Données de la demande de dépôt
-const request = ref<any>(null)
+const request = ref<DepositRequest | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const error = ref('')
 
-// Charge la demande de dépôt
+const languageLabels: Record<string, string> = { fr: 'Français', en: 'Anglais', autre: 'Autre' }
+
 async function load() {
   loading.value = true
   try {
@@ -33,7 +34,6 @@ async function load() {
   }
 }
 
-// Publie la référence
 async function publishRequest() {
   submitting.value = true
   error.value = ''
@@ -49,7 +49,6 @@ async function publishRequest() {
   }
 }
 
-// Charge la demande au montage
 onMounted(load)
 </script>
 
@@ -61,11 +60,11 @@ onMounted(load)
     </div>
 
     <div v-if="loading" class="loading">Chargement...</div>
-
     <Message v-if="error" severity="error" :closable="false" class="mb-3">{{ error }}</Message>
 
     <Card v-if="request" class="mb-3">
       <template #title>{{ request.title }}</template>
+      <template #subtitle v-if="request.subtitle">{{ request.subtitle }}</template>
       <template #content>
         <div class="info-grid">
           <div class="info-item">
@@ -77,31 +76,61 @@ onMounted(load)
             <span>{{ request.applicant?.full_name ?? request.applicant?.name ?? '-' }}</span>
           </div>
           <div class="info-item">
+            <span class="info-label">Type</span>
+            <Tag :value="request.document_type?.label ?? request.document_type?.name ?? '-'" />
+          </div>
+          <div class="info-item">
+            <span class="info-label">Langue</span>
+            <span>{{ languageLabels[request.language ?? ''] || request.language }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Catégorie</span>
+            <span>{{ request.category?.name ?? '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Éditeur</span>
+            <span>{{ request.publisher?.name ?? '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ISBN</span>
+            <span>{{ request.isbn || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Année</span>
+            <span>{{ request.publication_year || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Pages</span>
+            <span>{{ request.pages || '-' }}</span>
+          </div>
+          <div class="info-item">
             <span class="info-label">Date de soumission</span>
             <span>{{ new Date(request.created_at).toLocaleDateString() }}</span>
+          </div>
+          <div v-if="request.abstract" class="info-item full">
+            <span class="info-label">Résumé</span>
+            <span>{{ request.abstract }}</span>
           </div>
           <div v-if="request.description" class="info-item full">
             <span class="info-label">Description</span>
             <span>{{ request.description }}</span>
+          </div>
+          <div v-if="request.cover_url || request.cover_image" class="info-item full">
+            <span class="info-label">Couverture</span>
+            <img :src="request.cover_url || `/storage/${request.cover_image}`" alt="Couverture" class="cover-thumb" />
           </div>
         </div>
       </template>
     </Card>
 
     <div v-if="request" class="actions">
-      <Button
-        icon="pi pi-check"
-        label="Confirmer la publication"
-        severity="success"
-        :loading="submitting"
-        @click="publishRequest"
-      />
+      <Button icon="pi pi-check" label="Confirmer la publication" severity="success" :loading="submitting" @click="publishRequest" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.page { max-width: 700px; margin: 0 auto; padding: 1.5rem; }
+.page { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .loading { text-align: center; padding: 2rem; color: var(--text-secondary); }
@@ -111,5 +140,6 @@ onMounted(load)
 .info-item.full { grid-column: 1 / -1; }
 .info-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
 .actions { margin-top: 1rem; }
+.cover-thumb { width: 100px; height: 140px; object-fit: cover; border-radius: 0.5rem; border: 1px solid var(--border); }
 @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
 </style>

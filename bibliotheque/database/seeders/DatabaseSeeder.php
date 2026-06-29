@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             AuthorSeeder::class,
             PublisherSeeder::class,
+            DocumentTypeSeeder::class,
             KeywordSeeder::class,
             ReferenceSeeder::class,
             DepositRequestSeeder::class,

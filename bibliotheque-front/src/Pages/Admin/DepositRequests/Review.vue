@@ -9,8 +9,11 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Message from 'primevue/message'
 import Card from 'primevue/card'
+import Tag from 'primevue/tag'
 import Divider from 'primevue/divider'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
+
+const languageLabels: Record<string, string> = { fr: 'Français', en: 'Anglais', autre: 'Autre' }
 
 const route = useRoute()
 const router = useRouter()
@@ -31,6 +34,7 @@ const showOverrideForm = ref(false)
 const overrideJustification = ref('')
 const showSecondReviewForm = ref(false)
 const secondReviewManagerId = ref<number | null>(null)
+const forceDownload = ref(false)
 
 // Charge la demande et les utilisateurs
 async function load() {
@@ -44,7 +48,7 @@ async function load() {
     request.value = reqRes.data?.data ?? reqRes.data
     reviews.value = request.value.reviews ?? request.value.history ?? []
     users.value = (usersRes.data?.data ?? usersRes.data ?? []).filter(
-      (u: any) => u.role === 'responsable_demande'
+      (u: any) => ['admin', 'responsable_rh', 'responsable_demande'].includes(u.role)
     )
   } catch {
     error.value = 'Impossible de charger la demande.'
@@ -58,7 +62,9 @@ async function publishRequest() {
   submitting.value = true
   try {
     const id = route.params.id as string
-    await http.post(`/deposit-requests/${id}/publish`)
+    await http.post(`/deposit-requests/${id}/publish`, {
+      force_allow_download: forceDownload.value ? '1' : '0',
+    })
     toastStore.success('Demande publiée.')
     await load()
   } catch (err: any) {
@@ -97,11 +103,13 @@ async function reassignManager() {
   if (!reassignManagerId.value) return
   submitting.value = true
   try {
+    const manager = users.value.find(u => u.id === reassignManagerId.value)
+    const managerName = manager?.full_name ?? 'le nouveau responsable'
     const id = route.params.id as string
     await http.post(`/deposit-requests/${id}/reassign`, {
       new_manager_id: reassignManagerId.value,
     })
-    toastStore.success('Demande réassignée.')
+    toastStore.success(`Demande réassignée à ${managerName}.`)
     showReassignForm.value = false
     reassignManagerId.value = null
     await load()
@@ -120,6 +128,7 @@ async function overrideRequest() {
     const id = route.params.id as string
     await http.post(`/deposit-requests/${id}/override`, {
       justification: overrideJustification.value,
+      force_allow_download: forceDownload.value ? '1' : '0',
     })
     toastStore.success('Décision annulée.')
     showOverrideForm.value = false
@@ -185,26 +194,82 @@ onMounted(load)
               <span>{{ request.assigned_manager?.full_name ?? request.assigned_manager?.name ?? '-' }}</span>
             </div>
             <div class="info-item">
+              <span class="info-label">Type</span>
+              <Tag :value="request.document_type?.label ?? request.document_type?.name ?? '-'" />
+            </div>
+            <div class="info-item">
+              <span class="info-label">Langue</span>
+              <span>{{ languageLabels[request.language ?? ''] || request.language || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Catégorie</span>
+              <span>{{ request.category?.name ?? '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Éditeur</span>
+              <span>{{ request.publisher?.name ?? '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">ISBN</span>
+              <span>{{ request.isbn || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Année</span>
+              <span>{{ request.publication_year || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Pages</span>
+              <span>{{ request.pages || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Téléchargement</span>
+              <Tag v-if="request.allow_download" value="Autorisé" severity="success" />
+              <Tag v-else value="Bloqué" severity="danger" />
+            </div>
+            <div class="info-item">
               <span class="info-label">Date</span>
               <span>{{ new Date(request.created_at).toLocaleDateString() }}</span>
+            </div>
+            <div v-if="request.subtitle" class="info-item full">
+              <span class="info-label">Sous-titre</span>
+              <span>{{ request.subtitle }}</span>
+            </div>
+            <div v-if="request.abstract" class="info-item full">
+              <span class="info-label">Résumé</span>
+              <p>{{ request.abstract }}</p>
             </div>
             <div v-if="request.description" class="info-item full">
               <span class="info-label">Description</span>
               <p>{{ request.description }}</p>
+            </div>
+            <div v-if="request.cover_url || request.cover_image" class="info-item full">
+              <span class="info-label">Couverture</span>
+              <img :src="request.cover_url || `/storage/${request.cover_image}`" alt="Couverture" class="cover-thumb" />
+            </div>
+            <div v-if="request.proposed_file_url || request.proposed_file" class="info-item full">
+              <span class="info-label">Fichier</span>
+              <a :href="request.proposed_file_url || undefined" target="_blank" class="file-link">
+                <i class="pi pi-download" /> Télécharger le fichier
+              </a>
             </div>
           </div>
         </template>
       </Card>
 
       <div class="actions-section">
-        <Button
-          v-if="request.status === 'approved_by_manager'"
-          icon="pi pi-check"
-          label="Publier"
-          severity="success"
-          :loading="submitting"
-          @click="publishRequest"
-        />
+        <div v-if="request.status === 'approved_by_manager'" class="action-block">
+          <Button
+            icon="pi pi-check"
+            label="Publier"
+            severity="success"
+            :loading="submitting"
+            @click="publishRequest"
+          />
+          <div v-if="!request.allow_download" class="checkbox-field">
+            <input id="force-publish" type="checkbox" v-model="forceDownload" />
+            <label for="force-publish">Forcer le téléchargement (outrepasser le choix du demandeur)</label>
+          </div>
+        </div>
 
         <Button
           v-if="request.status === 'rejected_by_manager'"
@@ -266,9 +331,13 @@ onMounted(load)
             <label for="override-justification">Justification</label>
             <Textarea id="override-justification" v-model="overrideJustification" rows="4" :auto-resize="true" placeholder="Expliquez pourquoi vous annulez la décision..." />
           </div>
+          <div v-if="!request.allow_download" class="checkbox-field">
+            <input id="force-override" type="checkbox" v-model="forceDownload" />
+            <label for="force-override">Forcer le téléchargement (outrepasser le choix du demandeur)</label>
+          </div>
           <div class="form-actions">
             <Button icon="pi pi-undo" label="Confirmer l'annulation" severity="warn" :loading="submitting" :disabled="!overrideJustification.trim()" @click="overrideRequest" />
-            <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="showOverrideForm = false; overrideJustification = ''" />
+            <Button icon="pi pi-times" label="Annuler" severity="secondary" text @click="showOverrideForm = false; overrideJustification = ''; forceDownload = false" />
           </div>
         </template>
       </Card>
@@ -330,6 +399,9 @@ onMounted(load)
 .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
 .info-item.full { grid-column: 1 / -1; }
 .info-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
+.cover-thumb { width: 100px; height: 140px; object-fit: cover; border-radius: 0.5rem; border: 1px solid var(--border); }
+.file-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--primary); font-weight: 500; text-decoration: none; }
+.file-link:hover { text-decoration: underline; }
 @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
@@ -340,4 +412,7 @@ onMounted(load)
 .review-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem; }
 .review-date { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; }
 .review-justification { font-size: 0.9rem; color: var(--text-primary); margin: 0; }
+.action-block { display: flex; flex-direction: column; gap: 0.75rem; }
+.checkbox-field { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+.checkbox-field input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
 </style>

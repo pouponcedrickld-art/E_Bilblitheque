@@ -14,6 +14,8 @@ import Tag from 'primevue/tag'
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
+import Dialog from 'primevue/dialog'
+import Textarea from 'primevue/textarea'
 
 const router = useRouter()
 const toast = useToast()
@@ -49,23 +51,54 @@ async function fetchUsers() {
   }
 }
 
-// Active ou suspend un utilisateur
-async function toggleStatus(user: User) {
-  const newStatus = user.status === 'active' ? 'suspended' : 'active'
-  const action = newStatus === 'suspended' ? 'suspendre' : 'activer'
+// Dialogue de demande de suspension
+const suspensionDialog = ref(false)
+const suspendTarget = ref<User | null>(null)
+const suspendReason = ref('')
+const suspending = ref(false)
+
+function openSuspendDialog(user: User) {
+  suspendTarget.value = user
+  suspendReason.value = ''
+  suspensionDialog.value = true
+}
+
+async function submitSuspensionRequest() {
+  if (!suspendTarget.value || !suspendReason.value.trim()) return
+  suspending.value = true
+  try {
+    await http.post('/suspension-requests', {
+      user_id: suspendTarget.value.id,
+      reason: suspendReason.value,
+    })
+    toast.add({ severity: 'success', summary: 'Demande envoyée', detail: `Demande de suspension de "${suspendTarget.value.full_name}" soumise à l'administrateur.`, life: 4000 })
+    suspensionDialog.value = false
+    suspendTarget.value = null
+    suspendReason.value = ''
+    await fetchUsers()
+  } catch {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de soumettre la demande.', life: 3000 })
+  } finally {
+    suspending.value = false
+  }
+}
+
+// Active directement un utilisateur (pas d'approbation nécessaire)
+async function activateUser(user: User) {
   confirm.require({
-    message: `Voulez-vous ${action} l'utilisateur "${user.full_name}" ?`,
+    message: `Voulez-vous activer l'utilisateur "${user.full_name}" ?`,
     header: 'Confirmation',
     icon: 'pi pi-exclamation-triangle',
-    acceptClass: newStatus === 'suspended' ? 'p-button-danger' : 'p-button-success',
+    acceptClass: 'p-button-success',
     rejectClass: 'p-button-secondary',
     accept: async () => {
       try {
-        await http.put(`/users/${user.id}`, { status: newStatus })
-        user.status = newStatus
-        toast.add({ severity: 'success', summary: 'Succès', detail: `Utilisateur ${action}`, life: 3000 })
+        await http.post(`/users/${user.id}/activate`)
+        user.status = 'active'
+        toast.add({ severity: 'success', summary: 'Succès', detail: 'Utilisateur activé', life: 3000 })
+        await fetchUsers()
       } catch {
-        toast.add({ severity: 'error', summary: 'Erreur', detail: `Impossible de ${action} l'utilisateur`, life: 3000 })
+        toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'activer l\'utilisateur', life: 3000 })
       }
     },
   })
@@ -132,25 +165,78 @@ onMounted(fetchUsers)
       </Column>
       <Column field="status" header="Statut" sortable>
         <template #body="{ data }">
-          <StatusBadge :status="data.status" />
+          <div class="status-cell">
+            <StatusBadge :status="data.status" />
+            <Tag v-if="data.has_pending_suspension" value="Demande de suspension" severity="warn" class="pending-tag" />
+          </div>
         </template>
       </Column>
-      <Column header="Actions" style="min-width: 12rem">
+      <Column header="Actions" style="min-width: 14rem">
         <template #body="{ data }">
           <div class="actions">
-            <Button icon="pi pi-pencil" severity="info" rounded text @click="router.push(`/rh/users/${data.id}/edit`)" v-tooltip.left="'Modifier'" />
+            <span v-tooltip.left="'Modifier'"><Button icon="pi pi-pencil" severity="info" rounded text @click="router.push(`/rh/users/${data.id}/edit`)" /></span>
+            <span v-tooltip.left="data.has_pending_suspension ? 'Demande déjà envoyée' : 'Demander la suspension'">
             <Button
-              :icon="data.status === 'active' ? 'pi pi-ban' : 'pi pi-check-circle'"
-              :severity="data.status === 'active' ? 'danger' : 'success'"
+              v-if="data.status === 'active'"
+              icon="pi pi-ban"
+              severity="danger"
               rounded text
-              @click="toggleStatus(data)"
-              v-tooltip.left="data.status === 'active' ? 'Suspendre' : 'Activer'"
+              :disabled="data.has_pending_suspension"
+              @click="openSuspendDialog(data)"
             />
-            <Button icon="pi pi-key" severity="warn" rounded text @click="resetPassword(data)" v-tooltip.left="'Réinitialiser mot de passe'" />
+            </span>
+            <span v-tooltip.left="'Activer'">
+            <Button
+              v-if="data.status === 'suspended'"
+              icon="pi pi-check-circle"
+              severity="success"
+              rounded text
+              @click="activateUser(data)"
+            />
+            </span>
+            <span v-tooltip.left="'Réinitialiser mot de passe'"><Button icon="pi pi-key" severity="warn" rounded text @click="resetPassword(data)" /></span>
           </div>
         </template>
       </Column>
     </DataTable>
+
+    <Dialog
+      v-model:visible="suspensionDialog"
+      header="Demander la suspension"
+      :modal="true"
+      :closable="!suspending"
+      appendTo="body"
+      style="max-width: 480px"
+    >
+      <div class="dialog-body">
+        <p class="dialog-desc">
+          Vous êtes sur le point de demander la suspension de <strong>{{ suspendTarget?.full_name }}</strong>.
+          Un administrateur devra approuver cette demande.
+        </p>
+        <div class="field">
+          <label for="suspend-reason">Motif de la suspension</label>
+          <Textarea
+            id="suspend-reason"
+            v-model="suspendReason"
+            rows="4"
+            :auto-resize="true"
+            placeholder="Expliquez pourquoi cet utilisateur doit être suspendu..."
+            :disabled="suspending"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Annuler" severity="secondary" :disabled="suspending" @click="suspensionDialog = false" />
+        <Button
+          label="Envoyer la demande"
+          icon="pi pi-send"
+          severity="danger"
+          :loading="suspending"
+          :disabled="!suspendReason.trim() || suspendReason.trim().length < 10"
+          @click="submitSuspensionRequest"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -162,4 +248,10 @@ onMounted(fetchUsers)
 .actions { display: flex; gap: 0.25rem; }
 .toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
 .search-input { min-width: 260px; }
+.status-cell { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.pending-tag { font-size: 0.65rem; }
+.dialog-body { display: flex; flex-direction: column; gap: 1rem; }
+.dialog-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 </style>

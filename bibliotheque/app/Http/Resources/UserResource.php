@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'last_login_at' => $this->last_login_at,
             'references_count' => $this->whenCounted('references'),
+            'has_pending_suspension' => $this->has_pending_suspension ?? false,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

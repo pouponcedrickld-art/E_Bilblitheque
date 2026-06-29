@@ -16,7 +16,7 @@ class Reference extends Model
         'isbn',
         'publication_year',
         'language',
-        'document_type',
+        'document_type_id',
         'category_id',
         'publisher_id',
         'uploaded_by',
@@ -27,6 +27,8 @@ class Reference extends Model
         'view_count',
         'status',
         'is_featured',
+        'allow_download',
+        'file_size',
     ];
 
     protected function casts(): array
@@ -37,6 +39,8 @@ class Reference extends Model
             'download_count' => 'integer',
             'view_count' => 'integer',
             'is_featured' => 'boolean',
+            'allow_download' => 'boolean',
+            'file_size' => 'integer',
         ];
     }
 
@@ -50,6 +54,12 @@ class Reference extends Model
     public function publisher()
     {
         return $this->belongsTo(Publisher::class);
+    }
+
+    // Type de document
+    public function documentType()
+    {
+        return $this->belongsTo(DocumentType::class);
     }
 
     // Utilisateur ayant uploadé la référence

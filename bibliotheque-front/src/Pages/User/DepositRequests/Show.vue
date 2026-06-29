@@ -5,6 +5,7 @@ import http from '@/services/http'
 import type { DepositRequest } from '@/types'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 import Button from 'primevue/button'
+import Tag from 'primevue/tag'
 import { useConfirm } from 'primevue/useconfirm'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useAuthStore } from '@/stores/auth'
@@ -22,17 +23,17 @@ const reviews = ref<any[]>([])
 const loading = ref(true)
 const error = ref('')
 
+const languageLabels: Record<string, string> = { fr: 'Français', en: 'Anglais', autre: 'Autre' }
+
 const canDelete = computed(() => {
   if (!request.value) return false
   if (authStore.user?.role === 'admin') return true
   return request.value.status === 'pending'
 })
 
-// Charge le détail d'une demande depuis l'API
 async function fetchRequest() {
   loading.value = true
   error.value = ''
-
   try {
     const id = Number(route.params.id)
     const res = await http.get(`/deposit-requests/${id}`)
@@ -46,7 +47,6 @@ async function fetchRequest() {
   }
 }
 
-// Télécharge le fichier proposé
 function downloadFile() {
   if (!request.value?.proposed_file_url) return
   window.open(request.value.proposed_file_url, '_blank')
@@ -82,20 +82,9 @@ onMounted(fetchRequest)
   <div class="page">
     <div class="page-header">
       <Button icon="pi pi-arrow-left" class="p-button-rounded p-button-text" @click="goBack" />
-      <div>
-        <h1>Détail du dépôt</h1>
-      </div>
-      <Button
-        v-if="canDelete"
-        label="Supprimer"
-        icon="pi pi-trash"
-        severity="danger"
-        class="p-button-sm"
-        @click="confirmDelete"
-      />
+      <div><h1>Détail du dépôt</h1></div>
+      <Button v-if="canDelete" label="Supprimer" icon="pi pi-trash" severity="danger" class="p-button-sm" @click="confirmDelete" />
     </div>
-    <ConfirmDialog />
-
     <div v-if="loading" class="loading">Chargement...</div>
     <div v-else-if="error" class="alert alert-error">{{ error }}</div>
 
@@ -105,26 +94,66 @@ onMounted(fetchRequest)
           <span class="detail-label">Titre</span>
           <span class="detail-value">{{ request.title }}</span>
         </div>
-        <div class="detail-row">
+        <div v-if="request.subtitle" class="detail-row">
+          <span class="detail-label">Sous-titre</span>
+          <span class="detail-value">{{ request.subtitle }}</span>
+        </div>
+        <div v-if="request.abstract" class="detail-row">
+          <span class="detail-label">Résumé</span>
+          <span class="detail-value">{{ request.abstract }}</span>
+        </div>
+        <div v-if="request.description" class="detail-row">
           <span class="detail-label">Description</span>
-          <span class="detail-value">{{ request.description || 'Aucune description' }}</span>
+          <span class="detail-value">{{ request.description }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Statut</span>
           <StatusBadge :status="request.status" />
         </div>
         <div class="detail-row">
+          <span class="detail-label">Téléchargement</span>
+          <Tag v-if="request.allow_download" value="Autorisé" severity="success" />
+          <Tag v-else value="Bloqué" severity="danger" />
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Type</span>
+          <Tag :value="request.document_type?.label ?? request.document_type?.name ?? '-'" />
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Langue</span>
+          <span class="detail-value">{{ languageLabels[request.language ?? ''] || request.language || '-' }}</span>
+        </div>
+        <div v-if="request.category" class="detail-row">
+          <span class="detail-label">Catégorie</span>
+          <span class="detail-value">{{ request.category.name }}</span>
+        </div>
+        <div v-if="request.publisher" class="detail-row">
+          <span class="detail-label">Éditeur</span>
+          <span class="detail-value">{{ request.publisher.name }}</span>
+        </div>
+        <div v-if="request.isbn" class="detail-row">
+          <span class="detail-label">ISBN</span>
+          <span class="detail-value">{{ request.isbn }}</span>
+        </div>
+        <div v-if="request.publication_year" class="detail-row">
+          <span class="detail-label">Année</span>
+          <span class="detail-value">{{ request.publication_year }}</span>
+        </div>
+        <div v-if="request.pages" class="detail-row">
+          <span class="detail-label">Pages</span>
+          <span class="detail-value">{{ request.pages }}</span>
+        </div>
+        <div v-if="request.cover_url || request.cover_image" class="detail-row">
+          <span class="detail-label">Couverture</span>
+          <img :src="request.cover_url || `/storage/${request.cover_image}`" alt="Couverture" class="cover-thumb" />
+        </div>
+        <div class="detail-row">
           <span class="detail-label">Date de soumission</span>
           <span class="detail-value">{{ formatDate(request.created_at) }}</span>
         </div>
-        <div v-if="request.status === 'approved_by_manager' || request.status === 'published'" class="detail-row">
+        <div v-if="request.proposed_file_url || request.proposed_file" class="detail-row">
           <span class="detail-label">Fichier</span>
-          <Button
-            label="Télécharger le fichier"
-            icon="pi pi-download"
-            class="p-button-outlined p-button-sm"
-            @click="downloadFile"
-          />
+          <Button label="Télécharger" icon="pi pi-download" class="p-button-outlined p-button-sm" @click="downloadFile" />
         </div>
       </div>
 
@@ -144,106 +173,21 @@ onMounted(fetchRequest)
 </template>
 
 <style scoped>
-.page {
-  max-width: 800px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.page-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  flex: 1;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-secondary);
-}
-
-.alert {
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.85rem;
-}
-
-.alert-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-}
-
-.detail-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.detail-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.detail-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.detail-value {
-  font-size: 0.95rem;
-  color: var(--text-primary);
-}
-
-.reviews-section {
-  margin-top: 2rem;
-}
-
-.reviews-section h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.review-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.review-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.review-comment {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  line-height: 1.5;
-}
-
-.review-date {
-  display: block;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
+.page { max-width: 800px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.5rem; }
+.page-header h1 { font-size: 1.5rem; font-weight: 700; flex: 1; }
+.loading { text-align: center; padding: 2rem; color: var(--text-secondary); }
+.alert { padding: 0.75rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; }
+.alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.detail-card { background: #fff; border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.detail-row { display: flex; flex-direction: column; gap: 0.2rem; }
+.detail-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
+.detail-value { font-size: 0.95rem; color: var(--text-primary); }
+.cover-thumb { width: 100px; height: 140px; object-fit: cover; border-radius: 0.5rem; border: 1px solid var(--border); }
+.reviews-section { margin-top: 2rem; }
+.reviews-section h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+.review-card { background: #fff; border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; }
+.review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.review-comment { font-size: 0.9rem; color: var(--text-primary); line-height: 1.5; }
+.review-date { display: block; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); }
 </style>

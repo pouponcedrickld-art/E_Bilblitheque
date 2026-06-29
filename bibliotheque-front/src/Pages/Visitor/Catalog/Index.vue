@@ -1,31 +1,37 @@
 <script setup lang="ts">
-// Importations Vue, routeur, services et composants
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import http from '@/services/http'
+import { useAuthStore } from '@/stores/auth'
 import type { Reference, Category } from '@/types'
 import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
 import CatalogFilters from '@/Components/Visitor/CatalogFilters.vue'
+import DocTypeIcon from '@/Components/Shared/DocTypeIcon.vue'
 
-// Interface pour l'état des filtres
 interface FilterState {
   category_id?: number | null
-  document_type?: string | null
+  document_type_id?: number | null
   language?: string | null
   keyword?: string | null
 }
 
-// Routeur et données réactives
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const references = ref<Reference[]>([])
 const categories = ref<Category[]>([])
+const languageLabels: Record<string, string> = {
+  fr: 'Français', en: 'Anglais', ar: 'Arabe', es: 'Espagnol',
+  de: 'Allemand', pt: 'Portugais', it: 'Italien', ru: 'Russe',
+  zh: 'Chinois', ja: 'Japonais', autre: 'Autre',
+}
+const documentTypes = ref<{ id: number; name: string; label: string }[]>([])
 const loading = ref(false)
 const search = ref('')
 const filters = ref<FilterState>({
   category_id: null,
-  document_type: null,
+  document_type_id: null,
   language: null,
   keyword: null,
 })
@@ -33,17 +39,15 @@ const totalRecords = ref(0)
 const currentPage = ref(1)
 const rows = 15
 
-// Timer pour le debounce de la recherche
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-// Récupère les références avec pagination et filtres
 async function fetchReferences(page = 1) {
   loading.value = true
   try {
     const params: Record<string, any> = { page, per_page: rows }
     if (search.value.trim()) params.search = search.value.trim()
     if (filters.value.category_id) params.category_id = filters.value.category_id
-    if (filters.value.document_type) params.document_type = filters.value.document_type
+    if (filters.value.document_type_id) params.document_type_id = filters.value.document_type_id
     if (filters.value.language) params.language = filters.value.language
     if (filters.value.keyword) params.keyword = filters.value.keyword
     const res = await http.get('/references', { params })
@@ -59,47 +63,43 @@ async function fetchReferences(page = 1) {
   }
 }
 
-// Récupère la liste des catégories
 async function fetchCategories() {
   try {
     const res = await http.get('/categories')
     categories.value = res.data?.data ?? res.data ?? []
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
-// Recherche avec debounce (300ms)
+async function fetchDocumentTypes() {
+  try {
+    const res = await http.get('/document-types')
+    documentTypes.value = res.data?.data ?? res.data ?? []
+  } catch {}
+}
+
 function onSearchInput() {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => fetchReferences(1), 300)
 }
 
-// Gère le changement de page
 function onPageChange(event: { page: number; first: number; rows: number }) {
   fetchReferences(event.page + 1)
 }
 
-// Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
-// Retourne l'icône correspondant au type de document
-function getTypeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    livre: '📖', memoire: '📄', these: '🎓', article: '📰',
-    revue: '📓', rapport: '📑', guide: '📋',
-  }
-  return icons[type] || '📄'
+function viewDocument(id: number) {
+  router.push(`/user/references/${id}/read`)
 }
 
-// Initialise la recherche via query string et charge les données
 onMounted(() => {
   if (route.query.search) {
     search.value = route.query.search as string
   }
   fetchCategories()
+  fetchDocumentTypes()
   fetchReferences()
 })
 </script>
@@ -107,26 +107,34 @@ onMounted(() => {
 <template>
   <div class="catalogue">
     <aside class="filters-sidebar">
-      <CatalogFilters v-model="filters" :categories="categories" />
-      <Button label="Appliquer les filtres" @click="fetchReferences(1)" class="filter-btn" />
+      <div class="filters-card">
+        <CatalogFilters v-model="filters" :categories="categories" :document-types="documentTypes" />
+        <hr class="gold-rule" />
+        <Button label="Appliquer les filtres" @click="fetchReferences(1)" class="filter-btn" />
+      </div>
     </aside>
 
     <div class="main-content">
       <div class="search-bar">
+        <i class="pi pi-search search-icon" />
         <input v-model="search" type="text" class="search-input" placeholder="Rechercher un titre, un auteur..." @input="onSearchInput" />
       </div>
 
-      <div v-if="loading && !references.length" class="loading">
+      <div v-if="loading && !references.length" class="loading-spinner">
+        <i class="pi pi-spin pi-spinner" />
         <p>Chargement des références...</p>
       </div>
 
-      <div v-else-if="!loading && references.length === 0" class="empty">
+      <div v-else-if="!loading && references.length === 0" class="empty-state">
+        <i class="pi pi-book-open" />
         <p v-if="search">Aucun résultat pour "{{ search }}".</p>
         <p v-else>Aucune référence trouvée.</p>
       </div>
 
       <div v-else class="results">
-        <p v-if="search" class="result-count">{{ totalRecords }} résultat(s) pour "{{ search }}"</p>
+        <p v-if="search" class="result-count">
+          <span class="count-num">{{ totalRecords }}</span> résultat(s) pour "{{ search }}"
+        </p>
 
         <div class="grid">
           <div
@@ -135,17 +143,26 @@ onMounted(() => {
             class="card"
             @click="viewDetail(ref.id)"
           >
-            <div class="card-icon">{{ getTypeIcon(ref.document_type) }}</div>
+            <div class="card-icon"><DocTypeIcon :type="ref.document_type?.name" :size="32" /></div>
             <div class="card-body">
-              <span class="card-badge">{{ ref.document_type }}</span>
+              <div class="card-top">
+                <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? '-' }}</span>
+              </div>
               <h3 class="card-title">{{ ref.title }}</h3>
               <p v-if="ref.authors?.length" class="card-authors">
                 {{ ref.authors.map(a => a.full_name).join(', ') }}
               </p>
               <div class="card-meta">
-                <span v-if="ref.publication_year">{{ ref.publication_year }}</span>
-                <span v-if="ref.language">{{ ref.language }}</span>
+                <span v-if="ref.publication_year"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
+                <span v-if="ref.language">{{ languageLabels[ref.language] ?? ref.language }}</span>
               </div>
+              <span
+                v-if="authStore.isAuthenticated && authStore.user?.status === 'active' && ref.file_path"
+                class="card-read"
+                @click.stop="viewDocument(ref.id)"
+              >
+                Lire en ligne →
+              </span>
             </div>
           </div>
         </div>
@@ -164,27 +181,195 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.catalogue { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-.filters-sidebar { position: sticky; top: 1.5rem; align-self: start; display: flex; flex-direction: column; gap: 1rem; }
-.filter-btn { width: 100%; }
+.catalogue {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.filters-sidebar {
+  position: sticky;
+  top: 1.5rem;
+  align-self: start;
+}
+
+.filters-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-btn {
+  width: 100%;
+  background: var(--primary) !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 0.65rem !important;
+}
+.filter-btn:hover {
+  background: var(--primary-dark) !important;
+  box-shadow: 0 0 0 3px var(--gold-glow) !important;
+}
+
 .main-content { min-width: 0; }
-.search-bar { margin-bottom: 1.5rem; }
-.search-input { width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; background: #fff; transition: border-color 0.15s; }
-.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.15); }
-.loading, .empty { text-align: center; padding: 3rem; color: var(--text-secondary); }
-.result-count { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
-.card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.25rem; display: flex; gap: 1rem; cursor: pointer; transition: all 0.15s; }
-.card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(27, 67, 50, 0.1); transform: translateY(-1px); }
-.card-icon { font-size: 2rem; flex-shrink: 0; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s;
+}
+.search-bar:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+
+.search-icon {
+  color: var(--gold-dark);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem 0.75rem;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  outline: none;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+.search-input::placeholder {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.result-count {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.count-num { font-weight: 700; color: var(--foreground); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.15rem;
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: 0 4px 16px rgba(200,164,92,0.1);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--gold-dark);
+}
+
 .card-body { flex: 1; min-width: 0; }
-.card-badge { display: inline-block; padding: 0.15rem 0.5rem; background: rgba(27, 67, 50, 0.08); color: var(--primary); border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.35rem; }
-.card-title { font-size: 0.95rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card-authors { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-secondary); }
+
+.card-top { margin-bottom: 0.25rem; }
+
+.card-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: rgba(200, 164, 92, 0.12);
+  color: var(--gold-dark);
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 0.3rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--foreground);
+}
+
+.card-authors {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.card-meta i { font-size: 0.65rem; margin-right: 0.15rem; }
+
+.card-read {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.card-read:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
 .paginator { margin-top: 1.5rem; }
+
+:deep(.p-paginator) {
+  background: transparent;
+  border: none;
+}
+:deep(.p-paginator .p-paginator-page.p-highlight) {
+  background: var(--primary);
+  color: var(--gold-light);
+  border-radius: var(--radius-lg);
+}
+:deep(.p-paginator .p-paginator-page:hover) {
+  border-radius: var(--radius-lg);
+}
+
 @media (max-width: 768px) {
   .catalogue { grid-template-columns: 1fr; }
   .filters-sidebar { position: static; }
+  .grid { grid-template-columns: 1fr; }
 }
 </style>

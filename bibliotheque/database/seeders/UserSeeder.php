@@ -97,3 +97,4 @@ class UserSeeder extends Seeder
         $this->command->info('Users seeded successfully.');
     }
 }
+

@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\DownloadController;
 use App\Http\Controllers\Api\ViewController;
 use App\Http\Controllers\Api\KeywordController;
 use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\DocumentTypeController;
+use App\Http\Controllers\Api\SuspensionRequestController;
 
 // Routes publiques (accessibles sans authentification)
 Route::post('/register', [AuthController::class, 'register']);
@@ -33,6 +35,8 @@ Route::get('/references/{reference}', [ReferenceController::class, 'show'])->whe
 Route::get('/references/{reference}/read', [ReferenceController::class, 'read']);
 Route::get('/keywords', [KeywordController::class, 'index']);
 Route::get('/stats', [StatsController::class, 'index']);
+Route::get('/document-types', [DocumentTypeController::class, 'index']);
+Route::get('/document-types/{documentType}', [DocumentTypeController::class, 'show']);
 
 // Routes protégées par session Sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -54,10 +58,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dépôt (tout utilisateur connecté)
     Route::get('/deposit-requests', [DepositRequestController::class, 'index']);
     Route::get('/deposit-requests/{depositRequest}', [DepositRequestController::class, 'show']);
+    Route::get('/deposit-requests/{depositRequest}/download', [DepositRequestController::class, 'downloadFile']);
     Route::apiResource('deposit-requests', DepositRequestController::class)->except(['index', 'show']);
 
     // Profil utilisateur (tout utilisateur connecté)
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+
+    // Création rapide de catégories, éditeurs et types de document (tout utilisateur connecté)
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::post('/publishers', [PublisherController::class, 'store']);
+    Route::post('/document-types', [DocumentTypeController::class, 'store']);
+
+    // Statistiques (admin et RH)
+    Route::get('/downloads/stats', [DownloadController::class, 'stats']);
+    Route::get('/views/stats', [ViewController::class, 'stats']);
 
     // --- Admin + Responsable Demande ---
     Route::middleware('responsable.demande')->group(function () {
@@ -69,16 +83,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('responsable.rh')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::post('/users/{user}/activate', [UserController::class, 'activate']);
-        Route::post('/users/{user}/suspend', [UserController::class, 'suspend']);
         Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
+        Route::get('/suspension-requests', [SuspensionRequestController::class, 'index']);
+        Route::post('/suspension-requests', [SuspensionRequestController::class, 'store']);
     });
 });
 
 // --- Admin uniquement ---
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () {
+    // Suspension directe et gestion des demandes de suspension
+    Route::post('/users/{user}/suspend', [UserController::class, 'suspend']);
+    Route::post('/suspension-requests/{suspensionRequest}/approve', [SuspensionRequestController::class, 'approve']);
+    Route::post('/suspension-requests/{suspensionRequest}/reject', [SuspensionRequestController::class, 'reject']);
 
     // Gestion du catalogue (CRUD catégories, auteurs, éditeurs)
-    Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
@@ -86,9 +104,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::put('/authors/{author}', [AuthorController::class, 'update']);
     Route::delete('/authors/{author}', [AuthorController::class, 'destroy']);
 
-    Route::post('/publishers', [PublisherController::class, 'store']);
     Route::put('/publishers/{publisher}', [PublisherController::class, 'update']);
     Route::delete('/publishers/{publisher}', [PublisherController::class, 'destroy']);
+
+    Route::put('/document-types/{documentType}', [DocumentTypeController::class, 'update']);
+    Route::delete('/document-types/{documentType}', [DocumentTypeController::class, 'destroy']);
 
     // Workflow admin
     Route::post('/deposit-requests/{depositRequest}/publish', [DepositRequestController::class, 'publish']);
@@ -104,11 +124,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     // Statistiques téléchargements / consultations
     Route::get('/downloads', [DownloadController::class, 'index']);
-    Route::get('/downloads/stats', [DownloadController::class, 'stats']);
     Route::get('/downloads/{download}', [DownloadController::class, 'show']);
 
     Route::get('/views', [ViewController::class, 'index']);
-    Route::get('/views/stats', [ViewController::class, 'stats']);
     Route::get('/views/{view}', [ViewController::class, 'show']);
 
     // Gestion des mots-clés
@@ -118,4 +136,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     // Modification/suppression des références (admin uniquement)
     Route::put('/references/{reference}', [ReferenceController::class, 'update']);
     Route::delete('/references/{reference}', [ReferenceController::class, 'destroy']);
+
+    // Forcer le téléchargement (admin uniquement)
+    Route::post('/references/{reference}/force-download', [ReferenceController::class, 'forceDownload']);
 });

@@ -8,18 +8,19 @@ use App\Models\Keyword;
 use App\Models\Publisher;
 use App\Models\Reference;
 use App\Models\User;
+use App\Models\DocumentType;
 use Illuminate\Database\Seeder;
 
 class ReferenceSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crée les références documentaires avec auteurs et mots-clés associés
         $categories = Category::pluck('id', 'name')->toArray();
         $publisherIds = Publisher::pluck('id')->toArray();
         $userIds = User::pluck('id')->toArray();
         $authorIds = Author::pluck('id')->toArray();
         $keywordIds = Keyword::pluck('id')->toArray();
+        $docTypes = DocumentType::pluck('id', 'name')->toArray();
 
         $references = [
             [
@@ -468,6 +469,9 @@ class ReferenceSeeder extends Seeder
         foreach ($references as $data) {
             $categoryName = $data['category'];
             unset($data['category']);
+
+            $data['document_type_id'] = $docTypes[$data['document_type']] ?? 8;
+            unset($data['document_type']);
 
             $reference = Reference::factory()->create(array_merge($data, [
                 'category_id' => $categories[$categoryName] ?? Category::factory(),

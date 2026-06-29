@@ -1,4 +1,3 @@
-// Formulaire d'annulation de décision par l'administrateur
 <script setup lang="ts">
 import { ref } from 'vue'
 import http from '@/services/http'
@@ -15,11 +14,9 @@ const emit = defineEmits<{
 }>()
 
 const toastStore = useToastStore()
-
 const justification = ref('')
 const submitting = ref(false)
 
-// Soumet l'annulation avec justification
 async function submit() {
   if (!justification.value.trim()) return
   submitting.value = true
@@ -37,10 +34,15 @@ async function submit() {
 }
 </script>
 
-<!-- Interface d'annulation avec champ justification -->
 <template>
-  <div class="override-form">
-    <h3 class="form-title">Annuler la décision</h3>
+  <div class="override-card">
+    <div class="card-header">
+      <svg viewBox="0 0 20 20" width="16" height="16" class="header-icon">
+        <circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="1.5" />
+        <text x="10" y="14" text-anchor="middle" font-size="10" fill="var(--gold)" font-family="Playfair Display, serif">!</text>
+      </svg>
+      <span class="header-title">Annuler la décision</span>
+    </div>
     <div class="field">
       <label for="override-justification">Justification</label>
       <Textarea
@@ -56,7 +58,7 @@ async function submit() {
       <Button
         icon="pi pi-undo"
         label="Confirmer l'annulation"
-        severity="warn"
+        class="submit-btn"
         :loading="submitting"
         :disabled="!justification.trim()"
         @click="submit"
@@ -66,17 +68,33 @@ async function submit() {
 </template>
 
 <style scoped>
-.override-form {
-  background: #fff;
+.override-card {
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-xl);
   padding: 1.25rem;
+  transition: border-color 0.25s;
 }
-.form-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 1rem;
+.override-card:hover {
+  border-color: var(--border-gold);
 }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+.header-icon {
+  flex-shrink: 0;
+}
+.header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -84,12 +102,23 @@ async function submit() {
   margin-bottom: 1rem;
 }
 .field label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
 }
+
 .form-actions {
   display: flex;
   gap: 0.75rem;
+}
+.submit-btn {
+  background: #b45309 !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  font-weight: 600 !important;
+}
+.submit-btn:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 4px 16px rgba(180,83,9,0.3) !important;
 }
 </style>

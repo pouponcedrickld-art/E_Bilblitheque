@@ -109,12 +109,13 @@ onMounted(fetchData)
       </Column>
       <Column header="Actions" style="min-width: 8rem">
         <template #body="{ data }">
+          <span v-tooltip.left="'Voir le détail'">
           <Button
             icon="pi pi-eye"
             class="p-button-rounded p-button-text p-button-sm"
             @click="viewRequest(data.id)"
-            v-tooltip.left="'Voir le détail'"
           />
+          </span>
         </template>
       </Column>
     </DataTable>

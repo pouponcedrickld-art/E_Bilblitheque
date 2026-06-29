@@ -13,10 +13,28 @@ class DepositRequest extends Model
         'applicant_id',
         'assigned_manager_id',
         'title',
+        'subtitle',
+        'abstract',
         'description',
+        'isbn',
+        'publication_year',
+        'language',
+        'document_type_id',
+        'category_id',
+        'publisher_id',
+        'pages',
         'proposed_file',
+        'cover_image',
         'status',
+        'allow_download',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'allow_download' => 'boolean',
+        ];
+    }
 
     // Utilisateur ayant soumis la demande
     public function applicant()
@@ -34,5 +52,20 @@ class DepositRequest extends Model
     public function reviews()
     {
         return $this->hasMany(DepositRequestReview::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function publisher()
+    {
+        return $this->belongsTo(Publisher::class);
+    }
+
+    public function documentType()
+    {
+        return $this->belongsTo(DocumentType::class);
     }
 }

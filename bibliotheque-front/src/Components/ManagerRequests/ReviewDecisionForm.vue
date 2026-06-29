@@ -1,4 +1,3 @@
-// Formulaire d'approbation ou de refus d'une demande (responsable)
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import http from '@/services/http'
@@ -12,10 +11,7 @@ const props = defineProps<{
   status?: string
 }>()
 
-// Statuts pour lesquels le gestionnaire peut agir
 const actionableStatuses = ['pending', 'second_review']
-
-// Vérifie si le statut permet d'agir
 const canAct = computed(() => props.status ? actionableStatuses.includes(props.status) : true)
 
 const emit = defineEmits<{
@@ -23,12 +19,10 @@ const emit = defineEmits<{
 }>()
 
 const toastStore = useToastStore()
-
 const showRejectForm = ref(false)
 const justification = ref('')
 const submitting = ref(false)
 
-// Approuve la demande
 async function approve() {
   submitting.value = true
   try {
@@ -43,7 +37,6 @@ async function approve() {
   }
 }
 
-// Refuse la demande avec justification (min 10 car. requis par le backend)
 async function reject() {
   if (!justification.value.trim() || justification.value.trim().length < 10) return
   submitting.value = true
@@ -54,7 +47,6 @@ async function reject() {
     toastStore.success('Demande refusée.')
     emit('done')
   } catch (err: any) {
-    // Affiche le message d'erreur de validation du backend
     const msg = err?.response?.data?.errors?.justification?.[0] ?? 'Erreur lors du refus.'
     toastStore.error(msg)
   } finally {
@@ -64,12 +56,19 @@ async function reject() {
 </script>
 
 <template>
-  <div v-if="show" class="decision-form">
-    <h2 class="form-title">Décision</h2>
+  <div v-if="show" class="decision-card">
+    <div class="card-header">
+      <svg viewBox="0 0 20 20" width="16" height="16" class="header-icon">
+        <circle cx="10" cy="10" r="8" fill="none" stroke="var(--gold)" stroke-width="1.5" />
+        <text x="10" y="14" text-anchor="middle" font-size="10" fill="var(--gold)" font-family="Playfair Display, serif">✓</text>
+      </svg>
+      <span class="header-title">Décision</span>
+    </div>
 
     <div v-if="!canAct" class="no-action">
       Cette demande ne peut plus être modifiée.
     </div>
+
     <div v-else-if="!showRejectForm" class="actions">
       <Button
         icon="pi pi-check"
@@ -77,6 +76,7 @@ async function reject() {
         severity="success"
         :loading="submitting"
         @click="approve"
+        class="action-btn approve-btn"
       />
       <Button
         icon="pi pi-times"
@@ -84,6 +84,7 @@ async function reject() {
         severity="danger"
         :disabled="submitting"
         @click="showRejectForm = true"
+        class="action-btn reject-btn"
       />
     </div>
 
@@ -104,7 +105,7 @@ async function reject() {
         <Button
           icon="pi pi-times"
           label="Confirmer le refus"
-          severity="danger"
+          class="confirm-reject-btn"
           :loading="submitting"
           :disabled="!justification.trim() || justification.trim().length < 10"
           @click="reject"
@@ -123,22 +124,53 @@ async function reject() {
 </template>
 
 <style scoped>
-.decision-form {
-  background: #fff;
+.decision-card {
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-xl);
   padding: 1.25rem;
+  transition: border-color 0.25s;
+}
+.decision-card:hover {
+  border-color: var(--border-gold);
 }
 
-.form-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 1rem;
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+.header-icon {
+  flex-shrink: 0;
+}
+.header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.no-action {
+  color: var(--muted-foreground);
+  font-style: italic;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
 }
 
 .actions {
   display: flex;
   gap: 0.75rem;
+}
+.action-btn {
+  border-radius: var(--radius-lg) !important;
+  font-weight: 600 !important;
+}
+.approve-btn:hover {
+  box-shadow: 0 4px 16px rgba(22,101,52,0.3) !important;
+}
+.reject-btn:hover {
+  box-shadow: 0 4px 16px rgba(185,28,28,0.3) !important;
 }
 
 .reject-form {
@@ -146,17 +178,19 @@ async function reject() {
   flex-direction: column;
   gap: 1rem;
 }
-
 .field {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
-
 .field label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--foreground);
+}
+.hint {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
 }
 
 .reject-actions {
@@ -164,15 +198,14 @@ async function reject() {
   gap: 0.75rem;
   align-items: center;
 }
-
-.hint {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
+.confirm-reject-btn {
+  background: #b91c1c !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  font-weight: 600 !important;
 }
-
-.no-action {
-  color: var(--text-secondary);
-  font-style: italic;
-  padding: 0.5rem 0;
+.confirm-reject-btn:hover {
+  filter: brightness(1.1) !important;
+  box-shadow: 0 4px 16px rgba(185,28,28,0.3) !important;
 }
 </style>

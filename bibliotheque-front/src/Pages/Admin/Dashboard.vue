@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Composant du tableau de bord admin - statistiques globales
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -8,14 +7,12 @@ import http from '@/services/http'
 const authStore = useAuthStore()
 const router = useRouter()
 
-// Statistiques du tableau de bord
 const stats = ref({
   references: 0, categories: 0, authors: 0,
   users: 0, downloads: 0, views: 0,
 })
 const loading = ref(true)
 
-// Charge les statistiques depuis différents endpoints
 async function fetchStats() {
   loading.value = true
   try {
@@ -36,13 +33,11 @@ async function fetchStats() {
       views: views.data?.total ?? 0,
     }
   } catch {
-    // silencieux
   } finally {
     loading.value = false
   }
 }
 
-// Charge les stats au montage
 onMounted(fetchStats)
 </script>
 
@@ -55,12 +50,15 @@ onMounted(fetchStats)
       </div>
     </div>
 
-    <div v-if="loading" class="loading">Chargement des statistiques...</div>
+    <div v-if="loading" class="loading-spinner">
+      <i class="pi pi-spin pi-spinner" />
+      <p>Chargement des statistiques...</p>
+    </div>
 
     <template v-else>
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(27, 67, 50, 0.1); color: var(--primary);">
+          <div class="stat-icon" style="background: rgba(200,164,92,0.12); color: var(--gold-dark);">
             <i class="pi pi-book" />
           </div>
           <div class="stat-body">
@@ -69,7 +67,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(45, 106, 79, 0.1); color: var(--primary-light);">
+          <div class="stat-icon" style="background: rgba(200,164,92,0.12); color: var(--gold-dark);">
             <i class="pi pi-tags" />
           </div>
           <div class="stat-body">
@@ -78,7 +76,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(64, 145, 108, 0.1); color: var(--primary-lighter);">
+          <div class="stat-icon" style="background: rgba(200,164,92,0.12); color: var(--gold-dark);">
             <i class="pi pi-pencil" />
           </div>
           <div class="stat-body">
@@ -87,7 +85,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(82, 183, 136, 0.1); color: #52b788;">
+          <div class="stat-icon" style="background: rgba(200,164,92,0.12); color: var(--gold-dark);">
             <i class="pi pi-users" />
           </div>
           <div class="stat-body">
@@ -96,7 +94,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(52, 199, 89, 0.1); color: var(--accent);">
+          <div class="stat-icon" style="background: rgba(200,164,92,0.12); color: var(--gold-dark);">
             <i class="pi pi-download" />
           </div>
           <div class="stat-body">
@@ -105,7 +103,7 @@ onMounted(fetchStats)
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon-box" style="background: rgba(45, 106, 79, 0.1); color: var(--primary-light);">
+          <div class="stat-icon" style="background: rgba(200,164,92,0.12); color: var(--gold-dark);">
             <i class="pi pi-eye" />
           </div>
           <div class="stat-body">
@@ -116,56 +114,58 @@ onMounted(fetchStats)
       </div>
 
       <div class="content-grid">
-        <div class="card">
+        <div class="card-section">
           <h2>Répartition</h2>
+          <hr class="gold-rule-left" />
           <div class="bar-chart">
             <div class="bar-item">
               <span class="bar-label">Références</span>
               <div class="bar-track">
-                <div class="bar-fill" :style="{ width: Math.min(100, (stats.references / Math.max(...Object.values(stats))) * 100) + '%' }" />
+                <div class="bar-fill" :style="{ width: Math.min(100, (stats.references / Math.max(...Object.values(stats), 1)) * 100) + '%' }" />
               </div>
               <span class="bar-value">{{ stats.references }}</span>
             </div>
             <div class="bar-item">
               <span class="bar-label">Catégories</span>
               <div class="bar-track">
-                <div class="bar-fill bar-fill--orange" :style="{ width: Math.min(100, (stats.categories / Math.max(...Object.values(stats))) * 100) + '%' }" />
+                <div class="bar-fill bar-fill--gold" :style="{ width: Math.min(100, (stats.categories / Math.max(...Object.values(stats), 1)) * 100) + '%' }" />
               </div>
               <span class="bar-value">{{ stats.categories }}</span>
             </div>
             <div class="bar-item">
               <span class="bar-label">Auteurs</span>
               <div class="bar-track">
-                <div class="bar-fill bar-fill--teal" :style="{ width: Math.min(100, (stats.authors / Math.max(...Object.values(stats))) * 100) + '%' }" />
+                <div class="bar-fill bar-fill--light" :style="{ width: Math.min(100, (stats.authors / Math.max(...Object.values(stats), 1)) * 100) + '%' }" />
               </div>
               <span class="bar-value">{{ stats.authors }}</span>
             </div>
             <div class="bar-item">
               <span class="bar-label">Utilisateurs</span>
               <div class="bar-track">
-                <div class="bar-fill bar-fill--blue" :style="{ width: Math.min(100, (stats.users / Math.max(...Object.values(stats))) * 100) + '%' }" />
+                <div class="bar-fill bar-fill--primary" :style="{ width: Math.min(100, (stats.users / Math.max(...Object.values(stats), 1)) * 100) + '%' }" />
               </div>
               <span class="bar-value">{{ stats.users }}</span>
             </div>
             <div class="bar-item">
               <span class="bar-label">Téléchargements</span>
               <div class="bar-track">
-                <div class="bar-fill bar-fill--green" :style="{ width: Math.min(100, (stats.downloads / Math.max(...Object.values(stats))) * 100) + '%' }" />
+                <div class="bar-fill bar-fill--burgundy" :style="{ width: Math.min(100, (stats.downloads / Math.max(...Object.values(stats), 1)) * 100) + '%' }" />
               </div>
               <span class="bar-value">{{ stats.downloads }}</span>
             </div>
             <div class="bar-item">
               <span class="bar-label">Consultations</span>
               <div class="bar-track">
-                <div class="bar-fill bar-fill--purple" :style="{ width: Math.min(100, (stats.views / Math.max(...Object.values(stats))) * 100) + '%' }" />
+                <div class="bar-fill bar-fill--leather" :style="{ width: Math.min(100, (stats.views / Math.max(...Object.values(stats), 1)) * 100) + '%' }" />
               </div>
               <span class="bar-value">{{ stats.views }}</span>
             </div>
           </div>
         </div>
 
-        <div class="card">
+        <div class="card-section">
           <h2>Actions rapides</h2>
+          <hr class="gold-rule-left" />
           <div class="actions-list">
             <button class="action-btn" @click="router.push('/admin/references/create')">
               <i class="pi pi-plus" />
@@ -192,7 +192,6 @@ onMounted(fetchStats)
 
 <style scoped>
 .dashboard {
-  padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -203,51 +202,43 @@ onMounted(fetchStats)
 
 .dashboard-header h1 {
   font-family: var(--font-serif);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.75rem;
-  color: var(--foreground);
 }
 
 .greeting {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
-}
-
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: var(--muted-foreground);
-  font-size: 0.95rem;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: 0.85rem;
   margin-bottom: 1.5rem;
 }
 
 .stat-card {
-  background: var(--card);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.2s;
+  transition: all 0.25s ease;
 }
-
 .stat-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-gold);
+  box-shadow: 0 4px 16px rgba(200,164,92,0.1);
+  transform: translateY(-2px);
 }
 
-.stat-icon-box {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-xl);
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -255,26 +246,20 @@ onMounted(fetchStats)
   font-size: 1.15rem;
 }
 
-.stat-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
+.stat-body { display: flex; flex-direction: column; min-width: 0; }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--foreground);
   font-family: var(--font-serif);
 }
-
 .stat-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.1rem;
 }
 
 .content-grid {
@@ -283,37 +268,39 @@ onMounted(fetchStats)
   gap: 1.5rem;
 }
 
-.card {
-  background: var(--card);
+.card-section {
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
 }
-
-.card h2 {
+.card-section:hover {
+  border-color: var(--border-gold);
+}
+.card-section h2 {
   font-family: var(--font-serif);
   font-weight: 600;
   font-size: 1.1rem;
-  margin-bottom: 1.25rem;
-  color: var(--foreground);
+  margin-bottom: 0;
 }
 
 .bar-chart {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  margin-top: 0.75rem;
 }
 
 .bar-item {
   display: grid;
-  grid-template-columns: 120px 1fr 40px;
+  grid-template-columns: 120px 1fr 50px;
   align-items: center;
   gap: 0.75rem;
 }
 
 .bar-label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--muted-foreground);
   white-space: nowrap;
 }
@@ -329,26 +316,27 @@ onMounted(fetchStats)
   height: 100%;
   border-radius: 999px;
   background: var(--primary);
-  transition: width 0.6s ease;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-.bar-fill--orange { background: #52b788; }
-.bar-fill--teal { background: #40916C; }
-.bar-fill--blue { background: var(--primary); }
-.bar-fill--green { background: var(--accent); }
-.bar-fill--purple { background: #74c69d; }
+.bar-fill--gold { background: var(--gold); }
+.bar-fill--light { background: var(--primary-light); }
+.bar-fill--primary { background: var(--primary); }
+.bar-fill--burgundy { background: var(--burgundy); }
+.bar-fill--leather { background: var(--leather); }
 
 .bar-value {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--foreground);
   text-align: right;
+  font-family: var(--font-serif);
 }
 
 .actions-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .action-btn {
@@ -360,59 +348,39 @@ onMounted(fetchStats)
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.15s;
-  font-size: 0.9rem;
+  transition: all 0.2s;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
   text-align: left;
   width: 100%;
+  font-family: var(--font-sans);
 }
-
 .action-btn i {
   font-size: 1rem;
-  color: var(--primary);
+  color: var(--gold-dark);
   width: 1.25rem;
   text-align: center;
 }
-
 .action-btn:hover {
-  border-color: var(--primary);
-  background: rgba(27, 67, 50, 0.03);
+  border-color: var(--gold);
+  background: rgba(200, 164, 92, 0.05);
+  transform: translateX(3px);
 }
 
 @media (min-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .content-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .dashboard-header h1 {
-    font-size: 2rem;
-  }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .content-grid { grid-template-columns: 1fr 1fr; }
+  .dashboard-header h1 { font-size: 2rem; }
 }
-
 @media (min-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
   .stat-card:nth-child(5),
-  .stat-card:nth-child(6) {
-    grid-column: span 2;
-  }
+  .stat-card:nth-child(6) { grid-column: span 2; }
 }
-
 @media (min-width: 1200px) {
-  .stats-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
+  .stats-grid { grid-template-columns: repeat(6, 1fr); }
   .stat-card:nth-child(5),
-  .stat-card:nth-child(6) {
-    grid-column: auto;
-  }
+  .stat-card:nth-child(6) { grid-column: auto; }
 }
 </style>

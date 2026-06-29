@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Page de connexion
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -8,10 +7,8 @@ const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-// Vrai si l'utilisateur vient de s'inscrire
 const justRegistered = computed(() => route.query.registered === '1')
 
-// Formulaire de connexion
 const form = ref({
   email: '',
   password: '',
@@ -20,7 +17,6 @@ const form = ref({
 const loading = ref(false)
 const errors = ref<string[]>([])
 
-// Soumet le formulaire de connexion
 async function handleSubmit() {
   loading.value = true
   errors.value = []
@@ -53,58 +49,73 @@ async function handleSubmit() {
 
 <template>
   <div class="auth-page">
+    <div class="auth-bg-ornament" />
     <div class="auth-card">
-      <div class="auth-header">
-        <div class="auth-icon">
-          <i class="pi pi-book"></i>
+      <div class="auth-seal">
+        <div class="auth-seal-inner">
+          <i class="pi pi-book" />
         </div>
+      </div>
+
+      <div class="auth-header">
         <h1 class="auth-title">Connexion</h1>
+        <hr class="gold-rule-left" />
         <p class="auth-subtitle">Accédez à votre espace Bibliothèque Numérique</p>
       </div>
 
-      <div v-if="errors.length" class="auth-alert">
+      <div v-if="errors.length" class="alert alert-error">
         <p v-for="(msg, i) in errors" :key="i">{{ msg }}</p>
       </div>
 
-      <div v-if="justRegistered" class="auth-success">
+      <div v-if="justRegistered" class="alert alert-success">
         Votre compte a été créé avec succès. Un administrateur doit valider votre compte avant que vous puissiez faire une demande de dépôt.
       </div>
 
       <form @submit.prevent="handleSubmit" class="auth-form">
         <div class="field">
-          <label for="email">Email</label>
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            class="input"
-            placeholder="vous@exemple.com"
-            required
-            autocomplete="email"
-          />
+          <label for="email">Adresse email</label>
+          <div class="input-icon">
+            <i class="pi pi-envelope" />
+            <input
+              id="email"
+              v-model="form.email"
+              type="email"
+              class="input"
+              placeholder="vous@exemple.com"
+              required
+              autocomplete="email"
+            />
+          </div>
         </div>
 
         <div class="field">
           <label for="password">Mot de passe</label>
-          <input
-            id="password"
-            v-model="form.password"
-            type="password"
-            class="input"
-            placeholder="••••••••"
-            required
-            autocomplete="current-password"
-          />
+          <div class="input-icon">
+            <i class="pi pi-lock" />
+            <input
+              id="password"
+              v-model="form.password"
+              type="password"
+              class="input"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+            />
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-full" :disabled="loading">
+          <i v-if="loading" class="pi pi-spin pi-spinner" />
+          <i v-else class="pi pi-sign-in" />
           {{ loading ? 'Connexion en cours...' : 'Se connecter' }}
         </button>
       </form>
 
+      <hr class="gold-rule" />
+
       <p class="auth-footer">
         Pas encore de compte ?
-        <router-link to="/register" class="link">S'inscrire</router-link>
+        <router-link to="/register" class="auth-link">S'inscrire</router-link>
       </p>
     </div>
   </div>
@@ -117,28 +128,54 @@ async function handleSubmit() {
   justify-content: center;
   min-height: calc(100vh - var(--navbar-height) - 3rem);
   padding: 1rem;
-  background: var(--background, #F2F2F7);
+  background: var(--background);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-bg-ornament {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    radial-gradient(circle at 20% 50%, var(--gold) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, var(--primary) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: #fff;
-  border-radius: var(--radius-xl, 1rem);
-  border: 1px solid var(--border);
-  padding: 2rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-gold);
+  padding: 2.5rem 2rem;
+  box-shadow:
+    0 4px 24px rgba(44, 36, 32, 0.06),
+    0 1px 4px rgba(44, 36, 32, 0.04);
+  position: relative;
 }
 
-.auth-icon {
+.auth-seal {
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
-.auth-icon i {
-  font-size: 2.5rem;
-  color: var(--primary, #1B4332);
+.auth-seal-inner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 4px rgba(200, 164, 92, 0.15);
+}
+.auth-seal-inner i {
+  font-size: 1.5rem;
+  color: var(--gold-light);
 }
 
 .auth-header {
@@ -150,43 +187,20 @@ async function handleSubmit() {
   font-family: var(--font-serif);
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--primary, #1B4332);
+  color: var(--primary);
   margin-bottom: 0.35rem;
 }
 
 .auth-subtitle {
-  font-size: 0.875rem;
-  color: var(--foreground, #666);
-}
-
-.auth-alert {
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-xl, 1rem);
   font-size: 0.85rem;
-  margin-bottom: 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-}
-
-.auth-alert p + p {
-  margin-top: 0.25rem;
-}
-
-.auth-success {
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-xl, 1rem);
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  color: #166534;
+  color: var(--muted-foreground);
+  line-height: 1.5;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
 .field {
@@ -196,79 +210,37 @@ async function handleSubmit() {
 }
 
 .field label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--foreground, #333);
-}
-
-.input {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl, 1rem);
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
-  outline: none;
-  background: var(--muted, #F2F2F7);
-  font-family: inherit;
-}
-
-.input::placeholder {
-  color: #999;
-}
-
-.input:focus {
-  border-color: var(--primary, #1B4332);
-  box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.12);
-}
-
-.btn {
-  padding: 0.75rem 1.25rem;
-  border: none;
-  border-radius: var(--radius-xl, 1rem);
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: var(--primary, #1B4332);
-  color: #fff;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #143026;
+  color: var(--foreground);
 }
 
 .btn-full {
   width: 100%;
+  padding: 0.8rem 1.25rem;
+  justify-content: center;
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 1.25rem;
-  font-size: 0.875rem;
-  color: var(--foreground, #666);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
 }
 
-.link {
-  color: var(--primary, #1B4332);
+.auth-link {
+  color: var(--gold-dark);
   font-weight: 600;
+  transition: color 0.2s;
 }
-
-.link:hover {
+.auth-link:hover {
+  color: var(--gold);
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
   .auth-card {
     max-width: 100%;
+    padding: 1.75rem 1.25rem;
   }
 }
 </style>

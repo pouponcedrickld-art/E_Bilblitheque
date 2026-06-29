@@ -4,16 +4,27 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearch } from '@/composables/useSearch'
 import http from '@/services/http'
-import type { Category } from '@/types'
+import { useAuthStore } from '@/stores/auth'
+import type { Category, DocumentType } from '@/types'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
+import DocTypeIcon from '@/Components/Shared/DocTypeIcon.vue'
+import { Search } from '@lucide/vue'
+
+const languageLabels: Record<string, string> = {
+  fr: 'Français', en: 'Anglais', ar: 'Arabe', es: 'Espagnol',
+  de: 'Allemand', pt: 'Portugais', it: 'Italien', ru: 'Russe',
+  zh: 'Chinois', ja: 'Japonais', autre: 'Autre',
+}
 
 // Routeur et état de recherche via le composable useSearch
 const router = useRouter()
+const authStore = useAuthStore()
 const { query, results, loading, filters, search } = useSearch()
 const categories = ref<Category[]>([])
+const documentTypes = ref<DocumentType[]>([])
 
 // Récupère les catégories depuis l'API
 async function fetchCategories() {
@@ -25,22 +36,29 @@ async function fetchCategories() {
   }
 }
 
-// Retourne l'icône correspondant au type de document
-function getTypeIcon(type: string): string {
-  const icons: Record<string, string> = {
-    livre: '📖', memoire: '📄', these: '🎓', article: '📰',
-    revue: '📓', rapport: '📑', guide: '📋',
+// Récupère les types de document depuis l'API
+async function fetchDocumentTypes() {
+  try {
+    const res = await http.get('/document-types')
+    documentTypes.value = res.data?.data ?? res.data ?? []
+  } catch {
+    // ignore
   }
-  return icons[type] || '📄'
 }
+
+
 
 // Navigue vers le détail d'une référence
 function viewDetail(id: number) {
   router.push(`/references/${id}`)
 }
 
+function viewDocument(id: number) {
+  router.push(`/user/references/${id}/read`)
+}
+
 // Charge les catégories au montage
-onMounted(fetchCategories)
+onMounted(() => { fetchCategories(); fetchDocumentTypes() })
 </script>
 
 <template>
@@ -57,7 +75,7 @@ onMounted(fetchCategories)
 
     <div class="simple-filters">
       <Select v-model="filters.category_id" :options="categories" optionLabel="name" optionValue="id" placeholder="Toutes les catégories" clearable class="filter-select" @change="search" />
-      <Select v-model="filters.document_type" :options="['livre','memoire','these','article','revue','rapport','guide']" placeholder="Tous les types" clearable class="filter-select" @change="search" />
+      <Select v-model="filters.document_type_id" :options="documentTypes" optionLabel="label" optionValue="id" placeholder="Tous les types" clearable class="filter-select" @change="search" />
     </div>
 
     <div v-if="loading" class="message-box">
@@ -80,11 +98,11 @@ onMounted(fetchCategories)
             <img :src="ref.cover_url" :alt="ref.title" />
           </div>
           <div v-else class="card-icon-wrapper">
-            <span class="card-icon">{{ getTypeIcon(ref.document_type) }}</span>
+            <DocTypeIcon :type="ref.document_type?.name" :size="40" />
           </div>
           <div class="card-body">
             <div class="card-header">
-              <span class="card-badge">{{ ref.document_type }}</span>
+              <span class="card-badge">{{ ref.document_type?.label ?? ref.document_type?.name ?? ref.document_type }}</span>
               <span v-if="ref.status" class="card-status">{{ ref.status === 'published' ? 'Publié' : ref.status }}</span>
             </div>
             <h3 class="card-title">{{ ref.title }}</h3>
@@ -94,16 +112,23 @@ onMounted(fetchCategories)
             </p>
             <div class="card-meta">
               <span v-if="ref.publication_year" class="meta-item"><i class="pi pi-calendar" /> {{ ref.publication_year }}</span>
-              <span v-if="ref.language" class="meta-item"><i class="pi pi-globe" /> {{ ref.language }}</span>
+              <span v-if="ref.language" class="meta-item"><i class="pi pi-globe" /> {{ languageLabels[ref.language] ?? ref.language }}</span>
               <span v-if="ref.keywords?.length" class="meta-item"><i class="pi pi-tag" /> {{ ref.keywords.map(k => k.name).slice(0, 3).join(', ') }}{{ ref.keywords.length > 3 ? '...' : '' }}</span>
             </div>
+            <span
+              v-if="authStore.isAuthenticated && authStore.user?.status === 'active' && ref.file_path"
+              class="card-read"
+              @click.stop="viewDocument(ref.id)"
+            >
+              Lire en ligne →
+            </span>
           </div>
         </div>
       </div>
     </template>
 
     <div v-else-if="!query" class="empty-state">
-      <div class="empty-icon">🔍</div>
+      <div class="empty-icon"><Search :size="48" /></div>
       <p>Utilisez la barre de recherche ci-dessus pour trouver des références dans notre catalogue.</p>
     </div>
   </div>
@@ -250,9 +275,7 @@ onMounted(fetchCategories)
   background: var(--muted);
 }
 
-.card-icon {
-  font-size: 2.5rem;
-}
+
 
 .card-body {
   flex: 1;
@@ -329,6 +352,20 @@ onMounted(fetchCategories)
   font-size: 0.65rem;
 }
 
+.card-read {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.card-read:hover {
+  opacity: 0.7;
+  text-decoration: underline;
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 1rem;
@@ -336,8 +373,8 @@ onMounted(fetchCategories)
 }
 
 .empty-icon {
-  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--text-secondary);
 }
 
 .empty-state p {

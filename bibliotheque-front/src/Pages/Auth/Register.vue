@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Page d'inscription
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -7,7 +6,6 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const router = useRouter()
 
-// Formulaire d'inscription
 const form = ref({
   first_name: '',
   last_name: '',
@@ -20,14 +18,12 @@ const form = ref({
 const loading = ref(false)
 const errors = ref<string[]>([])
 
-// Soumet le formulaire d'inscription
 async function handleSubmit() {
   loading.value = true
   errors.value = []
 
   try {
     await authStore.register({ ...form.value })
-    // Compte créé mais en attente de validation → redirige vers login
     router.push('/login?registered=1')
   } catch (err: any) {
     if (err.response?.data?.errors) {
@@ -49,16 +45,21 @@ async function handleSubmit() {
 
 <template>
   <div class="auth-page">
+    <div class="auth-bg-ornament" />
     <div class="auth-card">
-      <div class="auth-header">
-        <div class="auth-icon">
-          <i class="pi pi-book"></i>
+      <div class="auth-seal">
+        <div class="auth-seal-inner">
+          <i class="pi pi-pencil" />
         </div>
+      </div>
+
+      <div class="auth-header">
         <h1 class="auth-title">Inscription</h1>
+        <hr class="gold-rule-left" />
         <p class="auth-subtitle">Créez votre compte Bibliothèque Numérique</p>
       </div>
 
-      <div v-if="errors.length" class="auth-alert">
+      <div v-if="errors.length" class="alert alert-error">
         <p v-for="(msg, i) in errors" :key="i">{{ msg }}</p>
       </div>
 
@@ -66,87 +67,59 @@ async function handleSubmit() {
         <div class="field-row">
           <div class="field">
             <label for="first_name">Prénom</label>
-            <input
-              id="first_name"
-              v-model="form.first_name"
-              type="text"
-              class="input"
-              required
-              autocomplete="given-name"
-            />
+            <div class="input-icon">
+              <i class="pi pi-user" />
+              <input id="first_name" v-model="form.first_name" type="text" class="input" required autocomplete="given-name" />
+            </div>
           </div>
           <div class="field">
             <label for="last_name">Nom</label>
-            <input
-              id="last_name"
-              v-model="form.last_name"
-              type="text"
-              class="input"
-              required
-              autocomplete="family-name"
-            />
+            <input id="last_name" v-model="form.last_name" type="text" class="input" required autocomplete="family-name" />
           </div>
         </div>
 
         <div class="field">
-          <label for="email">Email</label>
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            class="input"
-            placeholder="vous@exemple.com"
-            required
-            autocomplete="email"
-          />
+          <label for="email">Adresse email</label>
+          <div class="input-icon">
+            <i class="pi pi-envelope" />
+            <input id="email" v-model="form.email" type="email" class="input" placeholder="vous@exemple.com" required autocomplete="email" />
+          </div>
         </div>
 
         <div class="field">
-          <label for="phone">Téléphone (optionnel)</label>
-          <input
-            id="phone"
-            v-model="form.phone"
-            type="tel"
-            class="input"
-            placeholder="+221 XX XXX XX XX"
-            autocomplete="tel"
-          />
+          <label for="phone">Téléphone <span class="optional">(optionnel)</span></label>
+          <div class="input-icon">
+            <i class="pi pi-phone" />
+            <input id="phone" v-model="form.phone" type="tel" class="input" placeholder="+221 XX XXX XX XX" autocomplete="tel" />
+          </div>
         </div>
 
-        <div class="field">
-          <label for="password">Mot de passe</label>
-          <input
-            id="password"
-            v-model="form.password"
-            type="password"
-            class="input"
-            placeholder="8 caractères minimum"
-            required
-            autocomplete="new-password"
-          />
-        </div>
-
-        <div class="field">
-          <label for="password_confirmation">Confirmer le mot de passe</label>
-          <input
-            id="password_confirmation"
-            v-model="form.password_confirmation"
-            type="password"
-            class="input"
-            placeholder="Répétez le mot de passe"
-            required
-            autocomplete="new-password"
-          />
+        <div class="field-row">
+          <div class="field">
+            <label for="password">Mot de passe</label>
+            <div class="input-icon">
+              <i class="pi pi-lock" />
+              <input id="password" v-model="form.password" type="password" class="input" placeholder="8 caractères min." required autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="password_confirmation">Confirmer</label>
+            <input id="password_confirmation" v-model="form.password_confirmation" type="password" class="input" placeholder="Répétez" required autocomplete="new-password" />
+          </div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-full" :disabled="loading">
-          {{ loading ? 'Inscription en cours...' : 'S\'inscrire' }}
+          <i v-if="loading" class="pi pi-spin pi-spinner" />
+          <i v-else class="pi pi-check" />
+          {{ loading ? 'Inscription en cours...' : "S'inscrire" }}
         </button>
       </form>
 
+      <hr class="gold-rule" />
+
       <p class="auth-footer">
         Déjà un compte ?
-        <router-link to="/login" class="link">Se connecter</router-link>
+        <router-link to="/login" class="auth-link">Se connecter</router-link>
       </p>
     </div>
   </div>
@@ -159,28 +132,54 @@ async function handleSubmit() {
   justify-content: center;
   min-height: calc(100vh - var(--navbar-height) - 3rem);
   padding: 1rem;
-  background: var(--background, #F2F2F7);
+  background: var(--background);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-bg-ornament {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image:
+    radial-gradient(circle at 20% 50%, var(--gold) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, var(--primary) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 460px;
-  background: #fff;
-  border-radius: var(--radius-xl, 1rem);
-  border: 1px solid var(--border);
-  padding: 2rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  max-width: 480px;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-gold);
+  padding: 2.5rem 2rem;
+  box-shadow:
+    0 4px 24px rgba(44, 36, 32, 0.06),
+    0 1px 4px rgba(44, 36, 32, 0.04);
+  position: relative;
 }
 
-.auth-icon {
+.auth-seal {
   display: flex;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
-.auth-icon i {
-  font-size: 2.5rem;
-  color: var(--primary, #1B4332);
+.auth-seal-inner {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 4px rgba(200, 164, 92, 0.15);
+}
+.auth-seal-inner i {
+  font-size: 1.5rem;
+  color: var(--gold-light);
 }
 
 .auth-header {
@@ -192,27 +191,14 @@ async function handleSubmit() {
   font-family: var(--font-serif);
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--primary, #1B4332);
+  color: var(--primary);
   margin-bottom: 0.35rem;
 }
 
 .auth-subtitle {
-  font-size: 0.875rem;
-  color: var(--foreground, #666);
-}
-
-.auth-alert {
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-xl, 1rem);
   font-size: 0.85rem;
-  margin-bottom: 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-}
-
-.auth-alert p + p {
-  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
 }
 
 .auth-form {
@@ -234,81 +220,45 @@ async function handleSubmit() {
 }
 
 .field label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--foreground, #333);
+  color: var(--foreground);
 }
 
-.input {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl, 1rem);
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
-  outline: none;
-  background: var(--muted, #F2F2F7);
-  font-family: inherit;
-}
-
-.input::placeholder {
-  color: #999;
-}
-
-.input:focus {
-  border-color: var(--primary, #1B4332);
-  box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.12);
-}
-
-.btn {
-  padding: 0.75rem 1.25rem;
-  border: none;
-  border-radius: var(--radius-xl, 1rem);
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: var(--primary, #1B4332);
-  color: #fff;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #143026;
+.optional {
+  font-weight: 400;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
 }
 
 .btn-full {
   width: 100%;
+  padding: 0.8rem 1.25rem;
+  justify-content: center;
+  margin-top: 0.5rem;
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 1.25rem;
-  font-size: 0.875rem;
-  color: var(--foreground, #666);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
 }
 
-.link {
-  color: var(--primary, #1B4332);
+.auth-link {
+  color: var(--gold-dark);
   font-weight: 600;
+  transition: color 0.2s;
 }
-
-.link:hover {
+.auth-link:hover {
+  color: var(--gold);
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
   .auth-card {
     max-width: 100%;
+    padding: 1.75rem 1.25rem;
   }
-
   .field-row {
     grid-template-columns: 1fr;
   }

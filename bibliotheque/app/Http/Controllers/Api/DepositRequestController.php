@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDepositRequestRequest;
+use App\Http\Resources\DepositRequestResource;
 use App\Models\DepositRequest;
 use App\Models\DepositRequestReview;
 use App\Models\Notification;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DepositRequestController extends Controller
 {
@@ -30,35 +33,46 @@ class DepositRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->latest()->paginate(15));
+        return DepositRequestResource::collection($query->latest()->paginate(15));
     }
 
     // Crée une demande de dépôt et assigne un responsable au hasard
-    public function store(Request $request)
+    public function store(StoreDepositRequestRequest $request)
     {
         $this->authorize('create', DepositRequest::class);
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'proposed_file' => 'nullable|file|mimes:pdf,doc,docx,odt,txt|max:10240',
-        ]);
 
         $data = [
             'applicant_id' => $request->user()->id,
             'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'abstract' => $request->abstract,
             'description' => $request->description,
+            'isbn' => $request->isbn,
+            'publication_year' => $request->filled('publication_year') ? $request->publication_year : null,
+            'language' => $request->language ?? 'fr',
+            'document_type_id' => $request->filled('document_type_id') ? $request->document_type_id : null,
+            'category_id' => $request->filled('category_id') ? $request->category_id : null,
+            'publisher_id' => $request->filled('publisher_id') ? $request->publisher_id : null,
+            'pages' => $request->filled('pages') ? $request->pages : null,
             'status' => 'pending',
+            'allow_download' => $request->boolean('allow_download', true),
         ];
+
+        if ($request->hasFile('cover_image')) {
+            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
+        }
 
         if ($request->hasFile('proposed_file')) {
             $data['proposed_file'] = $request->file('proposed_file')->store('deposits', 'public');
         }
 
-        // Assigne un responsable disponible aléatoirement
+        // Assigne le responsable le moins chargé
         $manager = \App\Models\User::where('role', 'responsable_demande')
             ->where('status', 'active')
-            ->inRandomOrder()
+            ->withCount(['assignedDepositRequests' => function ($q) {
+                $q->whereIn('status', ['pending', 'second_review']);
+            }])
+            ->orderBy('assigned_deposit_requests_count')
             ->first();
 
         if ($manager) {
@@ -85,7 +99,7 @@ class DepositRequestController extends Controller
     {
         $this->authorize('view', $depositRequest);
 
-        return response()->json($depositRequest->load([
+        return new DepositRequestResource($depositRequest->load([
             'applicant', 'assignedManager', 'reviews.reviewer'
         ]));
     }
@@ -109,6 +123,10 @@ class DepositRequestController extends Controller
     public function destroy(DepositRequest $depositRequest)
     {
         $this->authorize('delete', $depositRequest);
+
+        if ($depositRequest->cover_image) {
+            Storage::disk('public')->delete($depositRequest->cover_image);
+        }
 
         $depositRequest->delete();
 
@@ -180,6 +198,14 @@ class DepositRequestController extends Controller
 
             $depositRequest->update(['status' => 'rejected_by_manager']);
 
+            // Notifie le demandeur du refus
+            Notification::create([
+                'user_id' => $depositRequest->applicant_id,
+                'title' => 'Votre demande a été refusée',
+                'message' => "Votre demande \"{$depositRequest->title}\" a été refusée par le responsable.",
+                'type' => 'validation',
+            ]);
+
             // Notifie les admins du refus
             $admins = \App\Models\User::where('role', 'admin')->where('status', 'active')->get();
             foreach ($admins as $admin) {
@@ -198,22 +224,20 @@ class DepositRequestController extends Controller
     // Admin : publie la demande validée en créant la référence associée
     public function publish(Request $request, DepositRequest $depositRequest)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé.'], 403);
-        }
+        $this->authorize('adminAction', $depositRequest);
 
         if ($depositRequest->status !== 'approved_by_manager') {
             return response()->json(['message' => 'La demande doit être validée par un responsable avant publication.'], 422);
         }
 
-        DB::transaction(function () use ($depositRequest) {
-            $reference = Reference::create([
-                'title' => $depositRequest->title,
-                'abstract' => $depositRequest->description,
-                'file_path' => $depositRequest->proposed_file,
-                'uploaded_by' => $depositRequest->applicant_id,
-                'status' => 'published',
-            ]);
+        $forceDownload = $request->boolean('force_allow_download', false);
+
+        DB::transaction(function () use ($depositRequest, $forceDownload) {
+            $referenceData = $this->buildReferenceData($depositRequest);
+            if ($forceDownload) {
+                $referenceData['allow_download'] = true;
+            }
+            $reference = Reference::create($referenceData);
 
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
@@ -234,15 +258,23 @@ class DepositRequestController extends Controller
             ]);
         });
 
+        // Notification si l'admin force le téléchargement malgré le refus du demandeur
+        if ($forceDownload && !$depositRequest->allow_download) {
+            Notification::create([
+                'user_id' => $depositRequest->applicant_id,
+                'title' => 'Téléchargement autorisé',
+                'message' => "L'administrateur a autorisé le téléchargement de votre publication \"{$depositRequest->title}\" malgré votre refus.",
+                'type' => 'information',
+            ]);
+        }
+
         return response()->json($depositRequest->load('reviews'));
     }
 
     // Admin : rejette définitivement la demande
     public function rejectByAdmin(Request $request, DepositRequest $depositRequest)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé.'], 403);
-        }
+        $this->authorize('adminAction', $depositRequest);
 
         $request->validate(['justification' => 'required|string|min:10']);
 
@@ -271,9 +303,7 @@ class DepositRequestController extends Controller
     // Admin : passe outre le refus du responsable et publie directement
     public function overrideReject(Request $request, DepositRequest $depositRequest)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé.'], 403);
-        }
+        $this->authorize('adminAction', $depositRequest);
 
         if ($depositRequest->status !== 'rejected_by_manager') {
             return response()->json(['message' => 'Cette demande n\'a pas été refusée par un responsable.'], 422);
@@ -281,7 +311,9 @@ class DepositRequestController extends Controller
 
         $request->validate(['justification' => 'required|string|min:10']);
 
-        DB::transaction(function () use ($request, $depositRequest) {
+        $forceDownload = $request->boolean('force_allow_download', false);
+
+        DB::transaction(function () use ($request, $depositRequest, $forceDownload) {
             DepositRequestReview::create([
                 'deposit_request_id' => $depositRequest->id,
                 'reviewer_id' => $request->user()->id,
@@ -290,13 +322,11 @@ class DepositRequestController extends Controller
                 'justification' => $request->justification,
             ]);
 
-            $reference = Reference::create([
-                'title' => $depositRequest->title,
-                'abstract' => $depositRequest->description,
-                'file_path' => $depositRequest->proposed_file,
-                'uploaded_by' => $depositRequest->applicant_id,
-                'status' => 'published',
-            ]);
+            $referenceData = $this->buildReferenceData($depositRequest);
+            if ($forceDownload) {
+                $referenceData['allow_download'] = true;
+            }
+            $reference = Reference::create($referenceData);
 
             $depositRequest->update(['status' => 'published']);
 
@@ -318,15 +348,23 @@ class DepositRequestController extends Controller
             }
         });
 
+        // Notification si l'admin force le téléchargement malgré le refus du demandeur
+        if ($forceDownload && !$depositRequest->allow_download) {
+            Notification::create([
+                'user_id' => $depositRequest->applicant_id,
+                'title' => 'Téléchargement autorisé',
+                'message' => "L'administrateur a autorisé le téléchargement de votre publication \"{$depositRequest->title}\" malgré votre refus.",
+                'type' => 'information',
+            ]);
+        }
+
         return response()->json($depositRequest->load('reviews'));
     }
 
     // Admin : demande un second avis à un autre responsable
     public function requestSecondReview(Request $request, DepositRequest $depositRequest)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé.'], 403);
-        }
+        $this->authorize('adminAction', $depositRequest);
 
         $request->validate([
             'new_manager_id' => 'required|exists:users,id',
@@ -365,9 +403,7 @@ class DepositRequestController extends Controller
     // Admin : réassigne la demande à un autre responsable
     public function reassignManager(Request $request, DepositRequest $depositRequest)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé.'], 403);
-        }
+        $this->authorize('adminAction', $depositRequest);
 
         $request->validate([
             'new_manager_id' => 'required|exists:users,id',
@@ -388,5 +424,41 @@ class DepositRequestController extends Controller
         ]);
 
         return response()->json($depositRequest->load('assignedManager', 'reviews'));
+    }
+
+    // Télécharge le fichier proposé d'une demande de dépôt (avec contrôle d'accès)
+    public function downloadFile(Request $request, DepositRequest $depositRequest)
+    {
+        $this->authorize('view', $depositRequest);
+
+        if (!$depositRequest->proposed_file || !Storage::disk('public')->exists($depositRequest->proposed_file)) {
+            return response()->json(['message' => 'Fichier non disponible.'], 404);
+        }
+
+        return Storage::disk('public')->download($depositRequest->proposed_file);
+    }
+
+    private function buildReferenceData(DepositRequest $depositRequest): array
+    {
+        return [
+            'title' => $depositRequest->title,
+            'subtitle' => $depositRequest->subtitle,
+            'abstract' => $depositRequest->abstract ?? $depositRequest->description,
+            'isbn' => $depositRequest->isbn,
+            'publication_year' => $depositRequest->publication_year,
+            'language' => $depositRequest->language,
+            'document_type_id' => $depositRequest->document_type_id,
+            'category_id' => $depositRequest->category_id,
+            'publisher_id' => $depositRequest->publisher_id,
+            'pages' => $depositRequest->pages,
+            'cover_image' => $depositRequest->cover_image,
+            'file_path' => $depositRequest->proposed_file,
+            'uploaded_by' => $depositRequest->applicant_id,
+            'status' => 'published',
+            'allow_download' => $depositRequest->allow_download,
+            'file_size' => $depositRequest->proposed_file && Storage::disk('public')->exists($depositRequest->proposed_file)
+                ? Storage::disk('public')->size($depositRequest->proposed_file)
+                : null,
+        ];
     }
 }

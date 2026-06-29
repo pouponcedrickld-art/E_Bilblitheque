@@ -13,7 +13,6 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import StatusBadge from '@/Components/Shared/StatusBadge.vue'
 
@@ -26,6 +25,8 @@ interface Reference {
   status: string
   created_at: string
   keywords?: { id: number; name: string }[]
+  allow_download: boolean
+  file_path: string | null
 }
 
 const router = useRouter()
@@ -55,7 +56,7 @@ const filteredRefs = computed(() => {
     items = items.filter(r =>
       r.title.toLowerCase().includes(q) ||
       (r.subtitle || '').toLowerCase().includes(q) ||
-      r.document_type.toLowerCase().includes(q) ||
+      r.document_type?.name?.toLowerCase().includes(q) ||
       r.status.toLowerCase().includes(q)
     )
   }
@@ -97,6 +98,30 @@ async function publish(id: number) {
   router.push(`/admin/references/${id}/publish`)
 }
 
+// Ouvre le document en lecture
+function viewDocument(id: number) {
+  window.open(`/user/references/${id}/read`, '_blank')
+}
+
+// Force le téléchargement sur une référence
+async function forceDownload(id: number) {
+  confirm.require({
+    message: 'Autoriser le téléchargement de cette référence même si le propriétaire a bloqué ? Le propriétaire sera notifié.',
+    header: 'Forcer le téléchargement',
+    icon: 'pi pi-lock-open',
+    acceptClass: 'p-button-warning',
+    accept: async () => {
+      try {
+        await http.post(`/references/${id}/force-download`)
+        toastStore.success('Téléchargement autorisé. Le propriétaire a été notifié.')
+        await fetchReferences()
+      } catch {
+        toastStore.error('Erreur lors de l\'opération.')
+      }
+    },
+  })
+}
+
 // Charge les références au montage
 onMounted(fetchReferences)
 </script>
@@ -130,12 +155,18 @@ onMounted(fetchReferences)
       <Column field="title" header="Titre" sortable />
       <Column field="document_type" header="Type" sortable>
         <template #body="{ data }">
-          <Tag :value="data.document_type" />
+          <Tag :value="data.document_type?.label ?? data.document_type?.name ?? '-'" />
         </template>
       </Column>
       <Column field="status" header="Statut" sortable>
         <template #body="{ data }">
           <StatusBadge :status="data.status" />
+        </template>
+      </Column>
+      <Column header="Téléchargement">
+        <template #body="{ data }">
+          <Tag v-if="data.allow_download" value="Autorisé" severity="success" />
+          <Tag v-else value="Bloqué" severity="danger" />
         </template>
       </Column>
       <Column field="created_at" header="Date" sortable>
@@ -155,6 +186,14 @@ onMounted(fetchReferences)
         <template #body="{ data }">
           <div class="actions">
             <Button
+              v-if="data.file_path"
+              icon="pi pi-eye"
+              severity="info"
+              text
+              v-tooltip.top="'Voir le document'"
+              @click="viewDocument(data.id)"
+            />
+            <Button
               icon="pi pi-pencil"
               severity="info"
               text
@@ -168,6 +207,14 @@ onMounted(fetchReferences)
               @click="publish(data.id)"
             />
             <Button
+              v-if="!data.allow_download"
+              icon="pi pi-lock-open"
+              severity="warning"
+              text
+              v-tooltip.top="'Forcer le téléchargement'"
+              @click="forceDownload(data.id)"
+            />
+            <Button
               icon="pi pi-trash"
               severity="danger"
               text
@@ -178,7 +225,6 @@ onMounted(fetchReferences)
       </Column>
     </DataTable>
 
-    <ConfirmDialog />
   </div>
 </template>
 

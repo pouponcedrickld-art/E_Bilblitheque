@@ -11,6 +11,24 @@ export interface User {
   email_verified_at: string | null
   last_login_at: string | null
   references_count?: number
+  has_pending_suspension?: boolean
+  created_at: string
+  updated_at: string
+}
+
+// Demande de suspension d'un utilisateur (RH → Admin)
+export interface SuspensionRequest {
+  id: number
+  user_id: number
+  user?: User
+  requested_by: number
+  requester?: User
+  reason: string
+  status: 'pending' | 'approved' | 'rejected'
+  reviewed_by?: number | null
+  reviewer?: User | null
+  reviewed_at?: string | null
+  rejection_reason?: string | null
   created_at: string
   updated_at: string
 }
@@ -38,11 +56,21 @@ export interface Author {
   references_count?: number
 }
 
+// Type de document
+export interface DocumentType {
+  id: number
+  name: string
+  label: string
+  description: string | null
+}
+
 // Éditeur d'une référence
 export interface Publisher {
   id: number
   name: string
+  description: string | null
   country: string | null
+  website: string | null
   references_count?: number
 }
 
@@ -55,19 +83,24 @@ export interface Reference {
   isbn: string | null
   publication_year: number | null
   language: string | null
-  document_type: string
+  document_type_id: number | null
+  document_type?: DocumentType | null
   category?: Category
   publisher?: Publisher
   authors?: Author[]
   keywords?: Keyword[]
+  uploaded_by: number
+  uploader?: User
   cover_image: string | null
   cover_url: string | null
   file_path: string | null
+  file_size: number | null
   pages: number | null
   download_count: number
   view_count: number
   status: 'draft' | 'published' | 'archived'
   is_featured?: boolean
+  allow_download: boolean
   created_at: string
   updated_at: string
 }
@@ -76,10 +109,30 @@ export interface Reference {
 export interface DepositRequest {
   id: number
   title: string
+  subtitle: string | null
+  abstract: string | null
   description: string | null
+  isbn: string | null
+  publication_year: number | null
+  language: string | null
+  document_type_id: number | null
+  document_type?: DocumentType | null
+  category_id: number | null
+  category?: Category
+  publisher_id: number | null
+  publisher?: Publisher
+  pages: number | null
+  proposed_file: string | null
+  proposed_file_url?: string
+  allow_download: boolean
+  cover_image: string | null
+  cover_url?: string
   status: string
   applicant?: User
+  assigned_manager?: User
+  reviews?: any[]
   created_at: string
+  updated_at: string
 }
 
 // Mot-clé associé à une référence

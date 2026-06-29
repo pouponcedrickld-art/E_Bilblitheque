@@ -42,9 +42,13 @@ class ReferencePolicy
         return $user->role === 'admin';
     }
 
-    // Téléchargement autorisé si la référence est publiée avec fichier
+    // Téléchargement autorisé si propriétaire OU admin, ou si allow_download est vrai (publiée avec fichier)
     public function download(User $user, Reference $reference): bool
     {
-        return $reference->status === 'published' && $reference->file_path !== null;
+        return $user->id === $reference->uploaded_by
+            || $user->role === 'admin'
+            || ($reference->status === 'published'
+                && $reference->file_path !== null
+                && $reference->allow_download === true);
     }
 }

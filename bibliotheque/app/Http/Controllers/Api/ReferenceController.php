@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReferenceRequest;
 use App\Http\Resources\ReferenceResource;
+use App\Models\Notification;
 use App\Models\Reference;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ReferenceController extends Controller
 {
     // Liste paginée des références avec filtres (catégorie, type, langue, statut, recherche)
     public function index(Request $request)
     {
-        $query = Reference::with(['category', 'publisher', 'authors', 'keywords', 'uploader']);
+        $query = Reference::with(['category', 'publisher', 'documentType', 'authors', 'keywords', 'uploader']);
 
         // Les visiteurs non connectés ne voient que les références publiées
         if (!$request->user()) {
@@ -24,8 +28,8 @@ class ReferenceController extends Controller
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
         }
-        if ($request->has('document_type')) {
-            $query->where('document_type', $request->document_type);
+        if ($request->has('document_type_id')) {
+            $query->where('document_type_id', $request->document_type_id);
         }
         if ($request->has('language')) {
             $query->where('language', $request->language);
@@ -75,28 +79,8 @@ class ReferenceController extends Controller
     }
 
     // Crée une référence avec upload possible de couverture et fichier
-    public function store(Request $request)
+    public function store(StoreReferenceRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'nullable|string|max:255',
-            'abstract' => 'nullable|string',
-            'isbn' => 'nullable|string|unique:references',
-            'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
-            'language' => 'in:fr,en,autre',
-            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
-            'category_id' => 'required|exists:categories,id',
-            'publisher_id' => 'nullable|exists:publishers,id',
-            'cover_image' => 'nullable|image|max:2048',
-            'file_path' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'pages' => 'nullable|integer|min:1',
-            'author_ids' => 'nullable|array',
-            'author_ids.*' => 'exists:authors,id',
-            'keyword_ids' => 'nullable|array',
-            'keyword_ids.*' => 'exists:keywords,id',
-            'is_featured' => 'boolean',
-        ]);
-
         $data = $request->except(['cover_image', 'file_path', 'author_ids', 'keyword_ids']);
 
         // Upload de l'image de couverture
@@ -123,7 +107,7 @@ class ReferenceController extends Controller
             $reference->keywords()->attach($request->keyword_ids);
         }
 
-        return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
+        return new ReferenceResource($reference->load(['category', 'publisher', 'documentType', 'authors', 'keywords']));
     }
 
     // Détail d'une référence avec incrémentation du compteur de vues
@@ -131,7 +115,7 @@ class ReferenceController extends Controller
     {
         $reference->increment('view_count');
 
-        $load = ['category', 'publisher', 'authors', 'keywords', 'uploader'];
+        $load = ['category', 'publisher', 'documentType', 'authors', 'keywords', 'uploader'];
 
         // Les stats détaillées (téléchargements, vues) sont réservées aux utilisateurs connectés
         if ($request->user()) {
@@ -151,15 +135,16 @@ class ReferenceController extends Controller
             'isbn' => 'nullable|string|unique:references,isbn,' . $reference->id,
             'publication_year' => 'nullable|integer|min:1000|max:' . (date('Y') + 1),
             'language' => 'in:fr,en,autre',
-            'document_type' => 'in:livre,memoire,these,article,revue,rapport,guide,autre',
+            'document_type_id' => 'nullable|exists:document_types,id',
             'category_id' => 'exists:categories,id',
             'publisher_id' => 'nullable|exists:publishers,id',
             'status' => 'in:draft,published,archived',
             'pages' => 'nullable|integer|min:1',
-            'cover_image' => 'nullable|image|max:2048',
+            'cover_image' => 'nullable|image|max:5120',
             'keyword_ids' => 'nullable|array',
             'keyword_ids.*' => 'exists:keywords,id',
             'is_featured' => 'boolean',
+            'allow_download' => 'boolean',
         ]);
 
         $data = $request->except(['keyword_ids', 'cover_image']);
@@ -179,7 +164,7 @@ class ReferenceController extends Controller
             $reference->keywords()->sync($request->keyword_ids);
         }
 
-        return new ReferenceResource($reference->load(['category', 'publisher', 'authors', 'keywords']));
+        return new ReferenceResource($reference->load(['category', 'publisher', 'documentType', 'authors', 'keywords']));
     }
 
     // Supprime une référence et ses fichiers associés
@@ -204,14 +189,14 @@ class ReferenceController extends Controller
             return response()->json(['message' => 'Document non disponible.'], 404);
         }
 
-        // Les visiteurs non connectés ne peuvent lire que les références publiées
-        if (!$request->user() && $reference->status !== 'published') {
-            return response()->json(['message' => 'Document non disponible.'], 404);
+        // Seul un utilisateur connecté avec un compte actif peut lire
+        if (!$request->user() || $request->user()->status !== 'active') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
         // Enregistre la consultation
         $reference->views()->create([
-            'user_id' => $request->user()?->id,
+            'user_id' => $request->user()->id,
             'viewed_at' => now(),
         ]);
 
@@ -223,11 +208,13 @@ class ReferenceController extends Controller
         return response()->file($path, ['Content-Type' => $mime]);
     }
 
-    // Télécharge le fichier PDF/DOC avec compteur
+    // Télécharge la fiche PDF de la référence (métadonnées, pas le fichier brut)
     public function download(Request $request, Reference $reference)
     {
+        $this->authorize('download', $reference);
+
         if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
-            return response()->json(['message' => 'Fichier non disponible.'], 404);
+            return response()->json(['message' => 'Document non disponible.'], 404);
         }
 
         // Enregistre le téléchargement
@@ -238,6 +225,41 @@ class ReferenceController extends Controller
 
         $reference->increment('download_count');
 
-        return Storage::disk('public')->download($reference->file_path);
+        // Charge les relations nécessaires à la fiche PDF
+        $reference->load(['authors', 'category', 'publisher', 'documentType', 'keywords']);
+
+        $pdf = Pdf::loadView('pdf.reference-fiche', [
+            'reference' => $reference,
+        ]);
+
+        $filename = Str::slug($reference->title) . '-fiche.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    // Admin : force le téléchargement sur une référence (outrepasse le refus du propriétaire)
+    public function forceDownload(Request $request, Reference $reference)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
+
+        if ($reference->allow_download === true) {
+            return response()->json(['message' => 'Le téléchargement est déjà autorisé.'], 422);
+        }
+
+        $reference->update(['allow_download' => true]);
+
+        Notification::create([
+            'user_id' => $reference->uploaded_by,
+            'title' => 'Téléchargement autorisé',
+            'message' => "L'administrateur a autorisé le téléchargement de votre publication \"{$reference->title}\" malgré votre refus.",
+            'type' => 'information',
+        ]);
+
+        return response()->json([
+            'message' => 'Téléchargement autorisé. Le propriétaire a été notifié.',
+            'allow_download' => true,
+        ]);
     }
 }

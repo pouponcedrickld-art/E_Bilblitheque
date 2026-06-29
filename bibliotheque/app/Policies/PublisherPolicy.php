@@ -2,39 +2,33 @@
 
 namespace App\Policies;
 
-use App\Models\Notification;
+use App\Models\Publisher;
 use App\Models\User;
 
 class PublisherPolicy
 {
-    // Chacun voit ses propres notifications (filtré par controller)
     public function viewAny(User $user): bool
     {
-        return true; // Chacun voit ses propres notifications via controller
+        return true;
     }
 
-    // Seul le destinataire peut voir sa notification
-    public function view(User $user, Notification $notification): bool
+    public function view(User $user, Publisher $publisher): bool
     {
-        return $user->id === $notification->user_id;
+        return true;
     }
 
-    // Admin et responsable demande peuvent créer des notifications
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'responsable_demande']);
-        // Seuls ceux qui génèrent des actions système/validation peuvent créer
+        return in_array($user->role, ['admin', 'responsable_rh']);
     }
 
-    // Le destinataire peut marquer sa notification comme lue
-    public function update(User $user, Notification $notification): bool
+    public function update(User $user, Publisher $publisher): bool
     {
-        return $user->id === $notification->user_id; // Marquer comme lue
+        return in_array($user->role, ['admin', 'responsable_rh']);
     }
 
-    // Le destinataire ou l'admin peut supprimer une notification
-    public function delete(User $user, Notification $notification): bool
+    public function delete(User $user, Publisher $publisher): bool
     {
-        return $user->id === $notification->user_id || $user->role === 'admin';
+        return $user->role === 'admin';
     }
 }
