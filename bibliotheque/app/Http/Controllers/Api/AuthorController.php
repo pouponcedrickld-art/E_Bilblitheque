@@ -5,16 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Author;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AuthorController extends Controller
 {
-    // Liste tous les auteurs avec le nombre de références associées
     public function index()
     {
-        return response()->json(Author::withCount('references')->get());
+        $authors = Cache::remember('authors', 3600, function () {
+            return Author::withCount('references')->get();
+        });
+
+        return response()->json($authors);
     }
 
-    // Crée un auteur
     public function store(Request $request)
     {
         $request->validate([
@@ -28,10 +31,12 @@ class AuthorController extends Controller
 
         $author = Author::create($request->all());
 
+        Cache::forget('authors');
+        Cache::forget('stats');
+
         return response()->json($author, 201);
     }
 
-    // Détail d'un auteur avec ses références publiées
     public function show(Author $author)
     {
         return response()->json($author->load([
@@ -41,7 +46,6 @@ class AuthorController extends Controller
         ]));
     }
 
-    // Met à jour un auteur
     public function update(Request $request, Author $author)
     {
         $request->validate([
@@ -55,13 +59,18 @@ class AuthorController extends Controller
 
         $author->update($request->all());
 
+        Cache::forget('authors');
+        Cache::forget('stats');
+
         return response()->json($author);
     }
 
-    // Supprime un auteur
     public function destroy(Author $author)
     {
         $author->delete();
+
+        Cache::forget('authors');
+        Cache::forget('stats');
 
         return response()->json(null, 204);
     }

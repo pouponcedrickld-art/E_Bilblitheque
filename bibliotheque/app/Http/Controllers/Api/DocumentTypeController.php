@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\DocumentType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DocumentTypeController extends Controller
 {
     public function index()
     {
-        return DocumentType::orderBy('label')->get();
+        return Cache::remember('document_types', 86400, function () {
+            return DocumentType::orderBy('label')->get();
+        });
     }
 
     public function store(Request $request)
@@ -20,6 +23,8 @@ class DocumentTypeController extends Controller
             'label' => 'required|string|max:100',
             'description' => 'nullable|string',
         ]);
+
+        Cache::forget('document_types');
 
         return DocumentType::create($validated);
     }
@@ -38,12 +43,18 @@ class DocumentTypeController extends Controller
         ]);
 
         $documentType->update($validated);
+
+        Cache::forget('document_types');
+
         return $documentType;
     }
 
     public function destroy(DocumentType $documentType)
     {
         $documentType->delete();
+
+        Cache::forget('document_types');
+
         return response()->noContent();
     }
 }

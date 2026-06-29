@@ -10,6 +10,7 @@ use App\Models\DepositRequestReview;
 use App\Models\Notification;
 use App\Models\Reference;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -268,6 +269,9 @@ class DepositRequestController extends Controller
             ]);
         }
 
+        Cache::forget('references.featured');
+        Cache::forget('stats');
+
         return response()->json($depositRequest->load('reviews'));
     }
 
@@ -348,7 +352,6 @@ class DepositRequestController extends Controller
             }
         });
 
-        // Notification si l'admin force le téléchargement malgré le refus du demandeur
         if ($forceDownload && !$depositRequest->allow_download) {
             Notification::create([
                 'user_id' => $depositRequest->applicant_id,
@@ -357,6 +360,9 @@ class DepositRequestController extends Controller
                 'type' => 'information',
             ]);
         }
+
+        Cache::forget('references.featured');
+        Cache::forget('stats');
 
         return response()->json($depositRequest->load('reviews'));
     }

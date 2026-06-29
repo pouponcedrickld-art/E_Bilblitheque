@@ -43,6 +43,7 @@ Route::middleware(['auth:sanctum', 'admin', 'log.activity'])->group(function () 
 
     // Logs d'activité
     Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+    Route::get('/activity-logs/filters', [ActivityLogController::class, 'filters']);
     Route::get('/activity-logs/stats', [ActivityLogController::class, 'stats']);
     Route::get('/activity-logs/{activityLog}', [ActivityLogController::class, 'show']);
 

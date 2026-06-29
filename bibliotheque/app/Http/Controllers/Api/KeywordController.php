@@ -6,23 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\KeywordResource;
 use App\Models\Keyword;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class KeywordController extends Controller
 {
-    // Liste les mots-clés avec recherche par nom
     public function index(Request $request)
     {
-        $query = Keyword::query();
+        $cacheKey = 'keywords:' . ($request->search ?? 'all');
 
-        if ($request->has('search')) {
-            $query->where('name', 'like', "%{$request->search}%");
-        }
+        $keywords = Cache::remember($cacheKey, 3600, function () use ($request) {
+            $query = Keyword::query();
 
-        return KeywordResource::collection($query->orderBy('name')->paginate(50));
+            if ($request->has('search')) {
+                $query->where('name', 'like', "%{$request->search}%");
+            }
+
+            return KeywordResource::collection($query->orderBy('name')->paginate(50));
+        });
+
+        return $keywords;
     }
 
-    // Crée un mot-clé avec slug généré automatiquement
     public function store(Request $request)
     {
         $request->validate([
@@ -34,14 +39,17 @@ class KeywordController extends Controller
             'slug' => Str::slug($request->name),
         ]);
 
+        Cache::forget('keywords:all');
+
         return new KeywordResource($keyword);
     }
 
-    // Supprime un mot-clé après avoir détaché ses références
     public function destroy(Keyword $keyword)
     {
         $keyword->references()->detach();
         $keyword->delete();
+
+        Cache::forget('keywords:all');
 
         return response()->json(null, 204);
     }

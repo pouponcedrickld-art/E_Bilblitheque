@@ -5,16 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Publisher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PublisherController extends Controller
 {
-    // Liste tous les éditeurs avec le nombre de références associées
     public function index()
     {
-        return response()->json(Publisher::withCount('references')->get());
+        $publishers = Cache::remember('publishers', 3600, function () {
+            return Publisher::withCount('references')->get();
+        });
+
+        return response()->json($publishers);
     }
 
-    // Crée un éditeur (nom unique requis)
     public function store(Request $request)
     {
         $request->validate([
@@ -26,10 +29,12 @@ class PublisherController extends Controller
 
         $publisher = Publisher::create($request->all());
 
+        Cache::forget('publishers');
+        Cache::forget('stats');
+
         return response()->json($publisher, 201);
     }
 
-    // Détail d'un éditeur avec ses références publiées
     public function show(Publisher $publisher)
     {
         return response()->json($publisher->load([
@@ -39,7 +44,6 @@ class PublisherController extends Controller
         ]));
     }
 
-    // Met à jour un éditeur (ignore l'ID courant dans l'unicité)
     public function update(Request $request, Publisher $publisher)
     {
         $request->validate([
@@ -51,13 +55,18 @@ class PublisherController extends Controller
 
         $publisher->update($request->all());
 
+        Cache::forget('publishers');
+        Cache::forget('stats');
+
         return response()->json($publisher);
     }
 
-    // Supprime un éditeur
     public function destroy(Publisher $publisher)
     {
         $publisher->delete();
+
+        Cache::forget('publishers');
+        Cache::forget('stats');
 
         return response()->json(null, 204);
     }

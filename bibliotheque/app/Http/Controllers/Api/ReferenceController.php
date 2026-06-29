@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Reference;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -65,15 +66,16 @@ class ReferenceController extends Controller
         return ReferenceResource::collection($query->paginate(15));
     }
 
-    // Retourne les 6 références mises en avant et publiées
     public function featured()
     {
-        $references = Reference::with(['category', 'authors', 'keywords'])
-            ->where('is_featured', true)
-            ->where('status', 'published')
-            ->latest()
-            ->take(6)
-            ->get();
+        $references = Cache::remember('references.featured', 3600, function () {
+            return Reference::with(['category', 'authors', 'keywords'])
+                ->where('is_featured', true)
+                ->where('status', 'published')
+                ->latest()
+                ->take(6)
+                ->get();
+        });
 
         return ReferenceResource::collection($references);
     }
@@ -106,6 +108,9 @@ class ReferenceController extends Controller
         if ($request->has('keyword_ids')) {
             $reference->keywords()->attach($request->keyword_ids);
         }
+
+        Cache::forget('references.featured');
+        Cache::forget('stats');
 
         return new ReferenceResource($reference->load(['category', 'publisher', 'documentType', 'authors', 'keywords']));
     }
@@ -164,6 +169,9 @@ class ReferenceController extends Controller
             $reference->keywords()->sync($request->keyword_ids);
         }
 
+        Cache::forget('references.featured');
+        Cache::forget('stats');
+
         return new ReferenceResource($reference->load(['category', 'publisher', 'documentType', 'authors', 'keywords']));
     }
 
@@ -178,6 +186,9 @@ class ReferenceController extends Controller
         }
 
         $reference->delete();
+
+        Cache::forget('references.featured');
+        Cache::forget('stats');
 
         return response()->json(null, 204);
     }
