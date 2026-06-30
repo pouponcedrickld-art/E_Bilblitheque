@@ -13,11 +13,6 @@ const drawerOpen = ref(false)
 const searchOpen = ref(false)
 const userMenuRef = ref<HTMLElement | null>(null)
 
-function go(path: string) {
-  drawerOpen.value = false
-  router.push(path)
-}
-
 function confirmLogout() {
   confirm.require({
     message: 'Êtes-vous sûr de vouloir vous déconnecter ?',
@@ -104,8 +99,6 @@ const navItems = computed<NavItem[]>(() => {
   ]
 })
 
-const isActive = (route: string) => router.currentRoute.value.path.startsWith(route)
-
 const activeNavId = computed(() => {
   const path = router.currentRoute.value.path
   const found = navItems.value.find(i => path.startsWith(i.route))
@@ -136,15 +129,17 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
           </button>
         </div>
         <nav class="drawer-nav">
-          <button
+          <router-link
             v-for="item in navItems"
             :key="item.id"
-            @click="go(item.route)"
-            :class="['drawer-item', { 'drawer-item-active': isActive(item.route) }]"
+            :to="item.route"
+            @click="drawerOpen = false"
+            class="drawer-item"
+            active-class="drawer-item-active"
           >
             <i :class="item.icon" />
             <span class="flex-1 text-left">{{ item.label }}</span>
-          </button>
+          </router-link>
         </nav>
         <div class="drawer-footer">
           <div class="drawer-user">
@@ -214,9 +209,9 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
                 <p class="dropdown-user-name">{{ fullName }}</p>
                 <p class="dropdown-user-role">{{ authStore.roleLabel[authStore.user?.role ?? ''] }}</p>
               </div>
-              <button @click="go('/user/profile')" class="topnav-dropdown-item">
+              <router-link to="/user/profile" @click="userMenuOpen = false" class="topnav-dropdown-item">
                 <i class="pi pi-user" /> Mon profil
-              </button>
+              </router-link>
               <button class="topnav-dropdown-item">
                 <i class="pi pi-cog" /> Paramètres
               </button>
@@ -251,10 +246,10 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
     </main>
 
     <nav class="bottom-tabbar">
-      <button
+      <router-link
         v-for="item in bottomTabs"
         :key="item.id"
-        @click="go(item.route)"
+        :to="item.route"
         class="bottom-tab-item"
       >
         <div class="bottom-tab-icon-wrap">
@@ -273,7 +268,7 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
           {{ item.label.split(' ')[0] }}
         </span>
         <span v-if="activeNavId === item.id" class="bottom-tab-indicator" />
-      </button>
+      </router-link>
     </nav>
   </div>
 </template>
@@ -734,6 +729,10 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   background: rgba(200, 164, 92, 0.18);
   color: var(--gold-light);
   font-weight: 500;
+}
+
+a.drawer-item, a.bottom-tab-item {
+  text-decoration: none;
 }
 
 .drawer-footer {
