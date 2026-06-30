@@ -175,20 +175,6 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
           <span class="topnav-logo-text">BibliNum</span>
         </router-link>
 
-        <div class="topnav-divider" />
-
-        <nav class="topnav-links">
-          <button
-            v-for="item in navItems"
-            :key="item.id"
-            @click="go(item.route)"
-            :class="['topnav-link', { 'topnav-link-active': isActive(item.route) }]"
-          >
-            <i :class="item.icon" />
-            <span>{{ item.label }}</span>
-          </button>
-        </nav>
-
         <div class="topnav-spacer" />
 
         <div class="topnav-actions">
@@ -216,9 +202,6 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
               </div>
               <button @click="go('/user/profile')" class="topnav-dropdown-item">
                 <i class="pi pi-user" /> Mon profil
-              </button>
-              <button class="topnav-dropdown-item">
-                <i class="pi pi-cog" /> Paramètres
               </button>
               <hr class="topnav-dropdown-divider" />
               <button @click="confirmLogout" class="topnav-dropdown-item dropdown-logout">
@@ -318,9 +301,6 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   cursor: pointer;
   transition: all 0.2s;
 }
-@media (min-width: 768px) {
-  .topnav-hamburger { display: none; }
-}
 .topnav-hamburger:hover {
   color: var(--gold);
   background: rgba(200, 164, 92, 0.15);
@@ -357,57 +337,7 @@ const bottomTabs = computed(() => navItems.value.slice(0, 5))
   font-family: var(--font-serif);
 }
 
-.topnav-divider {
-  display: none;
-  width: 1px;
-  height: 20px;
-  background: rgba(200, 164, 92, 0.2);
-  margin: 0 0.25rem;
-}
-@media (min-width: 768px) {
-  .topnav-divider { display: block; }
-}
-
-.topnav-links {
-  display: none;
-  align-items: center;
-  gap: 0.125rem;
-  flex: 1;
-  overflow-x: auto;
-}
-@media (min-width: 768px) {
-  .topnav-links { display: flex; }
-}
-
-.topnav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-lg);
-  border: none;
-  background: transparent;
-  color: rgba(226, 201, 146, 0.55);
-  font-size: 0.8125rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-.topnav-link:hover {
-  color: var(--gold-light);
-  background: rgba(200, 164, 92, 0.1);
-}
-.topnav-link-active {
-  background: rgba(200, 164, 92, 0.18);
-  color: var(--gold-light);
-  font-weight: 500;
-}
-
 .topnav-spacer { flex: 1; }
-@media (min-width: 768px) {
-  .topnav-spacer { display: none; }
-}
 
 .topnav-actions {
   display: flex;

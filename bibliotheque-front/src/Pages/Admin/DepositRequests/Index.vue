@@ -42,7 +42,7 @@ const filteredItems = computed(() => {
 async function fetch() {
   loading.value = true
   try {
-    const res = await http.get('/deposit-requests')
+    const res = await http.get('/deposit-requests', { params: { per_page: 'all' } })
     items.value = res.data?.data ?? res.data ?? []
   } finally {
     loading.value = false

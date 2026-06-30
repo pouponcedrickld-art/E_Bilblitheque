@@ -61,7 +61,7 @@ async function fetchUsers() {
   loading.value = true
   try {
     const [usersRes, pendingRes] = await Promise.all([
-      http.get('/users'),
+      http.get('/users', { params: { per_page: 'all' } }),
       http.get('/suspension-requests', { params: { status: 'pending', per_page: 100 } }),
     ])
     users.value = usersRes.data?.data ?? usersRes.data ?? []

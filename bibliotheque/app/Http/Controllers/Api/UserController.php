@@ -39,7 +39,8 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->paginate(20);
+        $perPage = $request->per_page === 'all' ? $query->count() : ($request->per_page ?? 20);
+        $users = $query->paginate($perPage);
 
         // Ajoute has_pending_suspension à chaque utilisateur
         $pendingIds = SuspensionRequest::where('status', 'pending')

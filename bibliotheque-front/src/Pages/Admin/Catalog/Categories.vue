@@ -1,12 +1,14 @@
 <script setup lang="ts">
 // Gestion des catégories du catalogue
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import Textarea from 'primevue/textarea'
 import Dialog from 'primevue/dialog'
 import { useConfirm } from 'primevue/useconfirm'
@@ -26,6 +28,18 @@ const confirm = useConfirm()
 // Liste des catégories et état de chargement
 const categories = ref<Category[]>([])
 const loading = ref(false)
+const globalFilter = ref('')
+
+// Filtre les catégories par recherche textuelle
+const filteredCategories = computed(() => {
+  if (!globalFilter.value) return categories.value
+  const q = globalFilter.value.toLowerCase()
+  return categories.value.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.slug.toLowerCase().includes(q) ||
+    (c.description || '').toLowerCase().includes(q)
+  )
+})
 
 // État du dialogue et du formulaire
 const dialogVisible = ref(false)
@@ -111,7 +125,14 @@ onMounted(fetch)
       <Button icon="pi pi-plus" label="Nouvelle catégorie" @click="openCreate" />
     </div>
 
-    <DataTable :value="categories" :loading="loading" striped-rows paginator :rows="20" :rows-per-page-options="[10, 20, 50]">
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher une catégorie..." class="search-input" />
+      </IconField>
+    </div>
+
+    <DataTable :value="filteredCategories" :loading="loading" striped-rows paginator :rows="20" :rows-per-page-options="[10, 20, 50]">
       <Column field="name" header="Nom" sortable />
       <Column field="slug" header="Slug" />
       <Column field="description" header="Description">
@@ -160,6 +181,8 @@ onMounted(fetch)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .actions { display: flex; gap: 0.25rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 .dialog-form { display: flex; flex-direction: column; gap: 1rem; }
 .field { display: flex; flex-direction: column; gap: 0.35rem; }
 .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }

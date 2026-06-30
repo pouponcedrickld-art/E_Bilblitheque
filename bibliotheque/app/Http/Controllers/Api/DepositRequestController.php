@@ -34,7 +34,8 @@ class DepositRequestController extends Controller
             $query->where('status', $request->status);
         }
 
-        return DepositRequestResource::collection($query->latest()->paginate(15));
+        $perPage = $request->per_page === 'all' ? $query->count() : ($request->per_page ?? 15);
+        return DepositRequestResource::collection($query->latest()->paginate($perPage));
     }
 
     // Crée une demande de dépôt et assigne un responsable au hasard

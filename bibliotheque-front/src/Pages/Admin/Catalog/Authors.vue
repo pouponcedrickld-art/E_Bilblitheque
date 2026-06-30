@@ -1,12 +1,14 @@
 <script setup lang="ts">
 // Gestion des auteurs du catalogue
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import Textarea from 'primevue/textarea'
 import Dialog from 'primevue/dialog'
 import { useConfirm } from 'primevue/useconfirm'
@@ -27,6 +29,17 @@ const confirm = useConfirm()
 // Liste des auteurs et état de chargement
 const authors = ref<Author[]>([])
 const loading = ref(false)
+const globalFilter = ref('')
+
+// Filtre les auteurs par recherche textuelle
+const filteredAuthors = computed(() => {
+  if (!globalFilter.value) return authors.value
+  const q = globalFilter.value.toLowerCase()
+  return authors.value.filter(a =>
+    a.full_name.toLowerCase().includes(q) ||
+    (a.biography || '').toLowerCase().includes(q)
+  )
+})
 
 // État du dialogue et du formulaire
 const dialogVisible = ref(false)
@@ -116,7 +129,14 @@ onMounted(fetch)
       <Button icon="pi pi-plus" label="Nouvel auteur" @click="openCreate" />
     </div>
 
-    <DataTable :value="authors" :loading="loading" striped-rows paginator :rows="20" :rows-per-page-options="[10, 20, 50]">
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher un auteur..." class="search-input" />
+      </IconField>
+    </div>
+
+    <DataTable :value="filteredAuthors" :loading="loading" striped-rows paginator :rows="20" :rows-per-page-options="[10, 20, 50]">
       <Column field="full_name" header="Nom complet" sortable />
       <Column field="biography" header="Biographie">
         <template #body="{ data }">
@@ -170,6 +190,8 @@ onMounted(fetch)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .actions { display: flex; gap: 0.25rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 .dialog-form { display: flex; flex-direction: column; gap: 1rem; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .field { display: flex; flex-direction: column; gap: 0.35rem; }

@@ -23,34 +23,31 @@ const router = useRouter()
 const events = ref<HistoryEvent[]>([])
 const loading = ref(true)
 
-// Charge l'historique complet avec les avis
+// Charge l'historique complet avec les avis (déjà chargés via eager loading)
 async function fetchHistory() {
   loading.value = true
   try {
-    const res = await http.get('/deposit-requests')
+    const res = await http.get('/deposit-requests', { params: { per_page: 'all' } })
     const requests = res.data?.data ?? res.data ?? []
-    const all: HistoryEvent[] = []
-    for (const req of requests) {
-      const reqRes = await http.get(`/deposit-requests/${req.id}`).catch(() => null)
-      const detail = reqRes?.data?.data ?? reqRes?.data ?? req
-      all.push({
-        id: detail.id,
-        title: detail.title,
-        status: detail.status,
-        applicant: detail.applicant,
-        created_at: detail.created_at,
-        reviews: (detail.reviews ?? detail.history ?? []).sort(
+    events.value = requests
+      .map((req: any) => ({
+        id: req.id,
+        title: req.title,
+        status: req.status,
+        applicant: req.applicant,
+        created_at: req.created_at,
+        reviews: (req.reviews ?? []).sort(
           (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ),
-      })
-    }
-    events.value = all.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
+      }))
+      .sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
   } finally {
     loading.value = false
   }
 }
+
 
 // Retourne l'icône correspondant au statut
 function statusTransitionIcon(status: string): string {

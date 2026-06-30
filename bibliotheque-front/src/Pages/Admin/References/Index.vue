@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// Liste des références pour l'admin
-import { ref, computed, onMounted } from 'vue'
+// Liste des références pour l'admin (serveur-side lazy loading)
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
@@ -36,7 +36,7 @@ const confirm = useConfirm()
 // Références et filtres
 const references = ref<Reference[]>([])
 const loading = ref(false)
-const globalFilter = ref('')
+const search = ref('')
 const statusFilter = ref('')
 
 // Options de filtre par statut
@@ -47,31 +47,49 @@ const statuses = [
   { label: 'Archivé', value: 'archived' },
 ]
 
-// Filtre les références par statut et recherche
-const filteredRefs = computed(() => {
-  let items = references.value
-  if (statusFilter.value) items = items.filter(r => r.status === statusFilter.value)
-  if (globalFilter.value) {
-    const q = globalFilter.value.toLowerCase()
-    items = items.filter(r =>
-      r.title.toLowerCase().includes(q) ||
-      (r.subtitle || '').toLowerCase().includes(q) ||
-      r.document_type?.name?.toLowerCase().includes(q) ||
-      r.status.toLowerCase().includes(q)
-    )
-  }
-  return items
-})
+// Pagination
+const page = ref(1)
+const totalRecords = ref(0)
+const rowsPerPage = ref(15)
 
-// Récupère la liste des références
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+function buildParams(): Record<string, any> {
+  const params: Record<string, any> = { page: page.value, per_page: rowsPerPage.value }
+  if (search.value.trim()) params.search = search.value.trim()
+  if (statusFilter.value) params.status = statusFilter.value
+  return params
+}
+
+// Récupère la liste des références (lazy)
 async function fetchReferences() {
   loading.value = true
   try {
-    const res = await http.get('/references')
-    references.value = res.data?.data ?? res.data ?? []
+    const res = await http.get('/references', { params: buildParams() })
+    references.value = res.data.data ?? []
+    totalRecords.value = res.data.meta?.total ?? res.data.total ?? 0
   } finally {
     loading.value = false
   }
+}
+
+function onSearchInput() {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    page.value = 1
+    fetchReferences()
+  }, 300)
+}
+
+function onStatusChange() {
+  page.value = 1
+  fetchReferences()
+}
+
+function onPage(event: any) {
+  page.value = Math.floor(event.first / event.rows) + 1
+  rowsPerPage.value = event.rows
+  fetchReferences()
 }
 
 // Demande confirmation avant suppression
@@ -94,7 +112,7 @@ function confirmDelete(id: number) {
 }
 
 // Redirige vers la page de publication
-async function publish(id: number) {
+function publish(id: number) {
   router.push(`/admin/references/${id}/publish`)
 }
 
@@ -104,7 +122,7 @@ function viewDocument(id: number) {
 }
 
 // Force le téléchargement sur une référence
-async function forceDownload(id: number) {
+function forceDownload(id: number) {
   confirm.require({
     message: 'Autoriser le téléchargement de cette référence même si le propriétaire a bloqué ? Le propriétaire sera notifié.',
     header: 'Forcer le téléchargement',
@@ -137,18 +155,22 @@ onMounted(fetchReferences)
     <div class="toolbar">
       <IconField iconPosition="left">
         <InputIcon><i class="pi pi-search" /></InputIcon>
-        <InputText v-model="globalFilter" placeholder="Rechercher..." class="search-input" />
+        <InputText v-model="search" placeholder="Rechercher..." class="search-input" @input="onSearchInput" />
       </IconField>
-      <Select v-model="statusFilter" :options="statuses" optionLabel="label" optionValue="value" placeholder="Filtrer par statut" clearable class="filter-select" />
+      <Select v-model="statusFilter" :options="statuses" optionLabel="label" optionValue="value" placeholder="Filtrer par statut" clearable class="filter-select" @change="onStatusChange" />
     </div>
 
     <DataTable
-      :value="filteredRefs"
+      :value="references"
       :loading="loading"
-      striped-rows
+      lazy
+      :totalRecords="totalRecords"
+      :first="(page - 1) * rowsPerPage"
       paginator
-      :rows="20"
-      :rows-per-page-options="[10, 20, 50]"
+      :rows="rowsPerPage"
+      :rows-per-page-options="[10, 15, 25, 50]"
+      @page="onPage"
+      striped-rows
       sort-field="created_at"
       :sort-order="-1"
     >

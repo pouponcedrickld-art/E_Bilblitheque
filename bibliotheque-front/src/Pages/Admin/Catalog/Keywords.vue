@@ -1,10 +1,12 @@
 <script setup lang="ts">
 // Gestion des mots-clés du catalogue
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import http from '@/services/http'
 import { useToastStore } from '@/stores/toast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import Chip from 'primevue/chip'
 import { useConfirm } from 'primevue/useconfirm'
 import Message from 'primevue/message'
@@ -24,6 +26,17 @@ interface Keyword {
 const keywords = ref<Keyword[]>([])
 const loading = ref(false)
 const newKeyword = ref('')
+const globalFilter = ref('')
+
+// Filtre les mots-clés par recherche textuelle
+const filteredKeywords = computed(() => {
+  if (!globalFilter.value) return keywords.value
+  const q = globalFilter.value.toLowerCase()
+  return keywords.value.filter(k =>
+    k.name.toLowerCase().includes(q) ||
+    k.slug.toLowerCase().includes(q)
+  )
+})
 
 // Récupère tous les mots-clés
 async function fetchKeywords() {
@@ -107,12 +120,19 @@ onMounted(fetchKeywords)
       <Button icon="pi pi-plus" label="Ajouter" @click="addKeyword" :disabled="!newKeyword.trim()" />
     </div>
 
+    <div class="toolbar">
+      <IconField iconPosition="left">
+        <InputIcon><i class="pi pi-search" /></InputIcon>
+        <InputText v-model="globalFilter" placeholder="Rechercher un mot-clé..." class="search-input" />
+      </IconField>
+    </div>
+
     <div v-if="loading" class="loading">Chargement des mots-clés...</div>
 
-    <div v-else-if="!keywords.length" class="empty">Aucun mot-clé trouvé.</div>
+    <div v-else-if="!filteredKeywords.length" class="empty">Aucun mot-clé trouvé.</div>
 
     <div v-else class="keywords-list">
-      <div v-for="kw in keywords" :key="kw.id" class="keyword-item">
+      <div v-for="kw in filteredKeywords" :key="kw.id" class="keyword-item">
         <Chip :label="kw.name" />
         <span v-if="kw.references_count" class="ref-count">{{ kw.references_count }} réf.</span>
         <Button icon="pi pi-times" severity="danger" text size="small" @click="confirmRemove(kw)" />
@@ -127,6 +147,8 @@ onMounted(fetchKeywords)
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-header h1 { font-size: 1.4rem; font-weight: 700; }
 .mb-3 { margin-bottom: 1rem; }
+.toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; }
+.search-input { min-width: 260px; }
 .add-form { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
 .keyword-input { flex: 1; }
 .loading { text-align: center; padding: 2rem; color: var(--text-secondary); }

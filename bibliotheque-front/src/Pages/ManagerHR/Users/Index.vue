@@ -42,7 +42,7 @@ const filteredUsers = computed(() => {
 async function fetchUsers() {
   loading.value = true
   try {
-    const response = await http.get('/users')
+    const response = await http.get('/users', { params: { per_page: 'all' } })
     users.value = response.data?.data ?? response.data ?? []
   } catch {
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les utilisateurs', life: 3000 })

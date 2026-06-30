@@ -17,7 +17,7 @@ export const useDepositRequestsStore = defineStore('depositRequests', {
       this.loading = true
       this.error = null
       try {
-        const res = await http.get('/deposit-requests')
+        const res = await http.get('/deposit-requests', { params: { per_page: 'all' } })
         this.requests = res.data?.data ?? res.data ?? []
       } catch {
         this.error = 'Impossible de charger vos demandes de dépôt.'
@@ -30,7 +30,7 @@ export const useDepositRequestsStore = defineStore('depositRequests', {
       this.loading = true
       this.error = null
       try {
-        const res = await http.get('/deposit-requests')
+        const res = await http.get('/deposit-requests', { params: { per_page: 'all' } })
         this.requests = res.data?.data ?? res.data ?? []
       } catch {
         this.error = 'Impossible de charger les demandes de dépôt.'

@@ -32,6 +32,10 @@ class ActivityLogResource extends JsonResource
             'updated' => 'Modification',
             'deleted' => 'Suppression',
             'restored' => 'Restauration',
+            'POST' => 'Publication',
+            'PUT' => 'Mise à jour',
+            'PATCH' => 'Modification partielle',
+            'DELETE' => 'Suppression',
             default => $action,
         };
     }
