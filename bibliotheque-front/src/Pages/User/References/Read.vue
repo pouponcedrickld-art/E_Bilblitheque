@@ -46,9 +46,35 @@ function readUrl() {
   return `/api/references/${reference.value.id}/read`
 }
 
-function download() {
+function downloadFiche() {
   if (!reference.value) return
   router.push(`/user/references/${reference.value.id}/download`)
+}
+
+async function downloadFile() {
+  if (!reference.value) return
+  try {
+    const response = await http.get(`/references/${reference.value.id}/download-file`, {
+      responseType: 'blob',
+    })
+    const contentDisposition = response.headers['content-disposition']
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '') || `document-${reference.value.id}`
+      : `document-${reference.value.id}`
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.setAttribute('download', filename)
+    anchor.style.display = 'none'
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err: any) {
+    error.value = err.response?.status === 403
+      ? 'Téléchargement non autorisé.'
+      : 'Erreur lors du téléchargement du fichier.'
+  }
 }
 
 // Redirige si le compte n'est pas actif
@@ -69,8 +95,11 @@ onMounted(() => {
       </button>
       <h1 v-if="reference">{{ reference.title }}</h1>
       <div v-if="reference" class="header-actions">
-        <button v-if="canDownload" class="download-btn" @click="download">
-          <i class="pi pi-download" /> Télécharger la fiche
+        <button v-if="canDownload" class="download-btn" @click="downloadFiche">
+          <i class="pi pi-file-pdf" /> Fiche PDF
+        </button>
+        <button v-if="canDownload && reference.file_path" class="download-btn download-btn--file" @click="downloadFile">
+          <i class="pi pi-download" /> Télécharger
         </button>
         <span v-else class="download-blocked">
           <i class="pi pi-lock" /> Téléchargement bloqué
@@ -136,6 +165,10 @@ onMounted(() => {
 
 .download-btn:hover {
   opacity: 0.85;
+}
+
+.download-btn--file {
+  background: var(--gold-dark, #b8860b);
 }
 
 .download-blocked {

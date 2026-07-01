@@ -49,11 +49,11 @@ async function fetchStats() {
     ])
 
     stats.value = {
-      references: (refs.data?.data ?? refs.data ?? []).length,
-      categories: (cats.data?.data ?? cats.data ?? []).length,
-      authors: (authors.data?.data ?? authors.data ?? []).length,
+      references: refs.data?.total ?? (refs.data?.data ?? refs.data ?? []).length,
+      categories: cats.data?.total ?? (cats.data?.data ?? cats.data ?? []).length,
+      authors: authors.data?.total ?? (authors.data?.data ?? authors.data ?? []).length,
       pendingRequests: 0,
-      users: (users.data?.data ?? users.data ?? []).length,
+      users: users.data?.total ?? (users.data?.data ?? users.data ?? []).length,
       downloads: downloads.data?.total_downloads ?? 0,
       views: views.data?.total_views ?? 0,
     }

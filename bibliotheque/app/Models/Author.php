@@ -18,12 +18,19 @@ class Author extends Model
         'death_date',
     ];
 
+    protected $appends = ['full_name'];
+
     protected function casts(): array
     {
         return [
             'birth_date' => 'date',
             'death_date' => 'date',
         ];
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
     }
 
     // Toutes les références (ouvrages) de cet auteur

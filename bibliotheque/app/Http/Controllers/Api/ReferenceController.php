@@ -213,6 +213,8 @@ class ReferenceController extends Controller
 
         $reference->increment('view_count');
 
+        Cache::forget('views.stats');
+
         $path = Storage::disk('public')->path($reference->file_path);
         $mime = Storage::disk('public')->mimeType($reference->file_path);
 
@@ -236,6 +238,8 @@ class ReferenceController extends Controller
 
         $reference->increment('download_count');
 
+        Cache::forget('downloads.stats');
+
         // Charge les relations nécessaires à la fiche PDF
         $reference->load(['authors', 'category', 'publisher', 'documentType', 'keywords']);
 
@@ -246,6 +250,30 @@ class ReferenceController extends Controller
         $filename = Str::slug($reference->title) . '-fiche.pdf';
 
         return $pdf->download($filename);
+    }
+
+    // Télécharge le fichier original (PDF/DOCX) et enregistre le téléchargement
+    public function downloadFile(Request $request, Reference $reference)
+    {
+        $this->authorize('download', $reference);
+
+        if (!$reference->file_path || !Storage::disk('public')->exists($reference->file_path)) {
+            return response()->json(['message' => 'Document non disponible.'], 404);
+        }
+
+        $reference->downloads()->create([
+            'user_id' => $request->user()->id,
+            'downloaded_at' => now(),
+        ]);
+
+        $reference->increment('download_count');
+
+        Cache::forget('downloads.stats');
+
+        $path = Storage::disk('public')->path($reference->file_path);
+        $filename = basename($reference->file_path);
+
+        return response()->download($path, $filename);
     }
 
     // Admin : force le téléchargement sur une référence (outrepasse le refus du propriétaire)

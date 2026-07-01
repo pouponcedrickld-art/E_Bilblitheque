@@ -21,8 +21,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
-    // Téléchargement de fichier (tout utilisateur connecté)
+    // Téléchargement de la fiche PDF (métadonnées)
     Route::get('/references/{reference}/download', [ReferenceController::class, 'download']);
+    // Téléchargement du fichier original
+    Route::get('/references/{reference}/download-file', [ReferenceController::class, 'downloadFile']);
 
     // Références (tout utilisateur connecté peut proposer)
     Route::post('/references', [ReferenceController::class, 'store']);
